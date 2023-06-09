@@ -4,7 +4,7 @@
 
 ## Setup
 
-#### Handling
+### Handling
 
 _**DO NOT**_ pick up Misty [by the arms](https://docs.mistyrobotics.com/misty-ii/robot/misty-ii/#unpacking-the-misty-ii). She can be picked up by the torso (which the arms are attached to) or the base.
 
