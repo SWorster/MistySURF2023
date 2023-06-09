@@ -61,7 +61,7 @@ The JavaScript code for your program will go between the `<script>` tags in the 
 
 Misty uses an HTTP library called Axios to handle network communication. This library is included using the `<script src="https://unpkg.com/axios/dist/axios.min.js">` line in the `<head>` section.
 
-If your code will reference Misty’s light sensors or cameras, you will need to include the `lightSocket.js` [script](https://drive.google.com/file/d/1kjKtRmVdsRk5ej33mM17Bpk-rsZEhOwH/view?usp=drive_link). We recommend moving this file to the same location as your code. Add the following line to the bottom of the `<head>` section:
+If your code will reference Misty’s light sensors or cameras, you will need to include the `lightSocket.js` [script](https://github.com/SWorster/MistySURF2023/blob/ec0f306566716595591b53d1d1412dea6e0f9f23/JavaScript%20Tutorials/lightSocket.js). We recommend moving this file to the same location as your code. Add the following line to the bottom of the `<head>` section:
 
 ```html
 <script src="lightSocket.js"></script>
@@ -71,7 +71,7 @@ If `lightSocket.js` is in a different location, you will need to provide the loc
 
 ## Tutorial #1: Changing LED
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/1S3kbhuBjbi4dYGA3sdAFEiSMxCi7OHGR/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/ec0f306566716595591b53d1d1412dea6e0f9f23/JavaScript%20Tutorials/tutorial1.html).
 
 Begin by declaring your robot’s IP address as a global constant value:
 
@@ -137,7 +137,7 @@ Promise.race([
 
 ## Tutorial #2: Driving Straight
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/1goSXAz8GFdHA11Bj-VMPrVlWcjKznFuj/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/ec0f306566716595591b53d1d1412dea6e0f9f23/JavaScript%20Tutorials/tutorial2.html).
 
 This program has the robot drive straight forward for a set time or until it sees an obstacle. To accomplish this, we need to subscribe to Misty’s WebSocket connections (essentially, we need to view the data Misty is collecting in real time).
 
@@ -286,7 +286,7 @@ socket.Connect();
 
 ## Tutorial #3: Computer Vision and Facial Recognition
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/12fcza6j6LYqDQ7axmkzvVpSjvTBgVQ_m/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/ec0f306566716595591b53d1d1412dea6e0f9f23/JavaScript%20Tutorials/tutorial3.html).
 
 This program uses Misty’s facial recognition capabilities. Misty will check whether she knows a given name. If she knows the name and sees that person, she will greet the person. If she does not know the name, Misty will use facial recognition to learn the person’s face.
 
@@ -445,7 +445,7 @@ This program has a rather obvious edge case: what if Misty knows the person’s 
 
 ## Tutorial #4: Taking Pictures
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/1xtru4zww5WOTHyVNwxSqfpNOdmjJ16tr/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/ec0f306566716595591b53d1d1412dea6e0f9f23/JavaScript%20Tutorials/tutorial4.html).
 
 This program lets Misty take a photo when she detects a face.
 
