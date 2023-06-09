@@ -74,9 +74,9 @@ All angles are measured in degrees, not radians. All movement programming should
 
 Because of internet lag, Misty’s head and arm movement often stutters, and may not completely move to the specified position. We suspect that the slider interface may also be a factor. If Misty does not complete a movement, click on the slider again at the desired position.
 
-### Misty Studio
+## Misty Studio
 
-#### Wizard and Explore
+### Wizard and Explore
 
 Wizard is the starting page for the Studio, and it allows the user to adjust head position, arm position, the chest LED color, etc. It comes with built-in presets that change the various physical aspects of Misty. Explore goes into more depth for each capability, such as Expression, Locomotion, Vision, Hearing, and Mapping. In each category, there are options for changing what Misty does.
 
@@ -90,26 +90,26 @@ Wizard is the starting page for the Studio, and it allows the user to adjust hea
 
 **Mapping** allows Misty to [map the layout](https://docs.mistyrobotics.com/misty-ii/misty-studio/mapping/) of a room. We haven’t experimented with this yet, and it seems that mapping has only been beta tested.
 
-#### Programming
+### Programming
 
 There are multiple ways to program Misty, but we recommend using the Web API which utilizes HTML and JavaScript. Other methods include using C# in .NET applications or Python. Utilizing C# is the most supported, but is unavailable on non-Windows machines. Python, which is a highly accessible method like the Web API, is restrictive in that you can only have a single file running at a time and cannot use external libraries.
 
-#### Tutorials
+### Tutorials
 
 _**DO NOT CLICK ON THESE!**_ There are 3 tutorials that are given in Misty Studio. When clicked on, they will immediately start to execute, so it’s not recommended that you use these.
 
-#### Settings
+### Settings
 Various extra settings and info such as Studio Settings, WiFi, Update Management, and Diagnostics. Studio Settings is useful for resetting the robot’s various positions back to their defaults.
 
-### Coding
+## Coding
 
 Misty’s programs are called skills: a file or set of files that give Misty instructions to complete a task. Misty can store these skills internally and run them from her onboard processors, but she can also take commands from code running on your computer.
 
-#### External
+### External
 
 We recommend using VS Code to create HTML/JavaScript programs. Many programming languages can access the Web API, but JavaScript is the most well-documented.
 
-#### Internal
+### Internal
 
 Misty can also store and run code internally, but there are some limitations.
 
