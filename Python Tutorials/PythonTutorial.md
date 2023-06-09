@@ -1,4 +1,4 @@
-#Python Programming
+# Python Programming
 
 Content is from [here](https://github.com/MistyCommunity/Python-SDK) with supplements from [here](https://github.com/MistyCommunity/Wrapper-Python), though a bit outdated.
 
