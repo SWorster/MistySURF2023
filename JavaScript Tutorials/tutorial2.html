@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8" />
+    <title>Tutorial | Using Sensors, WebSockets, and Locomotion</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Include references to a CDN for the Axios library and the local path where lightSocket.js is saved in the <head> of your document -->
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script src="local-path-to-lightSocket.js"></script>
+</head>
+
+<body>
+    <script>
+
+        // Declare a constant variable and set its value to a string with your robot's IP address.
+        const ip = "MISTY-IP-ADDRESS-HERE";
+
+        let is_driving = false;
+
+        // Create a new instance of LightSocket called socket. Pass as arguments the ip variable and a function named openCallback.
+        let socket = new LightSocket(ip, openCallback);
+
+
+        /* COMMANDS */
+
+        // Define the function passed as the callback to the new instance of LightSocket. This is the code that executes when socket opens a connection to your robot.
+        function openCallback() {
+
+            // Print a message when the connection is opened.
+            console.log("socket opened");
+
+            // Subscribe to an event called CenterTimeOfFlight that returns TimeOfFlight data. Pass arguments to make sure this event returns data for the front center time-of-flight sensor every 100 milliseconds. Pass the callback function _centerTimeOfFlight() as the final argument.
+            socket.Subscribe("CenterTimeOfFlight", "TimeOfFlight", 100, "SensorPosition", "==", "Center", null, _centerTimeOfFlight);
+
+            // Subscribe to an event called DriveEncoders that returns Misty's tread data. Pass the callback function _driveEncoders() as the final argument.
+            socket.Subscribe("DriveEncoders", "DriveEncoders", 50, null, null, null, null, _driveEncoders);
+
+            // Create a data object to send with the DriveTime command.
+            let data = {
+                LinearVelocity: 50,
+                AngularVelocity: 0,
+                TimeMS: 5000
+            };
+
+            // Use axios.post() to send the data to the endpoint for the DriveTime command.
+            axios.post("http://" + ip + "/api/drive/time", data)
+                // Use .then() to handle a successful response.
+                .then(function (response) {
+                    // Print the results
+                    console.log(`DriveTime was a ${response.data.status}`);
+                })
+                // Use .catch() to handle errors
+                .catch(function (error) {
+                    // Print any errors
+                    console.log(`There was an error with the request ${error}`);
+                });
+        }
+
+        /* CALLBACKS */
+
+        // Define the callback function for handling CenterTimeOfFlight event data
+        let _centerTimeOfFlight = function (data) {
+
+            // Use try and catch statements to handle exceptions and unimportant messages from the WebSocket data stream.
+            try {
+
+                // Create a distance variable to store the value representing the distance from Misty in meters an object has been detected by her front center time-of-flight sensor.
+                let distance = data.message.distanceInMeters;
+
+                // Write an if statement to check if the distance is smaller than 0.2 meters.
+                if (distance < 0.2) {
+                    
+                    // If the instance is less than 0.2 meters, send a request to endpoint for the Stop command.
+                    axios.post("http://" + ip + "/api/drive/stop")
+                        .then(function (response) {
+                            // Print the results
+                            console.log(`Stop was a ${response.data.status}`);
+                        })
+                        .catch(function (error) {
+                            // Print any errors
+                            console.log(`There was an error with the request ${error}`);
+                        });
+                }
+            }
+            catch (e) { }
+        };
+
+
+        // Define the callback function passed in the subscription to DriveEncoders events
+        let _driveEncoders = function (data) {
+
+            // Use try and catch statements to handle exceptions and unimportant messages
+            try {
+                velocity = (data.message.leftVelocity + data.message.rightVelocity) /2;
+
+                // Track whether Misty has started moving
+                if (velocity > 0.01){
+                    is_driving = true;
+                }
+
+                // Use an if statement to check whether Misty stopped moving
+                if (velocity === 0 && is_driving) {
+
+                    // Print a message to the console to aid in debugging
+                    console.log("DriveEncoders received linear velocity as", velocity);
+
+                    // Unsubscribe from the CenterTimeOfFlight and DriveEncoders events
+                    socket.Unsubscribe("CenterTimeOfFlight");
+                    socket.Unsubscribe("DriveEncoders");
+                }
+            }
+            catch (e) { }
+        };
+
+        // Open the connection to your robot. When the connection is established, the openCallback function executes to subscribe to WebSockets and send Misty a DriveTime command. Event data is passed to the _centerTimeOfFlight() and _driveEncoders() callback functions.
+        socket.Connect();
+
+    </script>
+</body>
