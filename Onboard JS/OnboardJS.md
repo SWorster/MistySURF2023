@@ -27,7 +27,7 @@ Misty’s onboard [JavaScript API](https://github.com/MistyCommunity/Documentati
 }
 ```
 
-The name of the JSON file must match the name of the JS file in order for it to be recognized correctly. Example: [changeLED.js](https://drive.google.com/file/d/1YIqds9UXXRbPQEMnumVmRlGmb4xZ4U_P/view?usp=drive_link) and [changeLED.json](https://drive.google.com/file/d/1Su8y1055ajkbjfsF9wWuViMYePSEHMpv/view?usp=drive_link).
+The name of the JSON file must match the name of the JS file in order for it to be recognized correctly. Example: [changeLED.js](https://github.com/SWorster/MistySURF2023/blob/27a8c79d4c6ebf93c16c81fe7a837851831908e1/Onboard%20JS/changeLED.js) and [changeLED.json](https://github.com/SWorster/MistySURF2023/blob/27a8c79d4c6ebf93c16c81fe7a837851831908e1/Onboard%20JS/changeLED.json).
 
 - The `Name` is what we refer to the skill as. This should be the same as the file name.
 - The `UniqueId` is a globally unique ID (GUID) that Misty will use to identify the skill
