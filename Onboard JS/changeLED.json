@@ -1,0 +1,15 @@
+{
+  "Name": "changeLED",
+  "UniqueId": "9b2e8696-3352-4997-bfd0-c23202ce1a7e",
+  "Description": "Change the chest LED color to something",
+  "StartupRules": [
+    "Manual",
+    "Robot"
+  ],
+  "Language": "javascript",
+  "BroadcastMode": "verbose",
+  "TimeoutInSeconds": 600,
+  "CleanupOnCancel": false,
+  "WriteToLog": false
+}
+
