@@ -1,8 +1,8 @@
 # MistySURF2023
 #### Julia Yu and Skye W Worster
 #### Smith College Computer Science Department
-#### 2023 SURF Program
 #### Prof. Ileana Streinu and Prof. Pablo Frank-Bolton
+#### 2023 SURF Program
 
 This repository contains our current work with Smith College's Misty II Advanced.
 
