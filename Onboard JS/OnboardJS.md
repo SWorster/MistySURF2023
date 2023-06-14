@@ -45,4 +45,4 @@ In order to get a `UniqueId`, go to the Skill Management subtab under Programmin
 
 ### JS File
 
-In order to get started, make sure that you have the Misty JavaScript extension installed on VSCode, or peruse the examples found [here]9https://github.com/MistyCommunity/JavaScript-SDK/tree/master/Tutorials). The documentation for the [Web API](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/) is also very useful since most of the methods can be used onboard as well.
+In order to get started, make sure that you have the Misty JavaScript extension installed on VSCode, or peruse the examples found [here](https://github.com/MistyCommunity/JavaScript-SDK/tree/master/Tutorials). The documentation for the [Web API](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/) is also very useful since most of the methods can be used onboard as well.
