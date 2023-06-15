@@ -38,7 +38,7 @@ You can now use the available [API commands](https://docs.google.com/spreadsheet
 
 ```python
 misty.ChangeLED(0,0,255)
-misty.PlayAudio("s_Joy4.wav", 5) // second param is volume out of 100
+misty.PlayAudio("s_Joy4.wav", 5) # second param is volume out of 100
 ```
 
 This may seem easier than JavaScript, but not for long.
