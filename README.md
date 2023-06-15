@@ -4,6 +4,11 @@
 #### Prof. Ileana Streinu and Prof. Pablo Frank-Bolton
 #### 2023 SURF Program
 
+<img
+  src="/Other Resources/For Fun/MistyMedia/Misty Photos/misty.jpg"
+  alt="Hello! <3"
+  style="display: inline-block; margin: 0 auto; max-width: 300px">
+
 This repository contains our current work with Smith College's Misty II Advanced.
 
 So far, we have made the following:
