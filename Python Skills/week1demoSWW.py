@@ -1,9 +1,17 @@
+'''
+Misty looks around, trying to find my face. If she finds it, she starts following me with her head. If not, she is sad and the program ends.
+
+Target has to be known, and their name must be provided.
+
+This was originally coded to use reset.py. Those lines are commented out.
+'''
+
 # import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 from mistyPy.EventFilters import EventFilters
 import time
-import os
+# import os
 
 
 def _BumpSensor(data):
@@ -15,13 +23,13 @@ def _BumpSensor(data):
         print("bumped")
 
         # should print "reset" to console
-        os.system('python3 /Users/skyeworster/Desktop/reset.py')
+        # os.system('python3 /Users/skyeworster/Desktop/reset.py')
 
         misty.UnregisterAllEvents()  # just in case
         misty.StopFaceRecognition()
 
         # if this doesn't print, pick a god and pray
-        print("end of program (misty bumped)")
+        print("end of program")
     except Exception as e:
         print("\nCOULD NOT END PROGRAM", e, "\n")
 
@@ -161,7 +169,7 @@ if __name__ == "__main__":
     misty = Robot("131.229.41.135")
     print("Going on an adventure!")
     misty.UnregisterAllEvents()
-    misty.ChangeLED(0, 0, 255)
+    misty.ChangeLED(0, 0, 255)  # blue
 
     global hPitch
     global hYaw
@@ -170,8 +178,7 @@ if __name__ == "__main__":
     global senpai
     senpai = "Skye"
 
-
-    misty.MoveHead(-20, 0, 0)
+    misty.MoveHead(-20, 0, 0)  # forward and up
 
     misty.RegisterEvent("FaceRecognition", Events.FaceRecognition,
                         callback_function=_FaceRecognition, debounce=500, keep_alive=True)
@@ -188,24 +195,26 @@ if __name__ == "__main__":
     time.sleep(1)
     misty.StartFaceRecognition()
 
-    misty.MoveHead(-20, 0, -81, 50)
+    misty.MoveHead(-20, 0, -81, 50) # move to right
 
-    while hYaw > -80:
+    while hYaw > -75: # wait until fully right
         pass
 
-    misty.MoveHead(-20, 0, 81, 50)
+    misty.MoveHead(-20, 0, 81, 50) # move to left
 
-    while hYaw < 75:
+    while hYaw < 75: # wait until fully left
         pass
 
-    print("here")
-    misty.MoveHead(-20, 0, -10, 50)
+    misty.MoveHead(-20, 0, -10, 50) # move to center
 
-    while hYaw > 0.1:
+    while hYaw > 0.1: # wait until fully centered
         pass
 
+    # didn't see target
     misty.PlayAudio("s_Sadness.wav", volume=2)
     print("didn't see anyone :(")
-    misty.ChangeLED(255,0,0)
+    misty.ChangeLED(255, 0, 0)
     time.sleep(1)
+    
+    # pass a dummy arg to BumpSensor callback, which ends the program
     _BumpSensor(1)
