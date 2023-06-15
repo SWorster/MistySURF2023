@@ -18,6 +18,7 @@ So far, we have made the following:
 - Python tutorials, _heavily_ adapted from the JS tutorials
 - Onboard JS basics, although we haven't worked with that extensively
 - Controller guide, for how to make and program an Arduino-based joystick controller
+- Python skills, a collection of programs for Misty
 
 This will be continually updated throughout the summer as we continue our work. Here's an overview of the areas we plan on exploring further:
 
