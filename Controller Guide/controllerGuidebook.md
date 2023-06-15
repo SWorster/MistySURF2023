@@ -67,7 +67,7 @@
 
 * Run the file in Terminal / Command Prompt using `python <name-of-file.py>` while in the same directory and with the Arduino still plugged into your computer.
 
-* If everything was done correctly, you have a functioning (albeit a bit laggy) controller!
+* If everything was done correctly, you have a functioning controller!
 
 <div style="page-break-after: always"></div>
 
@@ -172,6 +172,7 @@ The following if statements are to determine whether or not a button was pressed
 import serial
 import time
 from mistyPy.Robot import Robot
+from mistyPy.Events import Events
 ```
 
 These are the libraries that the code needs. See the above section on how to install them.
@@ -182,6 +183,65 @@ misty = Robot("<insert Misty IP>")
 
 This line creates an instance of Misty using `mistyPy.Robot`, and needs to have the IP address as input. Refer to the overall documentation for help with getting Misty’s IP address.
 
+*Time-of-Flight Sensor Callback*
+
+```python
+def _TOFProcessor(data):
+    global move
+    distance = data["message"]["distanceInMeters"]
+    sensor = data["message"]["sensorId"]
+    if (sensor == "toffr" or sensor == "toffl" or sensor == "toffc") and distance < .127:
+        move = False
+    elif sensor == "tofr" and distance < .0762:
+        move = False
+    else:
+        move = True
+```
+
+A time-of-flight sensor (or TOF) is used to establish the distance an object lies from the sensor by sending out a laser and calculating the distance by using the time it takes to hit the object and the speed of light.
+
+This function is used when the event set up in main is triggered. It's still in construction, but the idea is for it to detect if there is an obstacle in front or behind the robot, and prevent it from moving either forwards or backwards if there is.
+
+*Collision Sensor Callback*
+
+```python
+def _BumpSensor(data):
+    try:
+        global lastPlace
+        touched = data["message"]["isContacted"]
+        partTouched = data["message"]["sensorId"]
+        if partTouched != lastPlace:
+            lastPlace = ""
+
+        if lastPlace == "":
+            lastPlace = partTouched
+            if partTouched == "bfr" and touched:
+                misty.ChangeLED(255, 0, 0)
+            elif partTouched == "bfl" and touched:
+                misty.ChangeLED(0, 255, 0)
+            elif partTouched == "brl" and touched:
+                misty.ChangeLED(0, 0, 255)
+            elif partTouched == "brr" and touched:
+                misty.ChangeLED(69, 69, 69)
+        else:
+            if lastPlace == "bfr":
+                if touched == False and partTouched == "bfr":
+                    lastPlace = ""
+            if lastPlace == "bfl":
+                if touched == False and partTouched == "bfl":
+                    lastPlace = ""
+            if lastPlace == "brl":
+                if touched == False and partTouched == "brl":
+                    lastPlace = ""
+            if lastPlace == "brr":
+                if touched == False and partTouched == "brr":
+                    lastPlace = ""
+    except Exception as e:
+        print("EXCEPTION:", e)
+```
+
+There are 4 bumper sensors on the robot's base, which is what this function uses. The purpose is to send out a visible/audible alert that Misty bumped into something (or someone). Currently still under construction.
+
 *Treads Control*
 
 ```python
@@ -189,22 +249,23 @@ def treads(coords):
     split = coords.split()
     x = int(split[0])
     y = int(split[1])
+
     if y < 341 and x > 341 and x < 682:
-        misty.Drive(linearVelocity = 10, angularVelocity = 0)
+        misty.Drive(linearVelocity = 20, angularVelocity = 0)
     elif y > 682 and x > 341 and x < 682:
-        misty.Drive(linearVelocity = -10, angularVelocity = 0)
+        misty.Drive(linearVelocity = -20, angularVelocity = 0)
     elif x < 341 and y > 341 and y < 682:
-        misty.Drive(linearVelocity = 0, angularVelocity = 10)
+        misty.Drive(linearVelocity = 0, angularVelocity = 20)
     elif x > 682 and y > 341 and y < 682:
-        misty.Drive(linearVelocity = 0, angularVelocity = -10)
+        misty.Drive(linearVelocity = 0, angularVelocity = -20)
     elif x < 341 and y < 341:
-        misty.Drive(linearVelocity = 10, angularVelocity = 10)
+        misty.Drive(linearVelocity = 20, angularVelocity = 20)
     elif x > 682 and y < 341:
-        misty.Drive(linearVelocity = 10, angularVelocity = -10)
+        misty.Drive(linearVelocity = 20, angularVelocity = -20)
     elif x < 341 and y > 682:
-        misty.Drive(linearVelocity = -10, angularVelocity = 10)
+        misty.Drive(linearVelocity = -20, angularVelocity = 20)
     elif x > 682 and y > 682:
-        misty.Drive(linearVelocity = -10, angularVelocity = -10)
+        misty.Drive(linearVelocity = -20, angularVelocity = -20)
     else:
         misty.Halt()
 ```
@@ -230,18 +291,19 @@ def arms(data):
     split = data.split()
     x = int(split[0])
     y = int(split[1])
+
     if y < 341 and x > 341 and x < 682:
-        misty.MoveArm(arm = "left", position = -29, velocity = 20, units = "degrees")
+        misty.MoveArm(arm = "left", position = -29, velocity = 50, units = "degrees")
     elif y > 682 and x > 341 and x < 682:
-        misty.MoveArm(arm = "left", position = 90, velocity = 20, units = "degrees")
+        misty.MoveArm(arm = "left", position = 90, velocity = 50, units = "degrees")
     elif x < 341 and y > 341 and y < 682:
-        misty.MoveArm(arm = "right", position = 90, velocity = 20, units = "degrees")
+        misty.MoveArm(arm = "right", position = 90, velocity = 50, units = "degrees")
     elif x > 682 and y > 341 and y < 682:
-        misty.MoveArm(arm = "right", position = -29, velocity = 20, units = "degrees")
+        misty.MoveArm(arm = "right", position = -29, velocity = 50, units = "degrees")
     elif (x < 341 and y < 341) or (x > 682 and y < 341):
-        misty.MoveArm(arm = "both", position = -29, velocity = 20, units = "degrees")
+        misty.MoveArm(arm = "both", position = -29, velocity = 50, units = "degrees")
     elif (x < 341 and y > 682) or (x > 682 and y > 682):
-        misty.MoveArm(arm = "both", position = 90, velocity = 20, units = "degrees")
+        misty.MoveArm(arm = "both", position = 90, velocity = 50, units = "degrees")
     else:
         misty.Halt()
 ```
@@ -261,18 +323,19 @@ def head(data):
     split = data.split()
     x = int(split[0])
     y = int(split[1])
+
     if y < 341 and x > 341 and x < 682:
-        misty.MoveHead(pitch = -40, velocity = 70, units = "degrees")
+        misty.MoveHead(pitch = -40, velocity = 100, units = "degrees")
     elif y > 682 and x > 341 and x < 682:
-        misty.MoveHead(pitch = 26, velocity = 70, units = "degrees")
+        misty.MoveHead(pitch = 26, velocity = 100, units = "degrees")
     elif x < 341 and y > 341 and y < 682:
-        misty.MoveHead(yaw = 81, velocity = 70, units = "degrees")
+        misty.MoveHead(yaw = 81, velocity = 85, units = "degrees")
     elif x > 682 and y > 341 and y < 682:
-        misty.MoveHead(yaw = -81, velocity = 70, units = "degrees")
+        misty.MoveHead(yaw = -81, velocity = 85, units = "degrees")
     elif x < 341 and y < 341:
-        misty.MoveHead(roll = -40, velocity = 70, units = "degrees")
+        misty.MoveHead(roll = -40, velocity = 100, units = "degrees")
     elif x > 682 and y < 341:
-        misty.MoveHead(roll = 40, velocity = 70, units = "degrees")
+        misty.MoveHead(roll = 40, velocity = 100, units = "degrees")
     else:
         misty.Halt()
 ```
@@ -311,12 +374,31 @@ Like all the other functions created above, this one also uses data from the Ser
 
 All in all, the process is the same, but only with 1 number and it won't fluctuate if you try and move it.
 
+*Changing Misty's Settings*
+
+```python
+def init():
+    misty.UpdateHazardSettings(disableTimeOfFlights = True)
+    misty.MoveHead(0, 0, 0)
+```
+
+The purpose of having this function is to disable the hazard system's time-of-flight sensors and to reset the head to the neutral position. The reason we disable the TOF sensors is because (for the robot that we're testing this code on), the sensors on the bottom are being triggered and showing odd readings which indicate that Misty thinks she's about to fall off a cliff which stops her from moving correctly. We circumvent this by disabling them, which still allows for event TOF functions to work.
+
 *Bringing it All Together*
 
 ```python
 if __name__ == "__main__":
+    global lastPlace, move
+    lastPlace = ""
+    move = True
+    init()
     ser = serial.Serial("<insert Arduino COM>", 9600, timeout = 1)
     time.sleep(1)
+
+    misty.RegisterEvent(event_name = "stop", event_type = Events.BumpSensor, callback_function = _BumpSensor, keep_alive = True)
+    misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, debounce = 150, keep_alive = True)
+    misty.ChangeLED(255, 200, 0)
+
     while True:
         line = ser.readline()
         if line:
@@ -329,7 +411,13 @@ if __name__ == "__main__":
     ser.close()
 ```
 
+First, some global variables (which is part of the 2 callback functions still under edit). These keep track of which of Misty's bumper sensors have been triggered and if the robot is allowed to move respectively.
+
+The next thing called is `init()`, which was discussed above. This is important since it resets the head position and disables the sensors on the bottom which changed the movement the robot could take.
+
 Using [`serial.Serial()`](https://pythonhosted.org/pyserial/pyserial_api.html) we are able to open communications between the COM port on a computer and this Python script.
+
+[`misty.RegisterEvent()`](https://docs.mistyrobotics.com/misty-ii/dotnet-sdk/dotnet-skill-architecture/#registering-amp-unregistering-events) creates a listener to check if a certain peripheral has been triggered. The 2 instances here create listeners for the bumpers and the TOF sensors. Other types of events can be found [here](https://docs.mistyrobotics.com/misty-ii/robot/sensor-data/). Afterwards, the LED on Misty's chest will change color.
 
 [`Ser.readline()`](https://pyserial.readthedocs.io/en/latest/shortintro.html?highlight=readline#readline) lets us get a single line of data from the Serial Monitor in a byte object. If this results in anything, it goes ahead and decodes it from being in bytes to being a string in Python we can manipulate. We then check to make sure that there is a space in the string, as it would not be a valid piece of data otherwise. If there is, the string will be stripped of the newline character that comes at the end of it, and the result will be passed into `mode()`.
 
