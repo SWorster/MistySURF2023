@@ -10,8 +10,6 @@
 
 ![Arduino Uno Layout V2](imgs/wiring1_v2.png)
 
-<div style="page-break-after: always"></div>
-
 ### [Arduino Nano / Nano Every Version](https://www.circuito.io/app?components=97,97,97,97,514,11022,611984)
 
 ##### Note: the board in the picture is a Nano, but Nano Every has the same pin ordering, size, and better specs
@@ -19,8 +17,6 @@
 ![Arduino Nano Layout V1](imgs/wiring2_v1.png)
 
 ![Arduino Nano Layout V2](imgs/wiring2_v2.png)
-
-<div style="page-break-after: always"></div>
 
 # Uploading the Arduino code to the board
 * Starting off, let's assume you’re using the IDE that is downloadable [here](https://www.arduino.cc/en/software). It’s a similar process with the Web Editor and the older Arduino uploader if you decide to go with those routes, so you can follow along regardless.
@@ -51,8 +47,6 @@
 
 <p style="text-align: center;"> <em> Figure 3: Opening and Closing the Serial Monitor (the orange and yellow boxes respectively) </em> </p>
 
-<div style="page-break-after: always"></div>
-
 # Run the Python File
 * Install the following python packages through pip. The second line should install the packages following it, but in case it doesn’t, the others are also listed. Check back in the Misty Walkthrough for more details on what versions specifically to install if this is the case.
   * `pip install pyserial`
@@ -68,8 +62,6 @@
 * Run the file in Terminal / Command Prompt using `python <name-of-file.py>` while in the same directory and with the Arduino still plugged into your computer.
 
 * If everything was done correctly, you have a functioning controller!
-
-<div style="page-break-after: always"></div>
 
 # Arduino Line-by-Line Code Walkthrough
 
@@ -104,8 +96,6 @@ const int timeDelay = 150;
 ```
 
 These are global variables that are meant to keep track of certain values that would be important for us in this program. `xValue` and `yValue` are used for the joystick, while the different colored `__States` are used for the buttons. `Mode` is used for tracking which commands to send to Misty, and `timeDelay` is a constant that is user changeable in order to create a buffer between each line outputted in the Serial Monitor.
-
-<div style="page-break-after: always"></div>
 
 *Setting Up*
 
@@ -162,8 +152,6 @@ The following if statements are to determine whether or not a button was pressed
 
 `Serial.print()` and `Serial.println()` are the Serial Monitor print statements of Arduino. The purpose of having these here is to interface with the pySerial library in the Python program. It takes information from the Serial Monitor and allows us to use it for other purposes.
 
-<div style="page-break-after: always"></div>
-
 # Python Line-by-Line Code Walkthrough
 
 *Python Imports and Misty Declaration*
@@ -187,29 +175,37 @@ This line creates an instance of Misty using `mistyPy.Robot`, and needs to have 
 
 ```python
 def _TOFProcessor(data):
-    global move
+    global canMoveForward, canMoveBackward
     distance = data["message"]["distanceInMeters"]
     sensor = data["message"]["sensorId"]
-    if (sensor == "toffr" or sensor == "toffl" or sensor == "toffc") and distance < .127:
-        move = False
-    elif sensor == "tofr" and distance < .0762:
-        move = False
-    else:
-        move = True
+    valid = data["message"]["status"]
+    if distance < .25 and valid == 0:
+        if sensor == "toffc":
+            canMoveForward = False
+            misty.Stop()
+        elif sensor == "tofr":
+            canMoveBackward = False
+            misty.Stop()
+    elif valid == 0 and distance > .25:
+        if sensor == "toffc":
+            canMoveForward = True
+        elif sensor == "tofr":
+            canMoveBackward = True
 ```
 
-A time-of-flight sensor (or TOF) is used to establish the distance an object lies from the sensor by sending out a laser and calculating the distance by using the time it takes to hit the object and the speed of light.
+A time-of-flight sensor (or ToF) is used to establish the distance an object lies from the sensor by sending out a laser and calculating the distance by using the time it takes to hit the object and the speed of light.
 
-This function is used when the event set up in main is triggered. It's still in construction, but the idea is for it to detect if there is an obstacle in front or behind the robot, and prevent it from moving either forwards or backwards if there is.
+This function is used when the event set up in main is triggered. It works by checking to see if the center sensor or rear sensor have been triggered (seeing something at a a distance of .25 meters) and it is a valid measurement. If it is, it stops Misty's movement and prevents it from moving any closer. Once Misty moves out of range, she can move in the original direction she was heading.
 
 *Collision Sensor Callback*
 
 ```python
 def _BumpSensor(data):
     try:
-        global lastPlace
+        global lastPlace, contactFront, contactBack
         touched = data["message"]["isContacted"]
         partTouched = data["message"]["sensorId"]
+        
         if partTouched != lastPlace:
             lastPlace = ""
 
@@ -217,57 +213,69 @@ def _BumpSensor(data):
             lastPlace = partTouched
             if partTouched == "bfr" and touched:
                 misty.ChangeLED(255, 0, 0)
+                contactFront = True
+                misty.Stop()
             elif partTouched == "bfl" and touched:
                 misty.ChangeLED(0, 255, 0)
+                contactFront = True
+                misty.Stop()
             elif partTouched == "brl" and touched:
                 misty.ChangeLED(0, 0, 255)
+                contactBack = True
+                misty.Stop()
             elif partTouched == "brr" and touched:
                 misty.ChangeLED(69, 69, 69)
+                contactBack = True
+                misty.Stop()
         else:
             if lastPlace == "bfr":
                 if touched == False and partTouched == "bfr":
                     lastPlace = ""
+                    contactFront = False
             if lastPlace == "bfl":
                 if touched == False and partTouched == "bfl":
                     lastPlace = ""
+                    contactFront = False
             if lastPlace == "brl":
                 if touched == False and partTouched == "brl":
                     lastPlace = ""
+                    contactBack = False
             if lastPlace == "brr":
                 if touched == False and partTouched == "brr":
                     lastPlace = ""
+                    contactBack = False
     except Exception as e:
         print("EXCEPTION:", e)
 ```
 
-There are 4 bumper sensors on the robot's base, which is what this function uses. The purpose is to send out a visible/audible alert that Misty bumped into something (or someone). Currently still under construction.
+There are 4 bumper sensors on the robot's base, which is what this function uses. When any of the 4 bumper sensors are pressed, the LED on Misty's chest changes color and her movement will stop. The color depends on the last sensor pressed, meaning that one can be pressed and then another which is recognized and the color shown will be of the most recent sensor. After the sensors are no longer in contact with anything, Misty will be able to move again.
 
 *Treads Control*
 
 ```python
 def treads(coords):
+    global canMoveForward, canMoveBackward, contactFront, contactBack
     split = coords.split()
     x = int(split[0])
     y = int(split[1])
-
-    if y < 341 and x > 341 and x < 682:
+    if y < 341 and x > 341 and x < 682 and not contactFront and canMoveForward:
         misty.Drive(linearVelocity = 20, angularVelocity = 0)
-    elif y > 682 and x > 341 and x < 682:
+    elif y > 682 and x > 341 and x < 682 and not contactBack and canMoveBackward:
         misty.Drive(linearVelocity = -20, angularVelocity = 0)
     elif x < 341 and y > 341 and y < 682:
-        misty.Drive(linearVelocity = 0, angularVelocity = 20)
+        misty.Drive(linearVelocity = 0, angularVelocity = 50)
     elif x > 682 and y > 341 and y < 682:
-        misty.Drive(linearVelocity = 0, angularVelocity = -20)
-    elif x < 341 and y < 341:
+        misty.Drive(linearVelocity = 0, angularVelocity = -50)
+    elif x < 341 and y < 341 and not contactFront and canMoveForward:
         misty.Drive(linearVelocity = 20, angularVelocity = 20)
-    elif x > 682 and y < 341:
+    elif x > 682 and y < 341 and not contactFront and canMoveForward:
         misty.Drive(linearVelocity = 20, angularVelocity = -20)
-    elif x < 341 and y > 682:
+    elif x < 341 and y > 682 and not contactBack and canMoveBackward:
         misty.Drive(linearVelocity = -20, angularVelocity = 20)
-    elif x > 682 and y > 682:
+    elif x > 682 and y > 682 and not contactBack and canMoveBackward:
         misty.Drive(linearVelocity = -20, angularVelocity = -20)
     else:
-        misty.Halt()
+        misty.Stop()
 ```
 
 This function is used when the button corresponding to `mode = 1` was pressed. It is also the initial movement option selected when first connecting and starting the controller up. The function has a single parameter which should be a string that was obtained from data in the Serial Monitor.
@@ -280,9 +288,7 @@ The following if-else chain is to correspond with the various situations that th
 
 [`Misty.Drive()`](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#drive) is evaluated using 2 parameters: `linearVelocity` and `angularVelocity`. Both handle the speed at which the treads go, from 0 to a maximum of 100. Linear handles speed straight ahead, while angular handles how much it turns (which is done by having one tread either be at a slower speed or not move at all). Holding up will drive Misty forward, while holding down will back her up. Left and right serve to turn Misty to the corresponding direction, and holding the joystick in any of the 4 remaining directions will evaluate to a combination of turning and moving forwards or backwards.
 
-[`Misty.Halt()`](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#halt) stops all of Misty's motors, which is what happens when the joystick is at resting position (otherwise known as the center).
-
-<div style="page-break-after: always"></div>
+[`Misty.Stop()`](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#stop) stops Misty's movement, which is what happens when the joystick is at resting position (otherwise known as the center).
 
 *Arm(s) Control*
 
@@ -291,7 +297,6 @@ def arms(data):
     split = data.split()
     x = int(split[0])
     y = int(split[1])
-
     if y < 341 and x > 341 and x < 682:
         misty.MoveArm(arm = "left", position = -29, velocity = 50, units = "degrees")
     elif y > 682 and x > 341 and x < 682:
@@ -305,16 +310,14 @@ def arms(data):
     elif (x < 341 and y > 682) or (x > 682 and y > 682):
         misty.MoveArm(arm = "both", position = 90, velocity = 50, units = "degrees")
     else:
-        misty.Halt()
+        misty.Stop()
 ```
 
 This function is very similar structure-wise to the above function for the treads as it uses all of the same controls on the joystick to do different things.
 
-The first thing that is different is that it's only activated when a different button is pushed, being the one that corresponds to set `mode = 2`. It combines when the joystick is held at the upper left or right positions, as well as the lower left and right positions, in order to account for if the user would like to raise or lower both arms at once. Left and right will lower and raise the right arm respectively, while up and down will raise and lower the left arm. This function also has `misty.Halt()` in order to stop the arm movement when the user is no longer holding the joystick in a direction that is not it's resting position.
+The first thing that is different is that it's only activated when a different button is pushed, being the one that corresponds to set `mode = 2`. It combines when the joystick is held at the upper left or right positions, as well as the lower left and right positions, in order to account for if the user would like to raise or lower both arms at once. Left and right will lower and raise the right arm respectively, while up and down will raise and lower the left arm. This function also has `misty.Stop()` in order to stop the arm movement when the user is no longer holding the joystick in a direction that is not it's resting position.
 
 The way [`misty.MoveArm()`](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#movearm) works is by having 2 parameters and 2 optional parameters. The 2 required are the arm that you would like to move, and the position that you would like the arm to move to. The other 2 parameters are the velocity at which the arm will move to the given position, and the units to use when moving Misty's arm(s).
-
-<div style="page-break-after: always"></div>
 
 *Head Control*
 
@@ -323,7 +326,6 @@ def head(data):
     split = data.split()
     x = int(split[0])
     y = int(split[1])
-
     if y < 341 and x > 341 and x < 682:
         misty.MoveHead(pitch = -40, velocity = 100, units = "degrees")
     elif y > 682 and x > 341 and x < 682:
@@ -337,7 +339,7 @@ def head(data):
     elif x > 682 and y < 341:
         misty.MoveHead(roll = 40, velocity = 100, units = "degrees")
     else:
-        misty.Halt()
+        misty.Stop()
 ```
 
 Like the other 2 functions above, this one is also very similar. There is however, 2 missing conditionals as they aren't needed in this case.
@@ -388,15 +390,19 @@ The purpose of having this function is to disable the hazard system's time-of-fl
 
 ```python
 if __name__ == "__main__":
-    global lastPlace, move
+    global lastPlace, canMoveForward, canMoveBackward, contactFront, contactBack
     lastPlace = ""
-    move = True
+    canMoveForward = True
+    canMoveBackward = True
+    contactFront = False
+    contactBack = False
+
     init()
     ser = serial.Serial("<insert Arduino COM>", 9600, timeout = 1)
     time.sleep(1)
 
     misty.RegisterEvent(event_name = "stop", event_type = Events.BumpSensor, callback_function = _BumpSensor, keep_alive = True)
-    misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, debounce = 150, keep_alive = True)
+    misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, keep_alive = True, debounce = 100)
     misty.ChangeLED(255, 200, 0)
 
     while True:
@@ -407,6 +413,8 @@ if __name__ == "__main__":
                 strip = string.strip()
                 mode(strip)
                 if int(strip.split()[2]) == 4:
+                    misty.UnregisterAllEvents()
+                    misty.StopAudio()
                     break
     ser.close()
 ```
