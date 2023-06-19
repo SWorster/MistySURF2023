@@ -157,7 +157,7 @@ if __name__ == "__main__":
     contactBack = False
 
     init()
-    ser = serial.Serial('COM11', 9600, timeout = 1)
+    ser = serial.Serial("<insert Arduino COM>", 9600, timeout = 1)
     time.sleep(1)
 
     misty.RegisterEvent(event_name = "stop", event_type = Events.BumpSensor, callback_function = _BumpSensor, keep_alive = True)
