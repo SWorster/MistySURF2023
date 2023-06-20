@@ -203,11 +203,8 @@ if __name__ == "__main__":
     misty = Robot("131.229.41.135")
 
     # clean slate. should print "reset"
-    # os.system('python3 /Users/skyeworster/Desktop/reset.py')
-    # time.sleep(2)
-
-    # ignore TOF sensors
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)
+    os.system('python3 /Users/skyeworster/Desktop/reset.py')
+    time.sleep(2)
 
     # TODO: add in a = audio
     print("t = tactile, p = proprioception, f = facial, o = time of flight, e = end")
