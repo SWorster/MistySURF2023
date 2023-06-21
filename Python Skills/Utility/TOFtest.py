@@ -26,9 +26,9 @@ def _Left(data):
         print("LEFT: ", data["message"]["distanceInMeters"])
 
 
-def _DRight(data):
-    if data["message"]["distanceInMeters"] >= .06 and data["message"]["status"] == 0:
-        print("DOWNRIGHT: ", data["message"]["distanceInMeters"])
+def _Back(data):
+    if data["message"]["distanceInMeters"] <= .215 and data["message"]["status"] == 0:
+        print("BACK: ", data["message"]["distanceInMeters"])
 
 
 def _DRight(data):
@@ -51,12 +51,18 @@ def _BR(data):
         print("BACKRIGHT: ", data["message"]["distanceInMeters"])
 
 
-def _Back(data):
-    if data["message"]["distanceInMeters"] >= .215 and data["message"]["status"] == 0:
-        print("BACK: ", data["message"]["distanceInMeters"])
+# def _Stop(data):
+#     if first:
+#         if data["message"]["leftVelocity"] != 0:
+#             first= True
+#     else:
+#         if data["message"]["leftVelocity"] == 0:
+#             misty.UnregisterAllEvents()
 
 
 if __name__ == "__main__":
+    # global first
+    # first = True
     misty = Robot("131.229.41.135")
 
     misty.UpdateHazardSettings(revertToDefault=True)
@@ -64,21 +70,20 @@ if __name__ == "__main__":
     '''
     # Uncomment this block to set your own threshholds
     # Have to update above callbacks on your own, though
-    # Not wasting an hour coding that when you can do it in a minute lol
-    
-    t = [
-        {"sensorName": "TOF_DownFrontRight", "threshold": 0.2},
-        {"sensorName": "TOF_DownFrontLeft", "threshold": 0.2},
-        {"sensorName": "TOF_DownBackRight", "threshold": 0.2},
-        {"sensorName": "TOF_DownBackLeft", "threshold": 0.2},
-        {"sensorName": "TOF_Right", "threshold": 0.215},
-        {"sensorName": "TOF_Left", "threshold": 0.215},
-        {"sensorName": "TOF_Center", "threshold": 0.215},
-        {"sensorName": "TOF_Back", "threshold": 0.215}
-    ]
-
-    misty.UpdateHazardSettings(timeOfFlightThresholds=t)
     '''
+
+    # t = [
+    #     {"sensorName": "TOF_DownFrontRight", "threshold": 0.2},
+    #     {"sensorName": "TOF_DownFrontLeft", "threshold": 0.2}
+    #     # {"sensorName": "TOF_DownBackRight", "threshold": 0.06},
+    #     # {"sensorName": "TOF_DownBackLeft", "threshold": 0.06},
+    #     # {"sensorName": "TOF_Right", "threshold": 0.215},
+    #     # {"sensorName": "TOF_Left", "threshold": 0.215},
+    #     # {"sensorName": "TOF_Center", "threshold": 0.215},
+    #     # {"sensorName": "TOF_Back", "threshold": 0.215}
+    # ]
+
+    # print(misty.UpdateHazardSettings(timeOfFlightThresholds=t).json())
 
     # Uncomment this line to completely disable TOF sensor hazard checks
     # misty.UpdateHazardSettings(disableTimeOfFlights=True)
@@ -107,9 +112,11 @@ if __name__ == "__main__":
 
         misty.RegisterEvent("BackTimeOfFlight", Events.TimeOfFlight, condition=[
                             EventFilters.TimeOfFlightPosition.Back], keep_alive=True, callback_function=_Back, debounce=5)
+        
+        # misty.RegisterEvent("Stop", Events.DriveEncoders, keep_alive=True, debounce=5, callback_function=_Stop)
 
     except:
         print("whoops")
 
     # Uncomment to have Misty drive
-    # misty.Drive(20, 0)
+    # print(misty.Drive(20, 0))
