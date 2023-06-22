@@ -166,16 +166,16 @@ def _FaceRecognition(data):
 
 
 if __name__ == "__main__":
-    misty = Robot("131.229.41.135")
+    misty = Robot("131.229.41.135") # connect to Misty
     print("Going on an adventure!")
     misty.UnregisterAllEvents()
     misty.ChangeLED(0, 0, 255)  # blue
 
-    global hPitch
-    global hYaw
-    global seen
+    global hPitch # head pitch
+    global hYaw # head yaw
+    global seen # if Misty has seen a person
     seen = False
-    global senpai
+    global senpai # the person Misty is looking for
     senpai = "Skye"
 
     misty.MoveHead(-20, 0, 0)  # forward and up
