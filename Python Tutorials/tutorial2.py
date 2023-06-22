@@ -38,8 +38,8 @@ def move_callback(data):
 
 if __name__ == "__main__":
     misty = Robot("MISTY-IP-ADDRESS-HERE")  # Robot object with your IP 
-    print("Going on an adventure!")
-    misty.ChangeLED(0, 0, 255)
+    print("Going on an adventure!") # print message to console
+    misty.ChangeLED(0, 0, 255) # change Misty's LED to blue (RGB)
 
     global isDriving
     isDriving = False
