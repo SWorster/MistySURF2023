@@ -113,8 +113,8 @@ We recommend using VS Code to create HTML/JavaScript programs. Many programming 
 
 Misty can also store and run code internally, but there are some limitations.
 
-The best option is to use JavaScript and JSON in conjunction with the [Misty JavaScript](https://docs.mistyrobotics.com/tools-&-apps/plugins-&-extensions/misty-skills-extension/) extension for VS Code.
+A good option is to use JavaScript and JSON in conjunction with the [Misty JavaScript](https://docs.mistyrobotics.com/tools-&-apps/plugins-&-extensions/misty-skills-extension/) extension for VS Code.
 
-Misty can interpret Python skills, but can only handle one file at a time with no dependencies.
+Misty can interpret Python skills with her on-board processor, but can only handle one file at a time with no dependencies. However, Python files can be run on a computer and communicate through Misty's API interface. We strongly recommend this option.
 
 There is also a C# and .NET option, but this is only usable on Windows computers because it relies on Visual Studio extensions.

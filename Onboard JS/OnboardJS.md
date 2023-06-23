@@ -41,7 +41,7 @@ The name of the JSON file must match the name of the JS file in order for it to 
 - `WriteToLog` is a boolean used to specify whether the data from debug messages are also written to an internal log file in Misty.
 - The `Parameters` will be usable through the global `_params` variable. 
 
-In order to get a `UniqueId`, go to the Skill Management subtab under Programming in Misty Studio. There, you can generate a new JSON file with a name of your choosing to use with your new JS skill file. This is also where you can upload your JS and JSON file at the same time in order to create a new skill.
+In order to get a `UniqueId`, go to the Skill Management sub-tab under Programming in Misty Studio. There, you can generate a new JSON file with a name of your choosing to use with your new JS skill file. This is also where you can upload your JS and JSON file at the same time in order to create a new skill.
 
 ### JS File
 

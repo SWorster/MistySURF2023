@@ -68,7 +68,7 @@ if __name__ == "__main__":
     misty.UpdateHazardSettings(revertToDefault=True)
 
     '''
-    # Uncomment this block to set your own threshholds
+    # Uncomment this block to set your own thresholds
     # Have to update above callbacks on your own, though
     '''
 

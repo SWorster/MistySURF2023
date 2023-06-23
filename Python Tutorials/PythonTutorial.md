@@ -84,7 +84,7 @@ We’ll start with the main function first, then go back and write our callbacks
 
 It's good practice to unregister from all events. If we run this code after another program, Misty might still be registered to old events.
 
-The author's Misty has a malfuncitoning Time-of-Flight sensor, which convinces Misty that she's constantly about to run off a ledge. This makes Misty stop moving in the direction of that non-existent edge. We can disable this behavior with the `UpdateHazardSettings` command. If your robot has similar issues, investigate the Live Data panel on Misty Studio to diagnose the problem.
+The author's Misty has a malfunctioning Time-of-Flight sensor, which convinces Misty that she's constantly about to run off a ledge. This makes Misty stop moving in the direction of that non-existent edge. We can disable this behavior with the `UpdateHazardSettings` command. If your robot has similar issues, investigate the Live Data panel on Misty Studio to diagnose the problem.
 
 ```python
 if __name__ == "__main__":
@@ -107,7 +107,7 @@ Now we need to get data from the TOF sensor. In Python, this is called registeri
 misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TimeOfFlight)
 ```
  
-Next, we’ll do the same for Misty’s movement sensors. Because `LocationCommand` in Python doesn’t send data when Misty stops moving, we’ll use the `DriveEncoders` event instead. We can go with the default 0 ms for debounce, but 5 is also fine. This is stored in the global varialbe `DE_debounce`.
+Next, we’ll do the same for Misty’s movement sensors. Because `LocationCommand` in Python doesn’t send data when Misty stops moving, we’ll use the `DriveEncoders` event instead. We can go with the default 0 ms for debounce, but 5 is also fine. This is stored in the global variable `DE_debounce`.
 
 ```python
 misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
@@ -126,7 +126,7 @@ def _TimeOfFlight(data):
     global threshold, is_driving, volume
 ```
 
-We use another `try` block to handle data that doesn’t match the format we’re looking for (like registration messages and errors). We can access the TOF sensor’s distance measurement by indexing the `data` object. We can also tell whether the distace measurement is valid with the boolean passed in the `"status"` field.
+We use another `try` block to handle data that doesn’t match the format we’re looking for (like registration messages and errors). We can access the TOF sensor’s distance measurement by indexing the `data` object. We can also tell whether the distance measurement is valid with the boolean passed in the `"status"` field.
 
 ```python
 try:
@@ -282,7 +282,7 @@ def _FaceRecognition(data):
 
 The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/main/Python%20Tutorials/tutorial4.py).
 
-This program lets Misty take a photo when she detects a face. Because Python handles asynchronicity differenly, this tutorial has been heavily altered from the original JavaScript.
+This program lets Misty take a photo when she detects a face. Because Python handles asynchronicity differently, this tutorial has been heavily altered from the original JavaScript.
 
 Begin with the following import statements:
 
@@ -315,7 +315,7 @@ if __name__ == "__main__":
     time.sleep(1)
 ```
 
-Now we register for `FaceRecognition` events. Our strategy here is quite different from what we've done previously. We'll stay subscribed to `FaceRecognition` and keep `FaceDetection` active the entire time. Whenever Misty detects a face with `FaceDetection`, it's sent to us as a `FaceRecognition` event. We keep `FaceRecognition` with a `debounce` of 2000 ms so that Misty will take photos every two seconds if she sees someone in that timeframe.
+Now we register for `FaceRecognition` events. Our strategy here is quite different from what we've done previously. We'll stay subscribed to `FaceRecognition` and keep `FaceDetection` active the entire time. Whenever Misty detects a face with `FaceDetection`, it's sent to us as a `FaceRecognition` event. We keep `FaceRecognition` with a `debounce` of 2000 ms so that Misty will take photos every two seconds if she sees someone in that time frame.
 
 ```python
 misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, keep_alive=True, debounce=FR_debounce, callback_function=_FaceRecognition)

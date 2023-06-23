@@ -5,7 +5,7 @@ Misty follows a given set of instructions. Students figure out how she'll look a
 
 Here's a code with some sample instructions.
 
-This code starts with a reset, becuase it helps to start from the same place every time. Of course, you'll need to move the robot back to its original position yourself, but this should cover the head and arms.
+This code starts with a reset, because it helps to start from the same place every time. Of course, you'll need to move the robot back to its original position yourself, but this should cover the head and arms.
 
 WARNING: This code has Misty ignore her Time of Flight sensors! She won't detect table edges, obstacles, etc. We've been having trouble with the TOFs, so I'll remove this once I find a fix.
 '''

@@ -108,7 +108,7 @@ if __name__ == "__main__":
     lastPlace = ""
 
     try:
-        # register for captouch, keep event alive
+        # register for cap touch, keep event alive
         misty.RegisterEvent(event_name="scratches", event_type=Events.TouchSensor,
                             callback_function=_CapTouch, keep_alive=True)
 

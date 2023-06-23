@@ -1,4 +1,4 @@
-|Command                          |Python|Misty JavaScript|API Explorer|API Refernce|Alpha/Beta|
+|Command                          |Python|Misty JavaScript|API Explorer|API Reference|Alpha/Beta|
 |---------------------------------|------|----------------|------------|------------|----------|
 |AddPropertyTest                  |      |MJS             |            |            |          |
 |AddReturnProperty                |      |MJS             |            |            |          |

@@ -51,11 +51,11 @@ def _Follow(data):
     behavior for when misty has found someone to follow
     '''
 
-    global senpai
+    global person
     name = data["message"]["label"]
 
     # sees person of interest
-    if name == senpai:
+    if name == person:
         global hYaw
         global hPitch
         global seen
@@ -92,27 +92,27 @@ def _Follow(data):
 
             # scale to anticipate target speed
             if abs(bearing) <= 3:
-                bfactor = 1
+                b_factor = 1
             elif abs(bearing) <= 7:
-                bfactor = 1.2
+                b_factor = 1.2
             else:
-                bfactor = 1.6
+                b_factor = 1.6
 
             # if abs(bearing) > t:
-            y = hYaw + bearing*bfactor
+            y = hYaw + bearing*b_factor
 
             p = hPitch  # current pitch
 
             # scale to anticipate target speed
             if abs(elevation) <= 3:
-                efactor = 1
+                e_factor = 1
             if abs(elevation) <= 7:
-                efactor = 1.5  # 1.3
+                e_factor = 1.5  # 1.3
             else:
-                efactor = 2  # 1.8
+                e_factor = 2  # 1.8
 
             # if abs(elevation) > t:
-            p = hPitch + elevation*efactor
+            p = hPitch + elevation*e_factor
 
             misty.MoveHead(pitch=p, yaw=y, duration=.4)
 
@@ -131,8 +131,8 @@ def _FaceRecognition(data):
         face = data["message"]["label"]
         print(face)
 
-        # if known: stop, unreg and rereg to start second phase
-        if face == senpai:
+        # if known: stop, unregister and reregister to start second phase
+        if face == person:
             misty.Halt()
             misty.ChangeLED(0, 255, 0)
             misty.PlayAudio("s_Joy2.wav", volume=2)
@@ -166,17 +166,17 @@ def _FaceRecognition(data):
 
 
 if __name__ == "__main__":
-    misty = Robot("131.229.41.135") # connect to Misty
+    misty = Robot("131.229.41.135")  # connect to Misty
     print("Going on an adventure!")
     misty.UnregisterAllEvents()
     misty.ChangeLED(0, 0, 255)  # blue
 
-    global hPitch # head pitch
-    global hYaw # head yaw
-    global seen # if Misty has seen a person
+    global hPitch  # head pitch
+    global hYaw  # head yaw
+    global seen  # if Misty has seen a person
     seen = False
-    global senpai # the person Misty is looking for
-    senpai = "Skye"
+    global person  # the person Misty is looking for
+    person = "Skye"
 
     misty.MoveHead(-20, 0, 0)  # forward and up
 
@@ -195,19 +195,19 @@ if __name__ == "__main__":
     time.sleep(1)
     misty.StartFaceRecognition()
 
-    misty.MoveHead(-20, 0, -81, 50) # move to right
+    misty.MoveHead(-20, 0, -81, 50)  # move to right
 
-    while hYaw > -75: # wait until fully right
+    while hYaw > -75:  # wait until fully right
         pass
 
-    misty.MoveHead(-20, 0, 81, 50) # move to left
+    misty.MoveHead(-20, 0, 81, 50)  # move to left
 
-    while hYaw < 75: # wait until fully left
+    while hYaw < 75:  # wait until fully left
         pass
 
-    misty.MoveHead(-20, 0, -10, 50) # move to center
+    misty.MoveHead(-20, 0, -10, 50)  # move to center
 
-    while hYaw > 0.1: # wait until fully centered
+    while hYaw > 0.1:  # wait until fully centered
         pass
 
     # didn't see target
@@ -215,6 +215,6 @@ if __name__ == "__main__":
     print("didn't see anyone :(")
     misty.ChangeLED(255, 0, 0)
     time.sleep(1)
-    
+
     # pass a dummy arg to BumpSensor callback, which ends the program
     _BumpSensor(1)
