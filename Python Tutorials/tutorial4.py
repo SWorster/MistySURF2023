@@ -1,63 +1,65 @@
+'''
+Skye Weaver Worster
+Misty Tutorial #4
+'''
+
 # import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 from datetime import datetime
 import time
 
+misty = Robot("131.229.41.135")  # Robot object with your IP
+FR_debounce = 2000  # facial recognition debounce in milliseconds
+count = 0  # tracks current number of pictures taken
+num_pictures = 2  # number of pictures Misty will take
+image_list = [None] * num_pictures  # empty array to store image names
+
 
 def _FaceRecognition(data):  # callback for facial recognition data
+    global count, num_pictures, image_list  # reference global variables
 
-    global count  # reference global variable
+    print("Taking picture!")  # print each time callback executes
 
-    # print a message each time the callback executes
-    print("CV callback called: ", data["eventName"])
+    try:  # handles malformed/irrelevant data
 
-    try:
-        # get date and time, convert to string in specific format
-        dt = datetime.now()
+        dt = datetime.now()  # get current date and time
+        # convert to string in specific format
+        # dd.mm.yy_hh.mm.ss_Face
         imageName = dt.strftime("%d.%m.%Y_%H.%M.%S_Face")
 
         # take picture, return metadata
-        r = misty.TakePicture(True, imageName, 320, 240, True, True)
+        image = misty.TakePicture(True, imageName, 320, 240, True, True)
 
         # print confirmation
-        print("Image saved as '" + r.json()["result"]["name"] + "'")
+        print(f'Image saved as {image.json()["result"]["name"]}')
 
-    except:
-        print("Unable to take picture")
+        # add image name to list
+        image_list[count] = image.json()["result"]["name"]
 
-    # progress counter
-    count += 1
+    except Exception as e:
+        print(f"Unable to take picture: {e}")
 
-    # stop after 5 photos taken
-    if count >= 5:
+    count += 1  # count number of photos taken
+
+    if count >= num_pictures:  # stop after num_pictures taken
         misty.StopFaceDetection()  # end face detection
         misty.UnregisterAllEvents()  # unregister
-        imagelist = misty.GetImageList().json()["result"]  # get all images
-        print("\nAll images:", end="    ")
 
-        for image in imagelist:
-            if image["systemAsset"] == False:  # filter out system asset images
-                print(image["name"], end="    ")
+        print("\nImages taken:")
+        for pic in image_list:  # prints names of images
+            print(pic)
 
 
 if __name__ == "__main__":
-    global count  # global count variable to track progress
-    count = 0
-
-    misty = Robot("MISTY-IP-ADDRESS-HERE")  # Robot object with your IP
-
+    # Preconditions
     misty.MoveHead(5, 0, 0)  # lower head slightly to center face in frame
-
     misty.SetDisplaySettings(True)  # clear display
-
     misty.UnregisterAllEvents()  # unregister all existing events
     time.sleep(1)  # give Misty time to process unregister command
 
     # start facial recognition
-    misty.RegisterEvent("FaceRecognition", Events.FaceRecognition,
-                        callback_function=_FaceRecognition, keep_alive=True, debounce=2000)
+    misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, keep_alive=True,
+                        debounce=FR_debounce, callback_function=_FaceRecognition)
 
     misty.StartFaceDetection()  # start face detection
-
-    misty.KeepAlive()
