@@ -99,7 +99,7 @@ Now we need to get data from the TOF sensor. In Python, this is called registeri
 1. `event_name`: the human-readable name of the event we’re creating. Call this one `"CenterTimeOfFlight"`
 2. `event_type`: the Event object associated with this event. Here, we use `Events.TimeOfFlight`
 3. `Condition`: some events are transmitted together, so we need to filter out unwanted sensor readings. This uses the `EventFilters` class we imported earlier: `[EventFilters.TimeOfFlightPosition.FrontCenter]`. Note that this must be in brackets.
-4. `debounce`: the frequency that Misty will send data, in milliseconds. This should usually be 0, but 5 is also acceptable when Misty is moving at lower speeds. There are some event types that will send data in certain conditions, and not constantly (for example, `BumpSensor` only sends data when Misty’s bump sensors are touched). In those cases, do not specify a `debounce` value.
+4. `debounce`: the frequency that Misty will send data, in milliseconds. This should usually be 0, but 5 is also acceptable when Misty is moving at lower speeds. There are some event types that will send data in certain conditions, and not constantly (for example, `BumpSensor` only sends data when Misty’s bump sensors are touched). In those cases, do not specify a `debounce` value. We already specified this value as the global variable `TOF_debounce`
 5. `keep_alive`: when `True`, this will keep the connection open until it is manually closed. When `False`, the connection will only send data once.
 6. `callback_function`: this is the function that will run whenever the connection receives data. The data will be given to the callback function as a parameter. Our callback is `tof_callback`.
 
@@ -107,7 +107,7 @@ Now we need to get data from the TOF sensor. In Python, this is called registeri
 misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TimeOfFlight)
 ```
  
-Next, we’ll do the same for Misty’s movement sensors. Because `LocationCommand` in Python doesn’t send data when Misty stops moving, we’ll use the `DriveEncoders` event instead. We can go with the default 0 ms for debounce, but 5 is also fine.
+Next, we’ll do the same for Misty’s movement sensors. Because `LocationCommand` in Python doesn’t send data when Misty stops moving, we’ll use the `DriveEncoders` event instead. We can go with the default 0 ms for debounce, but 5 is also fine. This is stored in the global varialbe `DE_debounce`.
 
 ```python
 misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
@@ -117,19 +117,6 @@ Once we’ve registered to these events, they’ll immediately start collecting 
 
 ```python
 misty.DriveTime(linearVelocity=10, angularVelocity=0, timeMs=5000)
-```
-
-Python needs to be told not to continue onwards in the main function until the registrations are ended. This is done with the `KeepAlive` command:
-
-```python
-misty.KeepAlive()
-```
-
-This is the end of our `try` block. We need to provide an exception handler, which will print errors to the console if they appear.
-
-```python
-except Exception as ex:
-print(ex)
 ```
 
 Let’s go back and write our callbacks. First is the TOF callback, which takes the data from the sensor as a parameter. Start by referencing the global variable; we specify that it’s `global` here because otherwise Python would create a local variable with the same name.
