@@ -1,64 +1,68 @@
 '''
-Misty is now Meowsty. No FUR-ther explanation provided.
-(please laugh at the pun)
+Skye Weaver Worster
 
+Misty is now Meowsty. No FUR-ther explanation provided. (please laugh at the pun)
 '''
+
+# import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
+misty = Robot("131.229.41.135")  # Misty robot with your IP
+last_place = ""  # tracks the last place Misty was touched
+
 
 def _BumpSensor(data):  # when bumped, program ends
-    misty.UnregisterAllEvents()
+    misty.UnregisterAllEvents()  # unregister all events
     print("byeeeee")
 
 
 def _CapTouch(message):
     '''
-    cap touch sensors send event data when touched and released.
-    we want some sounds (purrs) to play as long as they're being touched
-    we want others to play when touched, then stop
+    Cap touch sensors send event data when touched and released. We want some sounds (purrs) to play as long as they're being touched. We want others to play when touched, then stop.
     '''
-    try:
-        global lastPlace  # tracks last place Misty was touched
+    try:  # catch irrelevant/malformed data
+        global last_place  # tracks last place Misty was touched
 
         # true if touch, false if release
         touched = message["message"]["isContacted"]
-        partTouched = message["message"]["sensorPosition"]  # sensor source
+        part_touched = message["message"]["sensorPosition"]  # sensor source
 
-        # print(touched, partTouched, lastPlace) # useful for debugging
+        # print(touched, part_touched, last_place) # useful for debugging
 
-        # if two parts touched at same time:
-        if partTouched != lastPlace:
+        # if two parts touched at same time
+        if part_touched != last_place:
             misty.StopAudio()  # stop audio
-            lastPlace = ""  # ignore older event, proceed with new touch
+            last_place = ""  # ignore older event, proceed with new touch
 
         # if first time touching a place
-        if lastPlace == "":
-            lastPlace = partTouched
+        if last_place == "":
+            last_place = part_touched  # record what part we've touched
 
-            if partTouched == "Chin" and touched:
+            # if-else statements on part_touched
+            if part_touched == "Chin" and touched:
                 misty.PlayAudio("A_purr1.mp3", 10)
                 misty.TransitionLED(0, 0, 0, 255, 100, 255,
                                     "TransitOnce", 2000)
                 print("chin scritches <3")
 
-            elif partTouched == "HeadLeft" and touched:
+            elif part_touched == "HeadLeft" and touched:
                 misty.PlayAudio("A_meow1.mp3", 5)
                 print("left scritches")
 
-            elif partTouched == "HeadRight" and touched:
+            elif part_touched == "HeadRight" and touched:
                 misty.PlayAudio("A_meow2.mp3", 5)
                 print("right scritches")
 
-            elif partTouched == "HeadBack" and touched:
+            elif part_touched == "HeadBack" and touched:
                 misty.PlayAudio("A_meow3.mp3", 5)
                 print("back scritches")
 
-            elif partTouched == "HeadFront" and touched:
+            elif part_touched == "HeadFront" and touched:
                 misty.PlayAudio("A_purr2.mp3", 10)
                 print("front scritches")
 
-            elif partTouched == "Scruff" and touched:
+            elif part_touched == "Scruff" and touched:
                 misty.PlayAudio("A_hiss.mp3", 2)
                 print("HISS")
 
@@ -67,46 +71,42 @@ def _CapTouch(message):
             # purring: have to manually stop audio when stop touching
             # single-sound places: sound will stop automatically on completion
 
-            if lastPlace == "Chin":
+            if last_place == "Chin":
                 # if we stop touching the chin
-                if touched == False and partTouched == "Chin":
+                if touched == False and part_touched == "Chin":
                     misty.StopAudio()  # stop audio
+                    # pulse between pink and off over 2 seconds, repeatedly
                     misty.TransitionLED(255, 100, 255, 0, 0,
                                         0, "TransitOnce", 2000)
-                    lastPlace = ""
+                    last_place = "" # clear last place touched
 
-            if lastPlace == "HeadLeft":
+            if last_place == "HeadLeft":
                 # if we stop touching HL
-                if touched == False and partTouched == "HeadLeft":
-                    lastPlace = ""
+                if touched == False and part_touched == "HeadLeft":
+                    last_place = ""
 
-            if lastPlace == "HeadRight":
-                if touched == False and partTouched == "HeadRight":
-                    lastPlace = ""
+            if last_place == "HeadRight":
+                if touched == False and part_touched == "HeadRight":
+                    last_place = ""
 
-            if lastPlace == "HeadBack":
-                if touched == False and partTouched == "HeadBack":
-                    lastPlace = ""
+            if last_place == "HeadBack":
+                if touched == False and part_touched == "HeadBack":
+                    last_place = ""
 
-            if lastPlace == "HeadFront":
-                if touched == False and partTouched == "HeadFront":
+            if last_place == "HeadFront":
+                if touched == False and part_touched == "HeadFront":
                     misty.StopAudio()  # stop audio
-                    lastPlace = ""
+                    last_place = ""
 
-            if lastPlace == "Scruff":
-                if touched == False and partTouched == "Scruff":
-                    lastPlace = ""
+            if last_place == "Scruff":
+                if touched == False and part_touched == "Scruff":
+                    last_place = ""
 
     except Exception as e:
         print("EXCEPTION:", e)
 
 
 if __name__ == "__main__":
-    misty = Robot("131.229.41.135")
-
-    global lastPlace  # tracks the last place Misty was touched
-    lastPlace = ""
-
     try:
         # register for cap touch, keep event alive
         misty.RegisterEvent(event_name="scratches", event_type=Events.TouchSensor,
@@ -115,8 +115,6 @@ if __name__ == "__main__":
         # register for bumps to stop program
         misty.RegisterEvent(event_name="stop", event_type=Events.BumpSensor,
                             callback_function=_BumpSensor, keep_alive=True)
-
-        misty.KeepAlive()
 
     except Exception as ex:
         print(ex)

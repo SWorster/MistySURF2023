@@ -20,7 +20,7 @@ pip uninstall other-dependency
 ```
 ### Tutorial #1: Changing LED
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/1D1nF5usx70wRW4txIvkdAtJAdfyw1iJ6/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/0ff3fb9d27d6f82c197689427d18adab826a54fc/Python%20Tutorials/tutorial1.py).
 
 In your Python file, begin with the following import statement:
 
@@ -42,7 +42,7 @@ misty.ChangeLED(0,0,255)
 
 ### Tutorial #2: Driving Straight
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/1vK-c7lPe18s5oFcK_KVzvXmUVF2ovBcd/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/0ff3fb9d27d6f82c197689427d18adab826a54fc/Python%20Tutorials/tutorial2.py).
 
 This program’s goal is to have Misty drive straight forward for a certain amount of time or until an obstacle is detected.
 
@@ -191,7 +191,7 @@ except Exception as e:
 
 ### Tutorial #3: Computer Vision and Facial Recognition
 
-The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/985587e67e9b00be827aed27f984d61d829eb3b6/Python%20Tutorials/tutorial3.py).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/0ff3fb9d27d6f82c197689427d18adab826a54fc/Python%20Tutorials/tutorial3.py).
 
 This program uses Misty’s facial recognition capabilities. Misty will check whether she knows a given name. If she knows the name and sees that person, she will greet the person. If she does not know the name, Misty will use facial recognition to learn the person’s face.
 
@@ -280,7 +280,7 @@ def _FaceRecognition(data):
 
 ### Tutorial #4: Taking Pictures
 
-The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/main/Python%20Tutorials/tutorial4.py).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/0ff3fb9d27d6f82c197689427d18adab826a54fc/Python%20Tutorials/tutorial4.py).
 
 This program lets Misty take a photo when she detects a face. Because Python handles asynchronicity differently, this tutorial has been heavily altered from the original JavaScript.
 

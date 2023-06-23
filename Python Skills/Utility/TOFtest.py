@@ -1,122 +1,118 @@
 '''
-Useful test of Misty's TOF sensors.
+Skye Weaver Worster
 
-Gets data from all TOF sensors, printing to console if within default tolerances.
+Useful test of Misty's TOF sensors. Gets data from all TOF sensors, printing to console if within default tolerances.
 
-There are a few lines in main that are commented out. These provide different testing conditions.
+The mode constant below changes the mode of operation for the built-in hazard settings. These settings tell Misty to stop if the range sensors detect an obstacle or the edge sensors detect a drop. 0 uses the default hazard settings (.215 for range sensors, .06 for edge sensors). 1 uses the thresholds you specify in the global range and edge constants. 2 completely disables TOF hazards, so Misty won't stop based on any TOF data (she'll still stop if her bump sensors hit something).
 '''
 
+# import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 from mistyPy.EventFilters import EventFilters
 
+misty = Robot("131.229.41.135")
+range = .215  # threshold for range sensors
+edge = .06  # threshold for edge sensors
+debounce = 5  # TOF debounce in milliseconds
 
-def _Center(data):
-    if data["message"]["distanceInMeters"] <= .215 and data["message"]["status"] == 0:
+mode = 0  # * mode of operation
+# 0: uses default hazard settings
+# 1: uses range and edge thresholds as hazard settings
+# 2: disables TOF hazard settings
+
+
+def _Center(data):  # center TOF
+    global range
+    if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("CENTER: ", data["message"]["distanceInMeters"])
 
 
 def _Right(data):
-    if data["message"]["distanceInMeters"] <= .215 and data["message"]["status"] == 0:
+    global range
+    if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("RIGHT: ", data["message"]["distanceInMeters"])
 
 
 def _Left(data):
-    if data["message"]["distanceInMeters"] <= .215 and data["message"]["status"] == 0:
+    global range
+    if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("LEFT: ", data["message"]["distanceInMeters"])
 
 
 def _Back(data):
-    if data["message"]["distanceInMeters"] <= .215 and data["message"]["status"] == 0:
+    global range
+    if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("BACK: ", data["message"]["distanceInMeters"])
 
 
 def _DRight(data):
-    if data["message"]["distanceInMeters"] >= .06 and data["message"]["status"] == 0:
+    global edge
+    if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("DOWNRIGHT: ", data["message"]["distanceInMeters"])
 
 
 def _DLeft(data):
-    if data["message"]["distanceInMeters"] >= .06 and data["message"]["status"] == 0:
+    global edge
+    if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("DOWNLEFT: ", data["message"]["distanceInMeters"])
 
 
 def _BL(data):
-    if data["message"]["distanceInMeters"] >= .06 and data["message"]["status"] == 0:
+    global edge
+    if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("BACKLEFT: ", data["message"]["distanceInMeters"])
 
 
 def _BR(data):
-    if data["message"]["distanceInMeters"] >= .06 and data["message"]["status"] == 0:
+    global edge
+    if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("BACKRIGHT: ", data["message"]["distanceInMeters"])
 
 
-# def _Stop(data):
-#     if first:
-#         if data["message"]["leftVelocity"] != 0:
-#             first= True
-#     else:
-#         if data["message"]["leftVelocity"] == 0:
-#             misty.UnregisterAllEvents()
-
-
 if __name__ == "__main__":
-    # global first
-    # first = True
-    misty = Robot("131.229.41.135")
+    misty.UpdateHazardSettings(revertToDefault=True)  # revert hazards
 
-    misty.UpdateHazardSettings(revertToDefault=True)
+    if mode == 1:  # new thresholds for hazard settings
+        t = [
+            {"sensorName": "TOF_DownFrontRight", "threshold": edge},
+            {"sensorName": "TOF_DownFrontLeft", "threshold": edge},
+            {"sensorName": "TOF_DownBackRight", "threshold": edge},
+            {"sensorName": "TOF_DownBackLeft", "threshold": edge},
+            {"sensorName": "TOF_Right", "threshold": range},
+            {"sensorName": "TOF_Left", "threshold": range},
+            {"sensorName": "TOF_Center", "threshold": range},
+            {"sensorName": "TOF_Back", "threshold": range}
+        ]
 
-    '''
-    # Uncomment this block to set your own thresholds
-    # Have to update above callbacks on your own, though
-    '''
-
-    # t = [
-    #     {"sensorName": "TOF_DownFrontRight", "threshold": 0.2},
-    #     {"sensorName": "TOF_DownFrontLeft", "threshold": 0.2}
-    #     # {"sensorName": "TOF_DownBackRight", "threshold": 0.06},
-    #     # {"sensorName": "TOF_DownBackLeft", "threshold": 0.06},
-    #     # {"sensorName": "TOF_Right", "threshold": 0.215},
-    #     # {"sensorName": "TOF_Left", "threshold": 0.215},
-    #     # {"sensorName": "TOF_Center", "threshold": 0.215},
-    #     # {"sensorName": "TOF_Back", "threshold": 0.215}
-    # ]
-
-    # print(misty.UpdateHazardSettings(timeOfFlightThresholds=t).json())
-
-    # Uncomment this line to completely disable TOF sensor hazard checks
-    # misty.UpdateHazardSettings(disableTimeOfFlights=True)
+        # updates hazards with new thresholds, prints result
+        print(misty.UpdateHazardSettings(timeOfFlightThresholds=t).json())
+    elif mode == 2:  # disable TOF sensor hazard checks
+        misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
     try:
         misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.FrontCenter], keep_alive=True, callback_function=_Center, debounce=5)
+                            EventFilters.TimeOfFlightPosition.FrontCenter], debounce=debounce, keep_alive=True, callback_function=_Center)
 
         misty.RegisterEvent("RightTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.FrontRight], keep_alive=True, callback_function=_Right, debounce=5)
+                            EventFilters.TimeOfFlightPosition.FrontRight], debounce=debounce, keep_alive=True, callback_function=_Right)
 
         misty.RegisterEvent("LeftTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.FrontLeft], keep_alive=True, callback_function=_Left, debounce=5)
+                            EventFilters.TimeOfFlightPosition.FrontLeft], debounce=debounce, keep_alive=True, callback_function=_Left)
 
         misty.RegisterEvent("DownRightTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.DownwardFrontRight], keep_alive=True, callback_function=_DRight, debounce=5)
+                            EventFilters.TimeOfFlightPosition.DownwardFrontRight], debounce=debounce, keep_alive=True, callback_function=_DRight)
 
         misty.RegisterEvent("DownLeftTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.DownwardFrontLeft], keep_alive=True, callback_function=_DLeft, debounce=5)
+                            EventFilters.TimeOfFlightPosition.DownwardFrontLeft], debounce=debounce, keep_alive=True, callback_function=_DLeft)
 
         misty.RegisterEvent("BackLeftTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.DownwardBackLeft], keep_alive=True, callback_function=_BL, debounce=5)
+                            EventFilters.TimeOfFlightPosition.DownwardBackLeft], debounce=debounce, keep_alive=True, callback_function=_BL)
 
         misty.RegisterEvent("BackRightTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.DownwardBackRight], keep_alive=True, callback_function=_BR, debounce=5)
+                            EventFilters.TimeOfFlightPosition.DownwardBackRight], debounce=debounce, keep_alive=True, callback_function=_BR)
 
         misty.RegisterEvent("BackTimeOfFlight", Events.TimeOfFlight, condition=[
-                            EventFilters.TimeOfFlightPosition.Back], keep_alive=True, callback_function=_Back, debounce=5)
-        
-        # misty.RegisterEvent("Stop", Events.DriveEncoders, keep_alive=True, debounce=5, callback_function=_Stop)
-
-    except:
-        print("whoops")
-
-    # Uncomment to have Misty drive
-    # print(misty.Drive(20, 0))
+                            EventFilters.TimeOfFlightPosition.Back], debounce=debounce, keep_alive=True, callback_function=_Back)
+    except Exception as e:
+        print("Exception:", e)

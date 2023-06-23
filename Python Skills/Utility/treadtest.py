@@ -1,3 +1,14 @@
+'''
+Skye Weaver Worster
+
+Takes driving parameters, moves Misty, and creates a graph of her tread movement.
+
+This was a labor of love. It works, but I haven't cleaned it up or properly documented it. I'll get to that if I have time later.
+
+Be sure to replace the directory paths!
+'''
+
+# import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 import os
@@ -6,11 +17,29 @@ import matplotlib.pyplot as plt
 import pandas
 import numpy
 
+# paths to directories. Replace with yours!
+csv_directory = "/Users/skyeworster/Desktop/csv"
+plot_directory = "/Users/skyeworster/Desktop/plots"
+
+misty = Robot("131.229.41.135")  # Misty robot with your IP
+mode = "d"  # d = Drive, a = DriveTrack, t = DriveTime
+l = 100  # d,t= linear, a= left
+r = 20  # d,t= angular, a= right
+t = 3  # time
+ui = False  # change to True to enable user interface
+debounce = 10  # DriveEncoders debounce in milliseconds
+
+# plot settings
+width = 10  # plot width
+height = 20  # plot height
+dpi = 800  # dots per inch
+show = False  # if True, shows graph immediately on completion
+
 
 def _DriveEncoders(data):
     # Writes data from DriveEncoders message to file in csv format
-    m = data["message"]
-    sec1 = data["message"]["created"]
+    m = data["message"]  # get message (makes things easier to read)
+    sec1 = m["created"]  # get time
     sec2 = float(sec1[17:-1])  # splice to get seconds only
     print(sec2, ",", m["leftVelocity"], ",", m["rightVelocity"],
           ",", m["leftDistance"], ",", m["rightDistance"], file=f)
@@ -41,38 +70,28 @@ def getInput():
 
 if __name__ == "__main__":
 
-    # * write parameters here
-    mode = "d"  # d = Drive, a = DriveTrack, t = DriveTime
-    l = 100  # d,t= linear, a= left
-    r = 20 # d,t= angular, a= right
-    t = 3  # time
+    if ui:  # if user interface desired
+        mode, l, r, t = getInput()  # set params from input
 
-    # * alternatively, uncomment for user input
-    # mode, l, r, t = getInput()
+    os.chdir(csv_directory)  # change directory to csv folder
 
-    # change directory to csv folder
-    os.chdir("/Users/skyeworster/Desktop/csv")
-    # name uses time, prevents overwrite
-    now = time.strftime('%d%m%y_%H%M%S')
+    now = time.strftime('%d%m%y_%H%M%S')  # name uses time, prevents overwrite
     name = f"{mode}_{l}_{r}_{t}_{now}.csv"
     f = open(name, "w")  # open file for writing
-    print("timeMs,leftVelocity,rightVelocity,leftDistance,rightDistance",
-          file=f)  # write headers to file
 
-    misty = Robot("131.229.41.135")
+    # write headers to file
+    print("timeMs,leftVelocity,rightVelocity,leftDistance,rightDistance", file=f)
 
-    # # clean slate. should print "reset"
-    # os.system('python3 /Users/skyeworster/Desktop/reset.py')
-    # time.sleep(1)
+    misty.UnregisterAllEvents()  # unregister preexisting events
 
     misty.UpdateHazardSettings(disableTimeOfFlights=True)  # ignore TOF sensors
-    misty.ChangeLED(0, 0, 255)
+    misty.ChangeLED(0, 0, 255)  # LED blue
 
     # register for DriveEncoders event to record data
     misty.RegisterEvent("DriveEncoders", Events.DriveEncoders,
-                        debounce=10, callback_function=_DriveEncoders, keep_alive=True)
+                        debounce=debounce, keep_alive=True, callback_function=_DriveEncoders)
 
-    # drive commands
+    # drive commands and title formatting
     if mode == "t":  # DriveTime
         misty.DriveTime(l, r, t*1000)
         time.sleep(t+.3)
@@ -89,9 +108,9 @@ if __name__ == "__main__":
         title = "Drive Lin {} Ang {} Time {}".format(l, r, t)
 
     # unregister and reset Misty
-    misty.ChangeLED(0, 255, 0)
-    misty.UnregisterAllEvents()
-    misty.UpdateHazardSettings(revertToDefault=True)
+    misty.ChangeLED(0, 255, 0)  # LED green
+    misty.UnregisterAllEvents()  # unregister events
+    misty.UpdateHazardSettings(revertToDefault=True)  # default hazards
 
     f.close()  # close csv file
     f2 = open(name, "r")  # reopen to read
@@ -119,7 +138,7 @@ if __name__ == "__main__":
     r1 = rds[0]
     rds -= r1  # scale to first value
 
-    plt.figure(figsize=(10, 20))  # 10 x 20 inches
+    plt.figure(figsize=(width, height))  # set figure size
     fig, ax = plt.subplots(2, 1, sharex=True)  # two plots sharing x axis
     vel = ax[0]  # first plot object
     dis = ax[1]  # second plot object
@@ -139,6 +158,8 @@ if __name__ == "__main__":
     dis.set_ylabel('Distance (mm) 0-scaled')  # y axis label
     dis.grid(True)  # grid
 
-    os.chdir("/Users/skyeworster/Desktop/plots")  # navigate to directory
-    plt.savefig(title, dpi=800)  # title and save with 800 DPI
-    #plt.show()  # pulls up graph in window. programs runs until that graph is closed
+    os.chdir(plot_directory)  # navigate to directory
+    plt.savefig(title, dpi=dpi)  # title and save with desired DPI
+
+    if show:
+        plt.show()  # pulls up graph in window. programs runs until that graph is closed
