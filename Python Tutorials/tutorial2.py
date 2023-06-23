@@ -67,19 +67,18 @@ def _DriveEncoders(data):  # callback for movement
 
 
 if __name__ == "__main__":
-
     print("Going on an adventure!")  # print message to console
     misty.ChangeLED(0, 0, 255)  # change Misty's LED to blue (RGB)
     misty.UnregisterAllEvents()  # unregister from all previous events
     misty.UpdateHazardSettings(disableTimeOfFlights=True)  # ignore TOF sensors
 
     # Subscribe to center TOF
-    front_center = misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[
-        EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TimeOfFlight)
+    misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[
+                        EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TimeOfFlight)
 
     # subscribe to DriveEncoders
-    movement = misty.RegisterEvent(
-        "DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
+    misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True,
+                        debounce=DE_debounce, callback_function=_DriveEncoders)
 
     # Misty drives straight forward at speed 10 for 5 seconds
     misty.DriveTime(linearVelocity=driving_speed,

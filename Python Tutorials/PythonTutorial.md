@@ -38,10 +38,7 @@ You can now use the available [API commands](https://docs.google.com/spreadsheet
 
 ```python
 misty.ChangeLED(0,0,255)
-misty.PlayAudio("s_Joy4.wav", 5) # second param is volume out of 100
 ```
-
-This may seem easier than JavaScript, but not for long.
 
 ### Tutorial #2: Driving Straight
 
@@ -57,40 +54,63 @@ from mistyPy.Events import Events
 from mistyPy.EventFilters import EventFilters
 ```
 
-We’ll start with the main function first, then go back and write our callbacks later. Create the `Robot` object, print a line to the console, and change the LED color.
+Let's start by declaring all the global variables we'll need.
+
+- `misty`: our robot object
+- `driving_time`: the time Misty will drive for, in seconds
+- `driving_speed`: linear velocity, from -100 to 100
+- `driving_angle`: angular velocity, from -100 to 100
+- `volume`: volume of Misty's audio responses
+- `is_driving`: tracks whether Misty is currently moving (boolean)
+- `threshold`: how close Misty will get to an obstacle, in meters
+- `min_speed`: the minimum speed at which Misty is still considered to be driving
+- `TOF_debounce`: Time of Flight event debounce, in milliseconds
+- `DE_debounce`: DriveEncoders event debounce, in milliseconds
+
+```python
+misty = Robot("MISTY-IP-ADDRESS-HERE")
+driving_time = 5
+driving_speed = 10
+driving_angle = 0
+volume = 2
+is_driving = False
+threshold = 0.2
+min_speed = 0.1
+TOF_debounce = 5
+DE_debounce = 500
+```
+
+We’ll start with the main function first, then go back and write our callbacks later. Print a line to the console and change the LED color, so that we know Misty's receiving our commands.
+
+It's good practice to unregister from all events. If we run this code after another program, Misty might still be registered to old events.
+
+The author's Misty has a malfuncitoning Time-of-Flight sensor, which convinces Misty that she's constantly about to run off a ledge. This makes Misty stop moving in the direction of that non-existent edge. We can disable this behavior with the `UpdateHazardSettings` command. If your robot has similar issues, investigate the Live Data panel on Misty Studio to diagnose the problem.
 
 ```python
 if __name__ == "__main__":
-    misty = Robot("MISTY-IP-ADDRESS-HERE")
     print("Going on an adventure!")
     misty.ChangeLED(0, 0, 255)
-```
-
-Next, we’ll declare a global variable to keep track of Misty’s state.  We’re not using promise-based code here, so it’s a bit harder to keep track of what Misty has and hasn’t done. We can keep track of whether Misty is driving with `isDriving`.
-
-```python
-global isDriving
-isDriving = False
+    misty.UnregisterAllEvents()
+    misty.UpdateHazardSettings(disableTimeOfFlights=True)
 ```
 
 Now we need to get data from the TOF sensor. In Python, this is called registering instead of subscribing. The parameters are similar, but vary according to the specific event type we’re using. Always check the [documentation](https://docs.mistyrobotics.com/misty-ii/robot/sensor-data/) before working with an event. For TOF, the parameters are as follows:
 
 1. `event_name`: the human-readable name of the event we’re creating. Call this one `"CenterTimeOfFlight"`
-2. `event_type`: the Event object associated with this event. Here, we use Events.TimeOfFlight
+2. `event_type`: the Event object associated with this event. Here, we use `Events.TimeOfFlight`
 3. `Condition`: some events are transmitted together, so we need to filter out unwanted sensor readings. This uses the `EventFilters` class we imported earlier: `[EventFilters.TimeOfFlightPosition.FrontCenter]`. Note that this must be in brackets.
-4. `debounce`: the frequency that Misty will send data, in milliseconds. This should usually be 0, but 5 is also acceptable when Misty is moving at lower speeds. There are some event types that will send data in certain conditions, and not constantly (for example, `LocationCommand` only sends data when Misty’s velocity changes). In those cases, do not specify a `debounce` value.
+4. `debounce`: the frequency that Misty will send data, in milliseconds. This should usually be 0, but 5 is also acceptable when Misty is moving at lower speeds. There are some event types that will send data in certain conditions, and not constantly (for example, `BumpSensor` only sends data when Misty’s bump sensors are touched). In those cases, do not specify a `debounce` value.
 5. `keep_alive`: when `True`, this will keep the connection open until it is manually closed. When `False`, the connection will only send data once.
 6. `callback_function`: this is the function that will run whenever the connection receives data. The data will be given to the callback function as a parameter. Our callback is `tof_callback`.
 
 ```python
-try:
-    front_center = misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[EventFilters.TimeOfFlightPosition.FrontCenter], debounce=5, keep_alive=True, callback_function=tof_callback)
+misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TimeOfFlight)
 ```
  
 Next, we’ll do the same for Misty’s movement sensors. Because `LocationCommand` in Python doesn’t send data when Misty stops moving, we’ll use the `DriveEncoders` event instead. We can go with the default 0 ms for debounce, but 5 is also fine.
 
 ```python
-movement = misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, callback_function=move_callback, keep_alive=True)
+misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
 ```
 
 Once we’ve registered to these events, they’ll immediately start collecting data and running their callback functions. While they do this in the background, we need to get Misty to start driving with the `DriveTime` command:
