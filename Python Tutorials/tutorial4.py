@@ -14,6 +14,10 @@ FR_debounce = 2000  # facial recognition debounce in milliseconds
 count = 0  # tracks current number of pictures taken
 num_pictures = 2  # number of pictures Misty will take
 image_list = [None] * num_pictures  # empty array to store image names
+width = 320  # image width
+height = 420  # image height
+
+# ! Width and height options: 4160 x 3120, 3840 x 2160, 3264 x 2448, 3200 x 2400, 2592 x 1944, 2048 x 1536, 1920 x 1080, 1600 x 1200, 1440 x 1080, 1280 x 960, 1024 x 768, 800 x 600, 640 x 480, 320 x 240. From https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#takepicture
 
 
 def _FaceRecognition(data):  # callback for facial recognition data
@@ -29,7 +33,8 @@ def _FaceRecognition(data):  # callback for facial recognition data
         imageName = dt.strftime("%d.%m.%Y_%H.%M.%S_Face")
 
         # take picture, return metadata
-        image = misty.TakePicture(True, imageName, 320, 240, True, True)
+        image = misty.TakePicture(base64=True, fileName=imageName, width=width,
+                                  height=height, displayOnScreen=True, overwriteExisting=True)
 
         # print confirmation
         print(f'Image saved as {image.json()["result"]["name"]}')
@@ -53,7 +58,7 @@ def _FaceRecognition(data):  # callback for facial recognition data
 
 if __name__ == "__main__":
     # Preconditions
-    misty.MoveHead(5, 0, 0)  # lower head slightly to center face in frame
+    misty.MoveHead(0, 0, 0)  # lower head slightly to center face in frame
     misty.SetDisplaySettings(True)  # clear display
     misty.UnregisterAllEvents()  # unregister all existing events
     time.sleep(1)  # give Misty time to process unregister command

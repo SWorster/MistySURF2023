@@ -293,47 +293,44 @@ from datetime import datetime
 import time
 ```
 
-In our main function, delare the global variable `count` and set it to 0. This will allow us to take a set number of pictures.
+Let's start with our globals. We need to track the current number of pictures taken, declare the total number of pictures to take, and create an array to store the names of the images we take. We'll also provide the width and height of the images we want to take. [These options](https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#takepicture) are: 4160 x 3120, 3840 x 2160, 3264 x 2448, 3200 x 2400, 2592 x 1944, 2048 x 1536, 1920 x 1080, 1600 x 1200, 1440 x 1080, 1280 x 960, 1024 x 768, 800 x 600, 640 x 480, 320 x 240.
+
+```python
+misty = Robot("131.229.41.135")
+FR_debounce = 2000
+count = 0
+num_pictures = 2
+image_list = [None] * num_pictures
+width = 320  # image width
+height = 420  # image height
+```
+
+In our main function, move Misty's head back to a neutral position. Next, we'll clear Misty's display with `SetDisplaySettings`. Its first parameter is `revertToDefault`, which sets Misty's display as the standard blinking eyes when `True`. We'll also unregister from all existing events, and give Misty a second to process all these commands.
 
 ```python
 if __name__ == "__main__":
-    global count
-    count = 0
-```
-
-Create a Robot object with your IP. Straighten the head so that Misty's camera is facing directly forward; this helps to center the subject's face in the frame.
-
-```python
-misty = Robot("MISTY-IP-ADDRESS-HERE")
-misty.MoveHead(5, 0, 0)
-```
-
-Next, we'll clear Misty's display with `SetDisplaySettings`. Its first parameter is `revertToDefault`, which sets Misty's display as the standard blinking eyes when `True`. We'll also unregister from all existing events, and give Misty a second to process all these commands.
-
-```python
-misty.SetDisplaySettings(True)
-misty.UnregisterAllEvents()
-time.sleep(1)
+    misty.MoveHead(0, 0, 0)
+    misty.SetDisplaySettings(True)
+    misty.UnregisterAllEvents()
+    time.sleep(1)
 ```
 
 Now we register for `FaceRecognition` events. Our strategy here is quite different from what we've done previously. We'll stay subscribed to `FaceRecognition` and keep `FaceDetection` active the entire time. Whenever Misty detects a face with `FaceDetection`, it's sent to us as a `FaceRecognition` event. We keep `FaceRecognition` with a `debounce` of 2000 ms so that Misty will take photos every two seconds if she sees someone in that timeframe.
 
 ```python
-misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, callback_function=_FaceRecognition, keep_alive=True, debounce=2000)
+misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, keep_alive=True, debounce=FR_debounce, callback_function=_FaceRecognition)
 misty.StartFaceDetection()
-misty.KeepAlive()
 ```
 
-Let's tackle the callback function `_FaceRecognition` that gets called whenever we detect a face. Reference the global variable `count` so that we can use it later, and print the event data so we know when we've started a new callback.
+Let's tackle the callback function `_FaceRecognition` that gets called whenever we detect a face. Reference our global variables so that we can use them later, and print a line to the console.
 
 ```python
 def _FaceRecognition(data):
-    global count
-    print("CV callback called: ", data["eventName"])
+    global count, num_pictures, image_list
+    print("Taking picture!")
 ```
 
 In a `try` block, we'll attempt to take and display a picture. Start by using the `datetime.now()` method to get the current date and time. Cast this into a string with the method `strftime()`. This uses some very specific format parameters, which can be found [here](https://man7.org/linux/man-pages/man3/strftime.3.html).
-
 
 ```python
 try:
@@ -350,30 +347,29 @@ Next, we take the picture. `TakePicture` uses the following [parameters](https:/
 5. `DisplayOnScreen`: displays the image on Misty's screen when `True`
 6. `OverwriteExisting`: if another file already has the same name, replace it with the new photo if `True`.
 
-We confirm that we've taken and saved the picture properly by storing the response it gives us, converting it to a JSON with `.json()`, and indexing the `"name"` field.
+We confirm that we've taken and saved the picture properly by storing the response it gives us, converting it to a JSON with `.json()`, and indexing the `"name"` field. We print this name and store it in the array of images.
 
 ```python
-r = misty.TakePicture(True, imageName, 320, 240, True, True)
-print("Image saved as '" + r.json()["result"]["name"] + "'")
+image = misty.TakePicture(True, imageName, 320, 240, True, True)
+print(f'Image saved as {image.json()["result"]["name"]}')
+image_list[count] = image.json()["result"]["name"]
 ```
 
 If this throws an error at any point, print a message to the console.
 
 ```python
-except:
-    print("Unable to take picture")
+except Exception as e:
+    print(f"Unable to take picture: {e}")
 ```
 
-Increment `count` now that we've taken another photo. If we've taken all the photos we wanted, we stop `FaceDetection` and unregister from `FaceRecognition`. We also get the list pictures Misty has stored with `GetImageList`, convert it to a JSON with `.json()`, and access the `"result"` field. We then loop through all Misty's images. If the image is't a `"systemAsset"`, such as Misty's various built-in expressions, we print the image name.
+Increment `count` now that we've taken another photo. If we've taken all the photos we wanted, we stop `FaceDetection` and unregister from `FaceRecognition`. Finally, we print the list of pictures Misty has taken.
 
 ```python
 count += 1
-else:
+if count >= num_pictures:
     misty.StopFaceDetection()
     misty.UnregisterAllEvents()
-    imagelist = misty.GetImageList().json()["result"]
-    print("\nAll images:", end="    ")
-    for image in imagelist:
-        if image["systemAsset"] == False:
-            print(image["name"], end="    ")
+    print("\nImages taken:")
+    for pic in image_list:
+        print(pic)
 ```
