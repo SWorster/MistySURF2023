@@ -73,10 +73,10 @@
 #define VRX_PIN  A1
 #define VRY_PIN  A0
 #define SW_PIN   7
-#define YELLOW_BTN  6
-#define BLUE_BTN  5
-#define GREEN_BTN 4
-#define RED_BTN 3
+#define TREAD_BTN  6
+#define ARM_BTN  5
+#define HEAD_BTN 4
+#define EXIT_BTN 3
 ```
 
 The [#define statements](https://www.arduino.cc/reference/en/language/structure/further-syntax/define/) are somewhat like constants. These will assign a value to the given name of a variable, though these have their own drawbacks. These can be changed to be constants via something akin to `const int X = ...`.
@@ -103,10 +103,10 @@ These are global variables that are meant to keep track of certain values that w
 void setup() {
     Serial.begin(9600);
     while (!Serial);
-    pinMode(YELLOW_BTN, INPUT);
-    pinMode(BLUE_BTN, INPUT);
-    pinMode(GREEN_BTN, INPUT);
-    pinMode(RED_BTN, INPUT);
+    pinMode(TREAD_BTN, INPUT);
+    pinMode(ARM_BTN, INPUT);
+    pinMode(HEAD_BTN, INPUT);
+    pinMode(EXIT_BTN, INPUT);
 }
 ```
 
@@ -119,10 +119,10 @@ void loop() {
     xValue = analogRead(VRX_PIN);
     yValue = analogRead(VRY_PIN);
 
-    yellowState = digitalRead(YELLOW_BTN);
-    blueState = digitalRead(BLUE_BTN);
-    greenState = digitalRead(GREEN_BTN);
-    redState = digitalRead(RED_BTN);
+    yellowState = digitalRead(TREAD_BTN);
+    blueState = digitalRead(ARM_BTN);
+    greenState = digitalRead(HEAD_BTN);
+    redState = digitalRead(EXIT_BTN);
 
     if (yellowState == HIGH){
         mode = 1;
@@ -134,7 +134,7 @@ void loop() {
         mode = 3;
     }
     if (redState == HIGH){
-        mode = 4;
+        mode = 4; 
     }
 
     Serial.print(xValue);
@@ -154,7 +154,7 @@ The following if statements are to determine whether or not a button was pressed
 
 # Python Line-by-Line Code Walkthrough
 
-*Python Imports and Misty Declaration*
+*Python Imports and Misty, Constant, and Global Declaration*
 
 ```python
 import serial
@@ -171,79 +171,93 @@ misty = Robot("<insert Misty IP>")
 
 This line creates an instance of Misty using `mistyPy.Robot`, and needs to have the IP address as input. Refer to the overall documentation for help with getting Misty’s IP address.
 
+```python
+moveForwardToF = True
+moveBackwardToF = True
+contactFrontBumper = False
+contactBackBumper = False
+bumperTouched = [False, False, False, False]
+
+NORTH = 341
+SOUTH = 682
+LEFT = 341
+RIGHT = 682
+```
+
+From top to bottom, the first 2 global variables are used to allow Misty to move forwards or backwards, determined by data obtained from the time-of-flight sensors in the front and back. The next 3 globals, like the previous 2, determine whether or not Misty can move depending on whether or not the bumper sensors on the base are pressed.
+
+The 4 constants named for the directions that the joystick can be held are used as thresholds for each movement option that exists. These can be changed if the user finds that the joystick returns different values.
+
 *Time-of-Flight Sensor Callback*
 
 ```python
 def _TOFProcessor(data):
-    global canMoveForward, canMoveBackward
+    global moveForwardToF, moveBackwardToF
     distance = data["message"]["distanceInMeters"]
     sensor = data["message"]["sensorId"]
     valid = data["message"]["status"]
     if distance < .25 and valid == 0:
         if sensor == "toffc":
-            canMoveForward = False
+            moveForwardToF = False
             misty.Stop()
         elif sensor == "tofr":
-            canMoveBackward = False
+            moveBackwardToF = False
             misty.Stop()
     elif valid == 0 and distance > .25:
         if sensor == "toffc":
-            canMoveForward = True
+            moveForwardToF = True
         elif sensor == "tofr":
-            canMoveBackward = True
+            moveBackwardToF = True
 ```
 
 A time-of-flight sensor (or ToF) is used to establish the distance an object lies from the sensor by sending out a laser and calculating the distance by using the time it takes to hit the object and the speed of light.
 
 This function is used when the event set up in main is triggered. It works by checking to see if the center sensor or rear sensor have been triggered (seeing something at a a distance of .25 meters) and it is a valid measurement. If it is, it stops Misty's movement and prevents it from moving any closer. Once Misty moves out of range, she can move in the original direction she was heading.
 
+A caveat with this function is that Misty has to move out of the way, not the object she detected. This will be further explored later to see if we can adjust the code such that it doesn't need to be this way.
+
 *Collision Sensor Callback*
 
 ```python
 def _BumpSensor(data):
     try:
-        global lastPlace, contactFront, contactBack
+        global contactFrontBumper, contactBackBumper, bumperTouched
         touched = data["message"]["isContacted"]
         partTouched = data["message"]["sensorId"]
-        
-        if partTouched != lastPlace:
-            lastPlace = ""
-
-        if lastPlace == "":
-            lastPlace = partTouched
-            if partTouched == "bfr" and touched:
+        if touched:
+            if partTouched == "bfr":
                 misty.ChangeLED(255, 0, 0)
-                contactFront = True
+                bumperTouched[1] = True
                 misty.Stop()
-            elif partTouched == "bfl" and touched:
+            elif partTouched == "bfl":
                 misty.ChangeLED(0, 255, 0)
-                contactFront = True
+                bumperTouched[0] = True
                 misty.Stop()
-            elif partTouched == "brl" and touched:
+            elif partTouched == "brl":
                 misty.ChangeLED(0, 0, 255)
-                contactBack = True
+                bumperTouched[2] = True
                 misty.Stop()
-            elif partTouched == "brr" and touched:
+            elif partTouched == "brr":
                 misty.ChangeLED(69, 69, 69)
-                contactBack = True
+                bumperTouched[3] = True
                 misty.Stop()
         else:
-            if lastPlace == "bfr":
-                if touched == False and partTouched == "bfr":
-                    lastPlace = ""
-                    contactFront = False
-            if lastPlace == "bfl":
-                if touched == False and partTouched == "bfl":
-                    lastPlace = ""
-                    contactFront = False
-            if lastPlace == "brl":
-                if touched == False and partTouched == "brl":
-                    lastPlace = ""
-                    contactBack = False
-            if lastPlace == "brr":
-                if touched == False and partTouched == "brr":
-                    lastPlace = ""
-                    contactBack = False
+            if partTouched == "bfr":
+                bumperTouched[1] = False
+            if partTouched == "bfl":
+                bumperTouched[0] = False
+            if partTouched == "brl":
+                bumperTouched[2] = False
+            if partTouched == "brr":
+                bumperTouched[3] = False
+        if bumperTouched[0] == False and bumperTouched[1] == False:
+            contactFrontBumper = False
+        else:
+            contactFrontBumper = True
+        if bumperTouched[2] == False and bumperTouched[3] == False:
+            contactBackBumper = False
+        else:
+            contactBackBumper = True
     except Exception as e:
         print("EXCEPTION:", e)
 ```
@@ -254,25 +268,24 @@ There are 4 bumper sensors on the robot's base, which is what this function uses
 
 ```python
 def treads(coords):
-    global canMoveForward, canMoveBackward, contactFront, contactBack
     split = coords.split()
     x = int(split[0])
     y = int(split[1])
-    if y < 341 and x > 341 and x < 682 and not contactFront and canMoveForward:
+    if y < NORTH and x > LEFT and x < RIGHT and (not contactFrontBumper) and moveForwardToF:
         misty.Drive(linearVelocity = 20, angularVelocity = 0)
-    elif y > 682 and x > 341 and x < 682 and not contactBack and canMoveBackward:
+    elif y > SOUTH and x > LEFT and x < RIGHT and (not contactBackBumper) and moveBackwardToF:
         misty.Drive(linearVelocity = -20, angularVelocity = 0)
-    elif x < 341 and y > 341 and y < 682:
+    elif x < LEFT and y > NORTH and y < SOUTH:
         misty.Drive(linearVelocity = 0, angularVelocity = 50)
-    elif x > 682 and y > 341 and y < 682:
+    elif x > RIGHT and y > NORTH and y < SOUTH:
         misty.Drive(linearVelocity = 0, angularVelocity = -50)
-    elif x < 341 and y < 341 and not contactFront and canMoveForward:
+    elif x < LEFT and y < NORTH and (not contactFrontBumper) and moveForwardToF:
         misty.Drive(linearVelocity = 20, angularVelocity = 20)
-    elif x > 682 and y < 341 and not contactFront and canMoveForward:
+    elif x > RIGHT and y < NORTH and (not contactFrontBumper) and moveForwardToF:
         misty.Drive(linearVelocity = 20, angularVelocity = -20)
-    elif x < 341 and y > 682 and not contactBack and canMoveBackward:
+    elif x < LEFT and y > SOUTH and (not contactBackBumper) and moveBackwardToF:
         misty.Drive(linearVelocity = -20, angularVelocity = 20)
-    elif x > 682 and y > 682 and not contactBack and canMoveBackward:
+    elif x > RIGHT and y > SOUTH and (not contactBackBumper) and moveBackwardToF:
         misty.Drive(linearVelocity = -20, angularVelocity = -20)
     else:
         misty.Stop()
@@ -297,17 +310,17 @@ def arms(data):
     split = data.split()
     x = int(split[0])
     y = int(split[1])
-    if y < 341 and x > 341 and x < 682:
+    if y < NORTH and x > LEFT and x < RIGHT: # left arm up (hold up on joystick)
         misty.MoveArm(arm = "left", position = -29, velocity = 50, units = "degrees")
-    elif y > 682 and x > 341 and x < 682:
+    elif y > SOUTH and x > LEFT and x < RIGHT: # left arm down (hold down on joystick)
         misty.MoveArm(arm = "left", position = 90, velocity = 50, units = "degrees")
-    elif x < 341 and y > 341 and y < 682:
+    elif x < LEFT and y > NORTH and y < SOUTH: # right arm down (hold left on joystick)
         misty.MoveArm(arm = "right", position = 90, velocity = 50, units = "degrees")
-    elif x > 682 and y > 341 and y < 682:
+    elif x > RIGHT and y > NORTH and y < SOUTH: # right arm up (hold right on joystick)
         misty.MoveArm(arm = "right", position = -29, velocity = 50, units = "degrees")
-    elif (x < 341 and y < 341) or (x > 682 and y < 341):
+    elif (x < LEFT and y < NORTH) or (x > RIGHT and y < NORTH): # both arms up (hold upper left or upper right on joystick)
         misty.MoveArm(arm = "both", position = -29, velocity = 50, units = "degrees")
-    elif (x < 341 and y > 682) or (x > 682 and y > 682):
+    elif (x < LEFT and y > SOUTH) or (x > RIGHT and y > SOUTH): # both arms down (hold lower left or lower right on joystick)
         misty.MoveArm(arm = "both", position = 90, velocity = 50, units = "degrees")
     else:
         misty.Stop()
@@ -326,17 +339,17 @@ def head(data):
     split = data.split()
     x = int(split[0])
     y = int(split[1])
-    if y < 341 and x > 341 and x < 682:
+    if y < NORTH and x > LEFT and x < RIGHT: # pitch up (hold up on joystick)
         misty.MoveHead(pitch = -40, velocity = 100, units = "degrees")
-    elif y > 682 and x > 341 and x < 682:
+    elif y > SOUTH and x > LEFT and x < RIGHT: # pitch down (hold down on joystick)
         misty.MoveHead(pitch = 26, velocity = 100, units = "degrees")
-    elif x < 341 and y > 341 and y < 682:
+    elif x < LEFT and y > NORTH and y < SOUTH: # yaw left (hold left on joystick)
         misty.MoveHead(yaw = 81, velocity = 85, units = "degrees")
-    elif x > 682 and y > 341 and y < 682:
+    elif x > RIGHT and y > NORTH and y < SOUTH: # yaw right (hold right on joystick)
         misty.MoveHead(yaw = -81, velocity = 85, units = "degrees")
-    elif x < 341 and y < 341:
+    elif x < LEFT and y < NORTH: # roll left (hold upper left on joystick)
         misty.MoveHead(roll = -40, velocity = 100, units = "degrees")
-    elif x > 682 and y < 341:
+    elif x > RIGHT and y < NORTH: # roll right (hold upper right on joystick)
         misty.MoveHead(roll = 40, velocity = 100, units = "degrees")
     else:
         misty.Stop()
@@ -382,6 +395,7 @@ All in all, the process is the same, but only with 1 number and it won't fluctua
 def init():
     misty.UpdateHazardSettings(disableTimeOfFlights = True)
     misty.MoveHead(0, 0, 0)
+    misty.ChangeLED(255, 200, 0)
 ```
 
 The purpose of having this function is to disable the hazard system's time-of-flight sensors and to reset the head to the neutral position. The reason we disable the TOF sensors is because (for the robot that we're testing this code on), the sensors on the bottom are being triggered and showing odd readings which indicate that Misty thinks she's about to fall off a cliff which stops her from moving correctly. We circumvent this by disabling them, which still allows for event TOF functions to work.
@@ -390,33 +404,26 @@ The purpose of having this function is to disable the hazard system's time-of-fl
 
 ```python
 if __name__ == "__main__":
-    global lastPlace, canMoveForward, canMoveBackward, contactFront, contactBack
-    lastPlace = ""
-    canMoveForward = True
-    canMoveBackward = True
-    contactFront = False
-    contactBack = False
-
     init()
     ser = serial.Serial("<insert Arduino COM>", 9600, timeout = 1)
     time.sleep(1)
-
+    
+    'set up the event listeners for the bumpers and ToF respectively'
     misty.RegisterEvent(event_name = "stop", event_type = Events.BumpSensor, callback_function = _BumpSensor, keep_alive = True)
-    misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, keep_alive = True, debounce = 100)
-    misty.ChangeLED(255, 200, 0)
+    misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, keep_alive = True, debounce = 150)
 
     while True:
-        line = ser.readline()
+        line = ser.readline() # get next line of the serial monitor (its in bytes)
         if line:
-            string = line.decode()
+            string = line.decode() # convert the bytes to a string
             if " " in string:
-                strip = string.strip()
+                strip = string.strip() # strip the string of a newline character and return character
                 mode(strip)
-                if int(strip.split()[2]) == 4:
+                if int(strip.split()[2]) == 4: # break out of infinite while if specific button pressed
                     misty.UnregisterAllEvents()
                     misty.StopAudio()
                     break
-    ser.close()
+    ser.close() # close the serial connection
 ```
 
 First, some global variables (which is part of the 2 callback functions still under edit). These keep track of which of Misty's bumper sensors have been triggered and if the robot is allowed to move respectively.
