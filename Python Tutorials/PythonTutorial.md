@@ -113,82 +113,85 @@ Next, we’ll do the same for Misty’s movement sensors. Because `LocationComma
 misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
 ```
 
-Once we’ve registered to these events, they’ll immediately start collecting data and running their callback functions. While they do this in the background, we need to get Misty to start driving with the `DriveTime` command:
+Once we’ve registered to these events, they’ll immediately start collecting data and running their callback functions. While they do this in the background, we need to get Misty to start driving with the `DriveTime` command. Speed, angle, and time are global constants we defined earlier.
 
 ```python
-misty.DriveTime(linearVelocity=10, angularVelocity=0, timeMs=5000)
+misty.DriveTime(linearVelocity=driving_speed, angularVelocity=driving_angle, timeMs=driving_time*1000)
 ```
 
-Let’s go back and write our callbacks. First is the TOF callback, which takes the data from the sensor as a parameter. Start by referencing the global variable; we specify that it’s `global` here because otherwise Python would create a local variable with the same name.
+Let’s go back and write our callbacks. First is the TOF callback, which takes the data from the sensor as a parameter. Start by referencing the global variables we'll use; we specify that they're `global` here because otherwise Python would create local variables with the same names.
 
 ```python
-def tof_callback(data):
-    global isDriving
+def _TimeOfFlight(data):
+    global threshold, is_driving, volume
 ```
 
-We use another `try` block to handle data that doesn’t match the format we’re looking for (like registration messages and errors). We can access the TOF sensor’s distance measurement by indexing the `data` object.
+We use another `try` block to handle data that doesn’t match the format we’re looking for (like registration messages and errors). We can access the TOF sensor’s distance measurement by indexing the `data` object. We can also tell whether the distace measurement is valid with the boolean passed in the `"status"` field.
 
 ```python
 try:
     distance = data["message"]["distanceInMeters"]
-except:
-    pass
+    status = data["message"]["status"]
+except Exception as e:
+    print(e)
 ```
 
-Now we need to program the behavior we want from Misty. At this point, the `isDriving` variable becomes very useful. We don’t want Misty to react to obstacles unless she’s moving. When we code the movement callback later, we’ll have it change `isDriving` to `True` once Misty starts moving. We can use this to have Misty react when an obstacle is within 0.2 meters and Misty is moving.
+Now we need to program the behavior we want from Misty. At this point, the `isDriving` variable becomes very useful. We don’t want Misty to react to obstacles unless she’s moving. When we code the movement callback later, we’ll have it change `isDriving` to `True` once Misty starts moving. We can use this to have Misty react when an obstacle is within the threshold we set, the distance measurement is valid, and Misty is moving.
 
-There are several things that we want Misty to do in this case. First, we print a message to the console and change Misty’s LED to red. We then play an audio file at a low volume. Most importantly, we send a `DriveTime` command to stop Misty’s movement. Now that she’s finished moving, we change `isDriving` to `False`. We then print a message to the console saying why she stopped. Finally, we unregister from all events; this kills the processes that have been giving us TOF and movement data.
+There are several things that we want Misty to do in this case. First, we print a message to the console and change Misty’s LED to red. We then play an audio file at a set volume. Most importantly, we send a `Stop` command to stop Misty’s movement. Now that she’s finished moving, we change `isDriving` to `False`. We then print a message to the console saying why she stopped. Finally, we unregister from all events; this kills the processes that have been giving us TOF and movement data. We can also revert the hazard settings to their defaults, if we changed that earlier.
 
 ```python
-if (distance < 0.2 and isDriving):
-    print("Misty is", distance, "meters from an obstacle")
+if (distance < threshold and status == 0 and is_driving):
+    print(f"Misty is {distance} meters from an obstacle")
     misty.ChangeLED(255, 0, 0)
-    misty.PlayAudio("s_joy2.wav", 10)
-    misty.DriveTime(linearVelocity=0, angularVelocity=0, timeMs=2000)
-    isDriving = False
+    misty.PlayAudio("s_Joy2.wav", volume=volume)
+    misty.Stop()
+    is_driving = False
     print("Stopped: Obstacle")
     misty.UnregisterAllEvents()
+    misty.UpdateHazardSettings(revertToDefault=True)
 ```
 
-Let’s start on the movement callback. It begins just like the TOF callback:
+Let’s start on the movement callback. It begins just like the TOF callback, but uses different global variables:
 
 ```python
-def move_callback(data):
-    global isDriving
+def _DriveEncoders(data):
+    global min_speed, is_driving, volume
 ```
 
-In a `try` block, store the left and right tread velocities. If they are greater than some arbitrary amount, Misty is moving and `isDriving` is flipped to `True`. It might seem reasonable to instead compare these velocities to 0, but remember that these measurements come from sensors that may be slightly inaccurate. If you want to have your robot drive at a slower speed, you can lower this value as needed.
+In a `try` block, store the left and right tread velocities. If they are greater than the `min_speed` we set earlier, Misty is moving and `isDriving` is flipped to `True`. It might seem reasonable to instead compare these velocities to 0, but remember that these measurements come from sensors that may be slightly inaccurate.
 
 ```python
 try:
-    lvel = data["message"]["leftVelocity"]
-    rvel = data["message"]["rightVelocity"]
-    if (lvel + rvel > 1):
-        isDriving = True
+    left_vel = data["message"]["leftVelocity"]
+    right_vel = data["message"]["rightVelocity"]
+    if (left_vel+right_vel > min_speed):
+        is_driving = True
 ```
 
-Now we need to detect whether Misty is stopped. Because the sensors on her treads are a bit inaccurate, we give a little bit of leeway in our comparison. Importantly, we need to specify that `isDriving` is `True`; otherwise, we might accidentally run this section of code before Misty starts moving.
+Now we need to detect whether Misty is stopped. Because the sensors on her treads are a bit inaccurate, we give a little bit of leeway by comparing to `min_speed` instead of 0. Importantly, we need to specify that `isDriving` is `True`; otherwise, we might accidentally run this section of code before Misty starts moving.
 
-If Misty is stopped, then we want to change her LED to green, play an audio file, print a message to the console, and unregister from all events.
+If Misty is stopped, then we want to change her LED to green, play an audio file, print a message to the console, and unregister from all events. If we changed the hazard settings earlier, this is where we should reset them.
 
 ```python
-if (lvel+rvel < 0.001 and isDriving):
+if (left_vel+right_vel < min_speed and is_driving):
     misty.ChangeLED(0, 255, 0)
-    misty.PlayAudio("s_Joy4.wav", 10)
+    misty.PlayAudio("s_Joy4.wav", volume=volume)
     print("Stopped: time limit reached")
     misty.UnregisterAllEvents()
+    misty.UpdateHazardSettings(revertToDefault=True)
 ```
 
 Finally, finish the `try-except` block so that we ignore all irrelevant messages:
 
 ```python
-except:
-    pass
+except Exception as e:
+    print(e)
 ```
 
 ### Tutorial #3: Computer Vision and Facial Recognition
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/1MHQYbb9OacBYdUdc2oxDWjZL1TeWxMNo/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/985587e67e9b00be827aed27f984d61d829eb3b6/Python%20Tutorials/tutorial3.py).
 
 This program uses Misty’s facial recognition capabilities. Misty will check whether she knows a given name. If she knows the name and sees that person, she will greet the person. If she does not know the name, Misty will use facial recognition to learn the person’s face.
 
@@ -199,50 +202,41 @@ from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 ```
 
-We’ll start with the main function first, then go back and write our callbacks later. Create the `Robot` object with your IP, then declare two global variables. `you` is the name of the person Misty will look for. This name can’t have any spaces or special characters. `onList` is how we’ll check whether Misty already knows the person she’s been told to look for.
+We then declare our two global variables. One is the `Robot` object with your robot's IP. `you` is the name of the person Misty will look for. This name can’t have any spaces or special characters.
 
 ```python
-misty = Robot("MISTY-IP-ADDRESS-HERE")
-global you
+misty = Robot("131.229.41.135")
 you = "YourName"
-global onList
-onList = False
 ```
 
-Next, we’ll unregister from all existing events, just in case something was already running.
+We’ll start with the main function first, then go back and write our callbacks later.
+
+Start by unregistering from all existing events, just in case something was already running.
 
 ```python
-print("unregistering")
+print("Unregistering")
 misty.UnregisterAllEvents()
 ```
     
-Now we register for face recognition events. This should feel familiar after the last tutorial. We’ll make the callback `_FaceRecognition` later. We want this event to stay alive, so we’ll need to put `misty.KeepAlive()` at the end of the main function; however, we can't put this here because it would prevent further progress.
+Now we register for face recognition events. This should feel familiar after the last tutorial. We’ll make the callback `_FaceRecognition` later.
 
 ```python
-misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, callback_function=_FaceRecognition, keep_alive=True)
+misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, keep_alive=True, callback_function=_FaceRecognition)
 ```
 
 Let’s get the list of faces Misty already knows. When we get a response form Misty, we need to translate it into a JSON format so that we can parse it. The list of faces is in the `“result”` field of the JSON file.
 
 ```python
 faceJSON = misty.GetKnownFaces().json()
-faceArr = faceJSON["result"]
-print("Learned faces:", faceArr)
-```
-
-If your name is in this list, flip `onList` to `True`.
-
-```python
-if you in faceArr:
-    onList = True
+face_array = faceJSON["result"]
+print("Learned faces:", face_array)
 ```
 
 If you’re on the list, we don’t need to do any face training because Misty already knows what you look like. We just need to start facial recognition.
 
 ```python
-if onList:
-    print("You were found on the list!")
-    print("starting face recognition")
+if you in face_array:
+    print("You were found on the list! Starting face recognition.")
     misty.StartFaceRecognition()
 ```
 
@@ -250,29 +244,22 @@ If you’re not on the list, Misty needs to learn your face. We register for `Fa
 
 ```python
 else:
-    print("You're not on the list...")
-    print("starting face training")
-    misty.RegisterEvent("FaceTraining", Events.FaceTraining, callback_function=_FaceTraining, keep_alive=True)
+    print("You're not on the list. Starting face training.")
+    misty.RegisterEvent("FaceTraining", Events.FaceTraining, keep_alive=True, callback_function=_FaceTraining)
     misty.StartFaceTraining(you)
 ```
 
-Finally, we tell Misty to keep the `FaceRecognition` event alive. The `KeepAlive()` method prevents any further progress in the code until all events are unregistered, so we couldn’t put this right after the registration commands.
-
-```python
-misty.KeepAlive()
-```
-
-Now let’s work on our callbacks. In `_FaceTraining`, use a `try-except` block to ignore irrelevant messages. When the training process is complete, Misty will send a message where the `isProcessComplete` field is set to `True`. When we see this message, we can unregister from `FaceTraining` events and begin facial recognition.
+Now let’s work on our callbacks. In `_FaceTraining`, use a `try-except` block to ignore irrelevant messages. When the training process is complete, Misty will send a message with the `isProcessComplete` field set to `True`. When we see this message, we can unregister from `FaceTraining` events and begin facial recognition.
 
 ```python
 def _FaceTraining(data):
     try:
         if data["message"]["isProcessComplete"]:
-            print("face training complete")
+            print("Face training complete!")
             misty.UnregisterEvent("FaceTraining")
             misty.StartFaceRecognition()
-    except:
-        pass
+    except Exception as e:
+        print(e)
 ```
 
 The `_FaceRecognition` callback is triggered any time a face recognition event occurs (when Misty finds your name on the list, or after face training). When we receive `FaceRecognition` data, we can check to see who was recognized by accessing the `"label"` field. After checking to make sure that the name isn’t invalid, we print a greeting and unregister from all events.
@@ -282,18 +269,18 @@ def _FaceRecognition(data):
     try:
         name = data["message"]["label"]
         if (name != "unknown person" and name != None):
-            print("A face was recognized. Hello there, " + name + "!");
+            print(f"A face was recognized. Hello there, {name}!")
             misty.StopFaceRecognition()
-            print("unregistering from all events")
+            print("Unregistering from all events.")
             misty.UnregisterAllEvents()
-            print("program complete")
-    except:
-        pass
+            print("Program complete!")
+    except Exception as e:
+        print(e)
 ```
 
 ### Tutorial #4: Taking Pictures
 
-The full program for the following tutorial can be found [here](https://drive.google.com/file/d/11I-0llvC1FiVu72jzqbA92aIDZmOKnU1/view?usp=drive_link).
+The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/main/Python%20Tutorials/tutorial4.py).
 
 This program lets Misty take a photo when she detects a face. Because Python handles asynchronicity differenly, this tutorial has been heavily altered from the original JavaScript.
 

@@ -16,7 +16,7 @@ def _FaceTraining(data):  # callback for face training
     try:  # handles irrelevant/malformed data
         # if process is complete, unregister from FT event and start recognition
         if data["message"]["isProcessComplete"]:  # when face training ends
-            print("face training complete")
+            print("Face training complete!")
             misty.UnregisterEvent("FaceTraining")  # unregister from FT event
             misty.StartFaceRecognition()  # begin facial recognition
     except Exception as e:
@@ -31,7 +31,7 @@ def _FaceRecognition(data):  # callback for all face recognition events
             misty.StopFaceRecognition()  # ends facial recognition
             print("Unregistering from all events.")
             misty.UnregisterAllEvents()  # unregisters from events
-            print("program complete")
+            print("Program complete!")
     except Exception as e:
         print(e)
 
@@ -39,7 +39,7 @@ def _FaceRecognition(data):  # callback for all face recognition events
 if __name__ == "__main__":
 
     # unregister from all events to clear existing facial recognition
-    print("unregistering")
+    print("Unregistering")
     misty.UnregisterAllEvents()
 
     # register for face recognition events
@@ -52,11 +52,11 @@ if __name__ == "__main__":
     print("Learned faces:", face_array)  # print to console
 
     if you in face_array:  # if your name is in the array
-        print("You were found on the list! Starting face recognition...")
+        print("You were found on the list! Starting face recognition.")
         misty.StartFaceRecognition()  # starts facial recognition
 
     else:  # if your name is not in the array
-        print("You're not on the list. Starting face training...")
+        print("You're not on the list. Starting face training.")
 
         # register for face training events
         misty.RegisterEvent("FaceTraining", Events.FaceTraining,
