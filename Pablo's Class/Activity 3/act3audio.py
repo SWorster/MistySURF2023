@@ -4,7 +4,7 @@ Skye Weaver Worster
 WORK IN PROGRESS
 
 Start Misty at pose0; emit a sound, and have misty drive to face the sound origin
-(How hard is it to have musty learn and recognize a key phrase?)
+(How hard is it to have Misty learn and recognize a key phrase?)
 (Can misty count claps? maybe an exercise where she moves/stops depending on num claps)
 '''
 
@@ -13,55 +13,43 @@ from mistyPy.Events import Events
 import os
 import time
 
-
-def _KeyPhraseRecognized(data):
-    print(data)
+misty = Robot("131.229.41.135") # robot object
+STDM_debounce = 1000 # SourceTrackDataMessage debounce, in ms
 
 
 def _SourceTrackDataMessage(data):
-    print(data)
+    try:
+        print(".", end="")
+        sectors = data["message"]["voiceActivitySectors"]
+        if sectors[0]:
+            misty.ChangeLED(255,0,0)
+        elif sectors[1]:
+            misty.ChangeLED(255,200,0)
+        elif sectors[2]:
+            misty.ChangeLED(0,255,0)
+        elif sectors[3]:
+            misty.ChangeLED(0,0,255)
+        else:
+            misty.ChangeLED(0,0,0)
+        print(data)
+    except Exception as e:
+        print(e)
+    
 
 
-def _SourceFocusConfigMessage(data):
-    print(data)
-
-
-def _VoiceRecord(data):
-    print(data)
-
-
-def audio():
-    '''
-    TODO: I'm not doing any work on this section until I get some practice with Misty's audio.
-    '''
-
-    misty.RegisterEvent("KeyPhraseRecognized", Events.KeyPhraseRecognized, condition=None,
-                        debounce=1000, keep_alive=True, callback_function=_KeyPhraseRecognized)
-
-    misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage, condition=None,
-                        debounce=1000, keep_alive=True, callback_function=_SourceTrackDataMessage)
-
-    misty.RegisterEvent("SourceFocusConfigMessage", Events.SourceFocusConfigMessage, condition=None,
-                        debounce=1000, keep_alive=True, callback_function=_SourceFocusConfigMessage)
-
-    misty.RegisterEvent("VoiceRecord", Events.VoiceRecord, condition=None,
-                        debounce=1000, keep_alive=True, callback_function=_VoiceRecord)
-
-
-
-
-def end():
-    misty.UnregisterAllEvents()
-    os.system('python3 /Users/skyeworster/Desktop/reset.py')
-    print("program ended")
 
 
 if __name__ == "__main__":
-    misty = Robot("131.229.41.135")
+    print("hi")
+    
+    # register for SourceTrackDataMessage
+    misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage, condition=None,
+                        debounce=STDM_debounce, keep_alive=True, callback_function=_SourceTrackDataMessage)
 
-    # clean slate. should print "reset"
-    # os.system('python3 /Users/skyeworster/Desktop/reset.py')
-    # time.sleep(2)
-
-    # ignore TOF sensors
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)
+    print("hello")
+    misty.StartRecordingAudio()
+    print("sup")
+    time.sleep(10)
+    misty.StopRecordingAudio()
+    print("done")
+    misty.UnregisterAllEvents()
