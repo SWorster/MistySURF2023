@@ -9,32 +9,35 @@ upload all to misty if she doesn't have them already
 ???
 profit
 '''
+
 from mistyPy.Robot import Robot
-from github import Github
+from PIL import Image
+import os
+import base64
+import json
+
+# list of images in github repo
+path = "/Users/skyeworster/MistySURF2023/Other Resources/For Fun/MistyMedia/Misty Photos"
+images = os.listdir(path)
+    
+print(images)
 
 misty = Robot("131.229.41.135")  # Misty robot with your IP
 
-image_list = misty.GetImageList().json()["result"]  # get list of images
+# get list of images on Misty
+misty_images = misty.GetImageList().json()["result"]
 
-
-g = Github("USERNAME", "PASSWORD")
-repo = g.get_user().get_repo("MistySURF2023")
-print(repo.get_dir_contents(""))
-
-
-image_folder = f"https://github.com/SWorster/MistySURF2023/blob/dbafbb5b1140949509c74493b7497c059c4b7504/Other%20Resources/For%20Fun/MistyMedia/Misty%20Photos"
-
-
-
-
-
-
-
+for x in images:
+    if x not in misty_images:
+        try:
+            # img = Image.open(f"{path}/{x}")
+            
+            with open(f"{path}/{x}", "rb") as img:
+                encoded_string = base64.b64encode(img.read())
+            misty.SaveImage(x, encoded_string)
+            img.close()
+        except Exception as e:
+            print(f"Could not save {x}: {e}")
 
 
 # audio_list = misty.GetAudioList().json()["result"]
-
-# cat_folder = "https://github.com/SWorster/MistySURF2023/tree/dbafbb5b1140949509c74493b7497c059c4b7504/Other%20Resources/For%20Fun/MistyMedia/Misty%20Sounds/cat"
-
-# address = f"https://github.com/SWorster/MistySURF2023/raw/main/file.jpg"
-
