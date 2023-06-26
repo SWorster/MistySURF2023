@@ -1,50 +1,54 @@
 '''
 Skye Weaver Worster
 
-WORK IN PROGRESS
+When Misty sees certain objects, she reacts by changing her LED and playing a song clip. I decided against moving left and right, because that limits Misty to being on the floor (and playing meme songs is more fun).
 
+Pablo's instructions:
 Start Misty at pose0; If we show Misty object A, she moves left; For object B, she moves right.
 '''
 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
-import os
 import time
 
-
-def _TimeOfFlight(data):
-    name = data["message"]["sensorPosition"]
-    d = data["message"]["distanceInMeters"]
-    if data["message"]["status"] == 0:
-        if name in ["Right", "Left", "Center", "Back"] and d < .2:
-            print(name, d)
-        elif d > .06:
-            # pass due to bottom TOF sensor malfunction
-            # print(name, d)
-            pass
+misty = Robot("131.229.41.135")  # robot object
+min_confidence = .6  # confidence required to send event, form 0 to 1
+OD_debounce = 1000  # object detection debounce, in ms
+volume = 5  # audio volume
 
 
-def tof():
-    '''
-    The boring half of the visual capabilities.
-    '''
-    misty.RegisterEvent("TimeOfFlight", Events.TimeOfFlight,
-                        condition=None, keep_alive=True, callback_function=_TimeOfFlight)
+def _ObjectDetection(data):
+    object = data["message"]["description"]
+    print(object)  # print what Misty sees
 
+    # if she sees a specific object, she reacts
+    if object == "laptop":
+        misty.PlayAudio("A_megalovania.m4a", volume)
+        misty.ChangeLED(0, 255, 255)
+        end()
+    if object == "backpack":
+        misty.PlayAudio("A_secrettunnel.mp3", volume)
+        misty.ChangeLED(255, 0, 255)
+        end()
+    if object == "bottle":
+        misty.PlayAudio("A_RickrollShort.mp3", volume)
+        misty.ChangeLED(255, 0, 0)
+        end()
 
 
 def end():
+    # stop and unregister
+    misty.StopObjectDetector()
     misty.UnregisterAllEvents()
-    os.system('python3 /Users/skyeworster/Desktop/reset.py')
-    print("program ended")
+    print("done")
+    time.sleep(5)  # limits playback to five seconds
+    misty.StopAudio()
+    misty.ChangeLED(0, 0, 0)
 
 
 if __name__ == "__main__":
-    misty = Robot("131.229.41.135")
+    misty.StartObjectDetector(min_confidence, 0, 5)  # start detection
 
-    # clean slate. should print "reset"
-    # os.system('python3 /Users/skyeworster/Desktop/reset.py')
-    # time.sleep(2)
-
-    # ignore TOF sensors
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)
+    # register for object detection
+    misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
+                        debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)
