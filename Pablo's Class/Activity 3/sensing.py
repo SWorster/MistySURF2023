@@ -1,5 +1,7 @@
 '''
-Sensing Modalities
+Skye Weaver Worster
+
+Sensing Modalities (DEPRECATED). This became the files in the "Activity 3" folder. I'm just keeping this around as a reference, and I'm not updating/documenting it any further.
 
 This code can be used to test some of Misty's sensory capabilities. The following is the list of events and commands this code uses. Most of the sensory capabilities are boring and don't make sense for a demo, so I was generous with what I cut.
 

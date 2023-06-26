@@ -1,7 +1,7 @@
 '''
 Skye Weaver Worster
 
-Misty looks around, trying to find my face. If she finds it, she starts following me with her head. If not, she is sad and the program ends.
+Misty looks around, trying to find your face. If she finds it, she starts following your with her head. If not, she is sad and the program ends.
 
 Target has to be known, and their name must be provided.
 '''
@@ -18,11 +18,8 @@ person = "Skye"  # person to look for
 FR_debounce = 500  # facial recognition debounce
 AP_debounce = 100  # actuator position debounce
 volume = 2  # volume for audio clips
+start_pitch = -20  # starting pitch for head (recommend looking up)
 
-# Don't change these! It might break things.
-seen = False  # whether looking at person
-hPitch = None  # tracks head pitch
-hYaw = None  # tracks head yaw
 
 # parameters for Misty's searching movement. The thresholds are a bit less than the maximum values, just in case the head motors don't complete the movement. I don't recommend changing these, except maybe velocity.
 velocity = 50  # speed for movement
@@ -34,6 +31,11 @@ center_yaw = -1  # for last movement command only
 center_threshold = 0.1  # for detecting head placement
 move_pitch = -20  # head pitch
 roll = 0  # head roll (should always be 0)
+
+# ! Don't change these! It might break things.
+seen = False  # whether looking at person
+hPitch = None  # tracks head pitch
+hYaw = None  # tracks head yaw
 
 
 def _BumpSensor(data):
@@ -62,9 +64,9 @@ def _Follow(data):
     # behavior for when misty has found someone to follow
 
     global person
-    name = data["message"]["label"]
+    name = data["message"]["label"]  # name of person Misty sees
 
-    # sees person of interest
+    # if she sees person of interest
     if name == person:
         global hYaw, hPitch, seen
 
@@ -73,10 +75,20 @@ def _Follow(data):
         distance = data["message"]["distance"]
         elevation = data["message"]["elevation"]
 
-        # ? make tolerance relative to distance? no idea if this works, or if it helps
-        if distance > 100:
+        '''
+        I gave Misty a window at the center of her vision where she won't move to center your face. Without this, she'll keep moving her head to center you if you're even the slightest bit off. I recommend 2 "units" as a good baseline.
+    
+        I attempted to make the tolerances relative to distance. If you're within 100 centimeters, Misty will try to center your face if you're more than 2 units from center. Otherwise, she'll only move if you get 3 units off. I'm not sure how much this helps, but it doesn't break anything.
+        
+        Another issue is that there's no concrete way to translate the bearing/elevation distance to head position. If given a constant rate (say, move by 1 degree each time this callback runs), Misty will take a very long time to adjust. If this rate is too high (say, 5 degrees), she will overcompensate and miss the tolerance window. I decided that the most time-efficient way (for me) to fix this was to scale the rate with how far off-center the face is. There's no exact science here, and the numbers are (almost) completely arbitrary. The only calculation I did was to ensure that none of these will produce a movement that sends her head to the other side of the tolerance window.
+        
+        The movement duration (default .4 sec) has to be less than the debounce for facial recognition (default .5 sec). Misty needs time to complete each movement, or the movement commands will overlap and cause her to continually overshoot your face.
+        
+        Because this entire section is basically me throwing stuff at a wall to see what sticks, I'm not going to bother making these variables/tolerances global yet. I plan on coming back to this once I have more experience (and sanity).
+        '''
+        if distance > 100:  # if you're far away, larger window
             t = 3
-        else:
+        else:  # if you're closer, smaller window
             t = 2
 
         # if within tolerance (centered enough in frame)
@@ -124,7 +136,6 @@ def _FaceRecognition(data):
     '''
     when she sees someone, she processes it
     if it's a known person, she stops and fixates on that person
-    not sure how timing will work on this. might have to stop her before processing if it takes too long
     '''
 
     try:  # try to get face name, compare against known faces
@@ -146,12 +157,12 @@ def _FaceRecognition(data):
             misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                                 callback_function=_BumpSensor)
 
-            # register for FR @ 500ms
+            # register for FR
             # TODO: update comment if this has changed
             misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, debounce=FR_debounce, keep_alive=True,
                                 callback_function=_Follow)
 
-            # register for HeadPitch/HeadYaw @ 100ms
+            # register for HeadPitch/HeadYaw
             misty.RegisterEvent("ActuatorPositionHP", Events.ActuatorPosition, [
                 EventFilters.ActuatorPosition.HeadPitch], debounce=AP_debounce, keep_alive=True, callback_function=_HeadPitch)
 
@@ -160,8 +171,7 @@ def _FaceRecognition(data):
 
             misty.KeepAlive()  # keep events live
 
-    # this shouldn't run unless data is corrupted
-    except:
+    except:  # this shouldn't run unless data is corrupted
         print("except")
 
 
@@ -170,21 +180,21 @@ if __name__ == "__main__":
     misty.UnregisterAllEvents()  # unregister
     misty.ChangeLED(0, 0, 255)  # LED blue
 
-    misty.MoveHead(-20, 0, 0)  # forward and up for better view
+    misty.MoveHead(start_pitch, 0, 0)  # forward and up for better view
 
     # register for facial recognition
     misty.RegisterEvent("FaceRecognition", Events.FaceRecognition,
-                        callback_function=_FaceRecognition, debounce=500, keep_alive=True)
+                        callback_function=_FaceRecognition, debounce=FR_debounce, keep_alive=True)
 
-# register for actuator position head pitch
+    # register for actuator position head pitch
     misty.RegisterEvent("ActuatorPositionHP", Events.ActuatorPosition, [
-                        EventFilters.ActuatorPosition.HeadPitch], debounce=50, keep_alive=True, callback_function=_HeadPitch)
+                        EventFilters.ActuatorPosition.HeadPitch], debounce=AP_debounce, keep_alive=True, callback_function=_HeadPitch)
 
-# register for actuator position head yaw
+    # register for actuator position head yaw
     misty.RegisterEvent("ActuatorPositionHY", Events.ActuatorPosition, [
-                        EventFilters.ActuatorPosition.HeadYaw], debounce=50, keep_alive=True, callback_function=_HeadYaw)
+                        EventFilters.ActuatorPosition.HeadYaw], debounce=AP_debounce, keep_alive=True, callback_function=_HeadYaw)
 
-# register for bump sensor
+    # register for bump sensor
     misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         callback_function=_BumpSensor)
 
