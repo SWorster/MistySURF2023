@@ -13,6 +13,8 @@ WARNING: This code has Misty ignore her Time of Flight sensors! She won't detect
 from mistyPy.Robot import Robot
 import time
 
+misty = Robot("131.229.41.135")  # robot object with your IP
+
 # drive command
 drive_l = 30  # linear velocity
 drive_a = 0  # angular velocity
@@ -30,7 +32,6 @@ right = -30  # right arm position
 arm_v = 90  # velocity of arm movement
 
 
-misty = Robot("131.229.41.135")  # robot object with your IP
 misty.MoveArms(90, 90, 80, 80)  # arms straight down
 misty.MoveHead(0, 0, 0)  # head to neutral
 
