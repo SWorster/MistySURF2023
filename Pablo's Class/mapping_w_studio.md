@@ -10,3 +10,7 @@
 6. When satisfied, press "Stop Mapping" and wait for the map to finish exporting as indicated by the SLAM Status to the right of the Mapping buttons.
 7. If the map doesn't load in, reload the studio and renavigate to the Explore / Mapping menu. Click on the dropdown (which is ordered by data created) and select the most recent map. Press "Display Current Map."
 8. If you want the point map, press "Set as Current" and then navigate to Programming / API Explorer. Under Navigation, select "GetMap" and press "Send Request." Copy the output and paste it into a text editor. Format for readability (Prettier in VSCode works well).
+
+# Sources
+- https://docs.mistyrobotics.com/misty-ii/misty-studio/mapping/#tips-for-success
+- https://docs.mistyrobotics.com/misty-ii/web-api/api-reference/#navigation
