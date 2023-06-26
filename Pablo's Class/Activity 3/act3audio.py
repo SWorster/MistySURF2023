@@ -13,43 +13,37 @@ from mistyPy.Events import Events
 import os
 import time
 
-misty = Robot("131.229.41.135") # robot object
-STDM_debounce = 1000 # SourceTrackDataMessage debounce, in ms
+misty = Robot("131.229.41.135")  # robot object
+STDM_debounce = 1000  # SourceTrackDataMessage debounce, in ms
 
 
 def _SourceTrackDataMessage(data):
     try:
-        print(".", end="")
         sectors = data["message"]["voiceActivitySectors"]
         if sectors[0]:
-            misty.ChangeLED(255,0,0)
+            misty.ChangeLED(255, 0, 0)
         elif sectors[1]:
-            misty.ChangeLED(255,200,0)
+            misty.ChangeLED(255, 200, 0)
         elif sectors[2]:
-            misty.ChangeLED(0,255,0)
+            misty.ChangeLED(0, 255, 0)
         elif sectors[3]:
-            misty.ChangeLED(0,0,255)
+            misty.ChangeLED(0, 0, 255)
         else:
-            misty.ChangeLED(0,0,0)
-        print(data)
+            misty.ChangeLED(0, 0, 0)
+        print(sectors)
     except Exception as e:
         print(e)
-    
-
-
 
 
 if __name__ == "__main__":
-    print("hi")
-    
+
     # register for SourceTrackDataMessage
     misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage, condition=None,
                         debounce=STDM_debounce, keep_alive=True, callback_function=_SourceTrackDataMessage)
 
-    print("hello")
-    misty.StartRecordingAudio()
-    print("sup")
-    time.sleep(10)
+    print(misty.StartRecordingAudio("test"))
+
+    time.sleep(5)
     misty.StopRecordingAudio()
-    print("done")
+
     misty.UnregisterAllEvents()
