@@ -80,6 +80,6 @@ if __name__ == "__main__":
     misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True,
                         debounce=DE_debounce, callback_function=_DriveEncoders)
 
-    # Misty drives straight forward at speed 10 for 5 seconds
+    # Misty drives forward
     misty.DriveTime(linearVelocity=driving_speed,
                     angularVelocity=driving_angle, timeMs=driving_time*1000)

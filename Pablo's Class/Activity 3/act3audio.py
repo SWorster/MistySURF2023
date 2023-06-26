@@ -15,7 +15,6 @@ Start Misty at pose0; emit a sound, and have misty drive to face the sound origi
 2. Haven't tried this yet.
 
 3. Misty doesn't pick up claps consistently. They're loud, but short. Have tried debounce of 5, 100, 500. None help Misty detect claps. Waiting on guidance before proceeding.
-
 '''
 
 from mistyPy.Robot import Robot
