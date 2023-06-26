@@ -1,3 +1,9 @@
+'''
+Skye Weaver Worster
+
+This was done entirely for fun, so I'm not updating/documenting it at all. Use at your own risk.
+'''
+
 # import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
