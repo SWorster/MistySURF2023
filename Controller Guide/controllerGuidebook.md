@@ -55,7 +55,7 @@
   * `pip install websocket-client`
   * `pip install yapf`
 
-* Please note: Misty II uses Python 3.9, so if you also end up coding other programs for Misty to run in Python, keep this in mind.
+* Please note: There are 2 different files for the controller in Python because one uses syntax only introduced in Python 3.10, being the switch case adjacent match. The logic in the file that uses 3.9 is fundamentally the same, so feel free to use whichever version your machine has. This guide goes over the code from the 3.9 file.
 
 * When trying to run the controller file, you will need to change the IP address (line 5) to match it in the program to the one that your Misty uses. You also need to change the COM address (line 82) to match it to the one that the Arduino uses.
 
