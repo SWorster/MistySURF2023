@@ -1,9 +1,7 @@
 '''
 Skye Weaver Worster
 
-Takes driving parameters, moves Misty, and creates a graph of her tread movement.
-
-This was a labor of love. It works, but I haven't cleaned it up or properly documented it. I'll get to that if I have time later.
+Takes driving parameters, moves Misty, and creates a graph of her tread movement. All globals can be edited to change Misty's behavior, graph properties, etc.
 
 Be sure to replace the directory paths!
 '''

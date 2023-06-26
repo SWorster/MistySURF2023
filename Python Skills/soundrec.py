@@ -7,20 +7,18 @@ Misty hears a sentence and repeats it. No speech parsing capabilities, unfortuna
 # import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
-import os
 
 misty = Robot("131.229.41.135")
-
+volume = 50  # playback volume
 
 def _VoiceRecord(data):
-    # if recorded successfully
-    if data["message"]["success"]:
+    if data["message"]["success"]:  # if recorded successfully
         # register for audio completion event
         misty.RegisterEvent(
             "AudioPlayComplete", Events.AudioPlayComplete, callback_function=_AudioPlayComplete)
 
         # start playing sound. end of sound triggers callback
-        misty.PlayAudio("capture_Dialogue.wav", volume=50)
+        misty.PlayAudio("capture_Dialogue.wav", volume=volume)
         print("playing audio")
 
 

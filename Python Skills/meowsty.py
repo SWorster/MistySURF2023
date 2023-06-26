@@ -2,6 +2,8 @@
 Skye Weaver Worster
 
 Misty is now Meowsty. No FUR-ther explanation provided. (please laugh at the pun)
+
+Audio files are in Other Resources > For Fun > MistyMedia > Misty Sounds > cat
 '''
 
 # import statements
@@ -10,6 +12,14 @@ from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # Misty robot with your IP
 last_place = ""  # tracks the last place Misty was touched
+
+# audio volumes
+purr1 = 10
+purr2 = 10
+meow1 = 5
+meow2 = 5
+meow3 = 5
+hiss = 3
 
 
 def _BumpSensor(data):  # when bumped, program ends
@@ -41,29 +51,29 @@ def _CapTouch(message):
 
             # if-else statements on part_touched
             if part_touched == "Chin" and touched:
-                misty.PlayAudio("A_purr1.mp3", 10)
+                misty.PlayAudio("A_purr1.mp3", purr1)
                 misty.TransitionLED(0, 0, 0, 255, 100, 255,
                                     "TransitOnce", 2000)
                 print("chin scritches <3")
 
             elif part_touched == "HeadLeft" and touched:
-                misty.PlayAudio("A_meow1.mp3", 5)
+                misty.PlayAudio("A_meow1.mp3", meow1)
                 print("left scritches")
 
             elif part_touched == "HeadRight" and touched:
-                misty.PlayAudio("A_meow2.mp3", 5)
+                misty.PlayAudio("A_meow2.mp3", meow2)
                 print("right scritches")
 
             elif part_touched == "HeadBack" and touched:
-                misty.PlayAudio("A_meow3.mp3", 5)
+                misty.PlayAudio("A_meow3.mp3", meow3)
                 print("back scritches")
 
             elif part_touched == "HeadFront" and touched:
-                misty.PlayAudio("A_purr2.mp3", 10)
+                misty.PlayAudio("A_purr2.mp3", purr2)
                 print("front scritches")
 
             elif part_touched == "Scruff" and touched:
-                misty.PlayAudio("A_hiss.mp3", 2)
+                misty.PlayAudio("A_hiss.mp3", hiss)
                 print("HISS")
 
         # if a place has already been touched:
@@ -78,7 +88,7 @@ def _CapTouch(message):
                     # pulse between pink and off over 2 seconds, repeatedly
                     misty.TransitionLED(255, 100, 255, 0, 0,
                                         0, "TransitOnce", 2000)
-                    last_place = "" # clear last place touched
+                    last_place = ""  # clear last place touched
 
             if last_place == "HeadLeft":
                 # if we stop touching HL

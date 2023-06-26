@@ -24,6 +24,7 @@ mode = 0  # * mode of operation
 
 def _Center(data):  # center TOF
     global range
+    # if close to obstacle and distance is valid, print
     if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("CENTER: ", data["message"]["distanceInMeters"])
 
@@ -48,6 +49,7 @@ def _Back(data):
 
 def _DRight(data):
     global edge
+    # if drop-off detected and distance is valid, print
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("DOWNRIGHT: ", data["message"]["distanceInMeters"])
 
