@@ -1,12 +1,16 @@
 '''
-Proprioception sensing
+Skye Weaver Worster
+
+Misty's LED turns different colors depending on her pitch, roll, and yaw.
 '''
 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
+misty = Robot("131.229.41.135") # robot object with your IP
 
 def _BumpSensor(data):
+    # if bumper hit, change LED to white
     if data["message"]["isContacted"]:
         misty.ChangeLED(255, 255, 255)
 
@@ -43,7 +47,6 @@ def _IMU(data):
 
 if __name__ == "__main__":
 
-    misty = Robot("131.229.41.135")
     misty.RegisterEvent("IMU", Events.IMU, condition=None,
                         debounce=10, keep_alive=True, callback_function=_IMU)
 
