@@ -1,24 +1,12 @@
 '''
 Skye Weaver Worster
 
-WORK IN PROGRESS
-
 This code assumes that you've cloned the github repo to your computer. Replace the path variable with the path to your clone's "Misty Photos" directory.
-
-plan:
-get all audio and image files from github folders
-upload all to misty if she doesn't have them already
-???
-profit
 '''
 
 from mistyPy.Robot import Robot
-from PIL import Image
 import os
 import base64
-import json
-import base64
-from io import BytesIO
 
 
 your_path = "/Users/skyeworster"  # ! replace "skyeworster" with your path
@@ -26,61 +14,57 @@ misty = Robot("131.229.41.135")  # Misty robot with your IP
 
 
 # get github images
-img_path = f"{your_path}/MistySURF2023/Other Resources/For Fun/MistyMedia/Misty Photos"
+img_path = f"{your_path}/MistySURF2023/Other Resources/For Fun/Misty Photos"
 gh_images = os.listdir(img_path)  # list of images in github repo
-gh_images.sort(key=str.lower)
-print("on github:", gh_images)
+gh_images.sort(key=str.lower)  # sort alphabetically (not case-sensitive)
 
 
 # get list of images on Misty
-misty_images = misty.GetImageList().json()["result"]
-short_img = []
+misty_images = misty.GetImageList().json()["result"]  # all images
+short_img = []  # list of image names, excluding system assets
 for x in misty_images:
-    if x["systemAsset"] == False:
-        short_img.append(x["name"])
-print("on misty:", short_img)
+    if x["systemAsset"] == False:  # if not a system asset
+        short_img.append(x["name"])  # add name to short list
 
-for x in gh_images:
-    if x not in short_img:
-        print(f"{x} not on Misty")
+for x in gh_images:  # look at all github images
+    if x not in short_img:  # if image in github but not Misty
+        print(f"{x} is not on Misty... ", end="")  # print to console
         try:
-            with open(f"{img_path}/{x}", "rb") as img:
-                data = base64.b64encode(img.read())
-            
-            utf = data.decode('utf-8')
-            misty.SaveImage(x, data=utf)
+            with open(f"{img_path}/{x}", "rb") as img:  # open image for reading
+                data = base64.b64encode(img.read())  # read, encode as base64
 
-        except Exception as e:
+            utf = data.decode('utf-8')  # decode base64 to string
+            misty.SaveImage(x, data=utf)  # save to Misty
+            print(f"Saved {x} to Misty!")
+
+        except Exception as e:  # error handling
             print(f"Could not save {x}: {e}")
 
 
-
-
-
 # get github audio
-sound_path = f"{your_path}/MistySURF2023/Other Resources/For Fun/MistyMedia/Misty Sounds"
+sound_path = f"{your_path}/MistySURF2023/Other Resources/For Fun/Misty Sounds"
 gh_sounds = os.listdir(sound_path)  # list of sounds in github repo
-gh_sounds.sort(key=str.lower)
-print("on github:", gh_sounds)
+gh_sounds.sort(key=str.lower)  # sort alphabetically (not case-sensitive)
 
 
 # get list of audio on Misty
-misty_sounds = misty.GetAudioList().json()["result"]
-short_sounds = []
+misty_sounds = misty.GetAudioList().json()["result"]  # all clips
+short_sounds = []  # list of clip names, excluding system assets
 for x in misty_sounds:
-    if x["systemAsset"] == False:
-        short_sounds.append(x["name"])
-print("on misty:", short_sounds)
+    if x["systemAsset"] == False:  # if not a system asset
+        short_sounds.append(x["name"])  # add name to short list
 
-for x in gh_sounds:
-    if x not in short_sounds:
-        print(f"{x} not on Misty")
+
+for x in gh_sounds:  # look at all github clips
+    if x not in short_sounds:  # if clip in github but not Misty
+        print(f"{x} is not on Misty... ", end="")  # print to console
         try:
-            with open(f"{sound_path}/{x}", "rb") as au:
-                data = base64.b64encode(au.read())
-            
-            utf = data.decode('utf-8')
-            misty.SaveAudio(x,utf)
+            with open(f"{sound_path}/{x}", "rb") as au:  # open clip for reading
+                data = base64.b64encode(au.read())  # read, encode as base64
 
-        except Exception as e:
+            utf = data.decode('utf-8')  # decode base64 to string
+            misty.SaveAudio(x, utf)  # save to Misty
+            print(f"Saved {x} to Misty!")
+
+        except Exception as e:  # error handling
             print(f"Could not save {x}: {e}")
