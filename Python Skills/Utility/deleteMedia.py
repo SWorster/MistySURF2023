@@ -23,6 +23,7 @@ for image in image_list:  # go through list
     if image["systemAsset"] == False:  # if not system asset
         print(image["name"])  # print remaining images
 
+print("")
 
 clip_list = misty.GetAudioList().json()["result"]  # get list of clips
 
@@ -30,10 +31,10 @@ for clip in clip_list:  # for each clip
 
     # if clip isn't a system asset or one of the ones we want to keep
     if clip["systemAsset"] == False and clip["name"][0] != "A":
-        s = misty.DeleteImage(clip["name"])  # delete clip
+        s = misty.DeleteAudio(clip["name"])  # delete clip
         print("Deleted:", clip["name"])  # confirm deletion
 
-clip_list = misty.GetImageList().json()["result"]  # get list of clips again
+clip_list = misty.GetAudioList().json()["result"]  # get list of clips again
 print("\nRemaining clips (excluding system assets):")
 for clip in clip_list:  # go through list
     if clip["systemAsset"] == False:  # if not system asset
