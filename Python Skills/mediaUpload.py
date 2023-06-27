@@ -84,17 +84,3 @@ for x in gh_sounds:
 
         except Exception as e:
             print(f"Could not save {x}: {e}")
-
-
-
-
-# * doing audio later. might have to put everything in one folder for simplicity
-
-
-# # get github audio
-# img_path = f"{your_path}/MistySURF2023/Other Resources/For Fun/MistyMedia/Misty Photos"
-# images = os.listdir(img_path) # list of images in github repo
-# print(images)
-
-
-# audio_list = misty.GetAudioList().json()["result"]
