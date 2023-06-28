@@ -1,6 +1,8 @@
 # Programming with Web API
 
-Misty’s creators have provided a [tutorial](https://docs.mistyrobotics.com/misty-ii/web-api/tutorials/) page, but it is difficult for a beginner to follow (or anyone, really). We have adapted those instructions below. The following tutorial should be appropriate for students that have completed CSC 210 or 212 and have limited Java or JavaScript experience.
+##### Skye Weaver Worster
+
+Misty’s creators have provided a [tutorial](https://docs.mistyrobotics.com/misty-ii/web-api/tutorials/) page, but it is difficult for a beginner to follow (or anyone, really). I have adapted those instructions below. The following tutorial should be appropriate for students that have completed CSC 210 or 212 and have limited Java or JavaScript experience.
 
 Because the only connection between our computer and Misty is via HTTP, we can use nearly any programming language to create and receive these HTTP requests. However, JavaScript is the most supported option for working with Misty.
 
@@ -79,7 +81,7 @@ Begin by declaring your robot’s IP address as a global constant value:
 const ip = "MISTY-IP-ADDRESS-HERE";
 ```
 
-We then create an object with three parameters to store a color value. 
+We then create an object with three parameters to store a color value.
 
 ```javascript
 let data = {
@@ -144,7 +146,7 @@ This program has the robot drive straight forward for a set time or until it see
 This project requires the `lightSocket.js` file, which can be added as explained above.
 
 > **Note**
-> This tutorial originally used the `LocomotionCommand` event. This event does not work as intended, because it does not send a message when Misty’s velocity is 0 and the code fails to terminate. Instead, we will use `DriveEncoders`. Feel free to peruse the [documentation](https://docs.mistyrobotics.com/misty-ii/web-api/tutorials/#using-sensors-websockets-and-locomotion) this code was based on, but be aware that it does not function.
+> This tutorial originally used the `LocomotionCommand` event. This event does not work as intended, because it does not send a message when Misty’s velocity is 0; the code fails to terminate as a result. Instead, we will use `DriveEncoders`. Feel free to peruse the [documentation](https://docs.mistyrobotics.com/misty-ii/web-api/tutorials/#using-sensors-websockets-and-locomotion) this code was based on, but be aware that it does not function.
 
 Start by declaring Misty’s IP:
 
