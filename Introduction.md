@@ -86,13 +86,22 @@ Wizard is the starting page for the Studio, and it allows the user to adjust hea
 
 **Vision** has the ability to record video and take photos. Most importantly, it is also the interface for face detection, recognition, and training. Start with face training. Enter your name in the FaceID box, move your face in front of the camera, and click start training. Hold still until Misty is done. Then click Start Face Recognition to let Misty identify any faces she sees. Face Detection streams Misty’s face detection output to the browser console.
 
-**Hearing** allows the user to record audio. It also has a program called Audio Localization, which we haven’t explored yet.
+**Hearing** allows the user to record audio. It also has a program called Audio Localization, which shows where Misty is detecting sound.
 
-**Mapping** allows Misty to [map the layout](https://docs.mistyrobotics.com/misty-ii/misty-studio/mapping/) of a room. We haven’t experimented with this yet, and it seems that mapping has only been beta tested.
+**Mapping** allows Misty to [map the layout](https://docs.mistyrobotics.com/misty-ii/misty-studio/mapping/) of a room. We are currently working on a programmatic mapping program as well.
 
 ### Programming
 
-There are multiple ways to program Misty, but we recommend using the Web API which utilizes HTML and JavaScript. Other methods include using C# in .NET applications or Python. Utilizing C# is the most supported, but is unavailable on non-Windows machines. Python, which is a highly accessible method like the Web API, is restrictive in that you can only have a single file running at a time and cannot use external libraries.
+Misty’s programs are called skills: a file or set of files that give Misty instructions to complete a task. Misty can store these skills internally and run them from her onboard processors, but she can also take commands from code running on your computer.
+
+There are multiple ways to program Misty:
+
+- Python is the best option by far. It's the easiest to understand and pick up quickly.
+- HTML and JavaScript, which uses the Web API. This is a good option for those who are already experienced JS programmers.
+- C# in .NET applications is the most well-supported option, but is unavailable on non-Windows machines.
+- Onboard JS and Python options are also available. However, we recommend against these options, since running code on your computer is much easier and more efficient. Additionally, onboard Python can only run a single file with no external libraries, and onboard JS requires creating a JSON file alongside your code.
+
+We have written tutorials for Python and JavaScript, but all of our further work has been done in Python.
 
 ### Tutorials
 
@@ -100,21 +109,3 @@ _**DO NOT CLICK ON THESE!**_ There are 3 tutorials that are given in Misty Studi
 
 ### Settings
 Various extra settings and info such as Studio Settings, WiFi, Update Management, and Diagnostics. Studio Settings is useful for resetting the robot’s various positions back to their defaults.
-
-## Coding
-
-Misty’s programs are called skills: a file or set of files that give Misty instructions to complete a task. Misty can store these skills internally and run them from her onboard processors, but she can also take commands from code running on your computer.
-
-### External
-
-We recommend using VS Code to create HTML/JavaScript programs. Many programming languages can access the Web API, but JavaScript is the most well-documented.
-
-### Internal
-
-Misty can also store and run code internally, but there are some limitations.
-
-A good option is to use JavaScript and JSON in conjunction with the [Misty JavaScript](https://docs.mistyrobotics.com/tools-&-apps/plugins-&-extensions/misty-skills-extension/) extension for VS Code.
-
-Misty can interpret Python skills with her on-board processor, but can only handle one file at a time with no dependencies. However, Python files can be run on a computer and communicate through Misty's API interface. We strongly recommend this option.
-
-There is also a C# and .NET option, but this is only usable on Windows computers because it relies on Visual Studio extensions.

@@ -15,15 +15,14 @@ So far, we have made the following:
 
 - Introduction.md, an in-depth starter on Misty's operation and capabilities
 - JavaScript tutorials, adapted from those found on Misty's documentation site
-- Python tutorials, _heavily_ adapted from the JS tutorials
 - Onboard JS basics, although we haven't worked with that extensively
+- Python tutorials, _heavily_ adapted from the JS tutorials
 - Controller guide, for how to make and program an Arduino-based joystick controller
 - Python skills, a collection of programs for Misty
+- Object detection and audio localization
 
 This will be continually updated throughout the summer as we continue our work. Here's an overview of the areas we plan on exploring further:
 
-- Audio localization
 - SLAM mapping
-- Onboard JS and Python
+- Onboard Python
 - Speech and conversations
-- Object detection

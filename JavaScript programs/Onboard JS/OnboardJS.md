@@ -1,5 +1,7 @@
 # Programming JS Onboard Misty
 
+##### Julia Yu and Skye Worster
+
 Misty’s onboard [JavaScript API](https://github.com/MistyCommunity/Documentation/blob/master/src/content/misty-i/coding-misty/local-skill-architecture.md) allows Misty to store and run skills internally. For each skill, Misty requires the JavaScript code and the associated JSON file.
 
 ### JSON File
