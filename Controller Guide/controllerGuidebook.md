@@ -93,9 +93,27 @@ int redState = 0;
 
 int mode = 1;
 const int timeDelay = 150;
+
+int treadState;
+int lastYellowState = LOW;
+int armState;
+int lastBlueState = LOW;
+int headState;
+int lastGreenState = LOW;
+int stopState;
+int lastRedState = LOW;
+
+unsigned long lastTreadTime = 0;
+unsigned long lastArmTime = 0;
+unsigned long lastHeadTime = 0;
+unsigned long lastStopTime = 0;
+
+unsigned long debounceDelay = 150;
 ```
 
 These are global variables that are meant to keep track of certain values that would be important for us in this program. `xValue` and `yValue` are used for the joystick, while the different colored `__States` are used for the buttons. `Mode` is used for tracking which commands to send to Misty, and `timeDelay` is a constant that is user changeable in order to create a buffer between each line outputted in the Serial Monitor.
+
+The following variables are adapted from the button debounce example code that can be found in the Arduino Examples folder. The purpose of these are to filter out any electrical interference that the buttons may create when not actually pressed and to create a threshold amount of time the button has to be pressed in order to recognize that the user has indicated a mode change.
 
 *Setting Up*
 
@@ -116,39 +134,74 @@ The first thing that comes after constant declaration is the [setup loop](https:
 
 ```cpp
 void loop() {
-    xValue = analogRead(VRX_PIN);
-    yValue = analogRead(VRY_PIN);
+  // read analog X and Y analog values (analog meaning it can evaluate to many different values)
+  xValue = analogRead(VRX_PIN);
+  yValue = analogRead(VRY_PIN);
 
-    yellowState = digitalRead(TREAD_BTN);
-    blueState = digitalRead(ARM_BTN);
-    greenState = digitalRead(HEAD_BTN);
-    redState = digitalRead(EXIT_BTN);
+  // check for the current status of the buttons (digital because that means it can only be 2 values: high or low)
+  yellowState = digitalRead(TREAD_BTN);
+  blueState = digitalRead(ARM_BTN);
+  greenState = digitalRead(HEAD_BTN);
+  redState = digitalRead(EXIT_BTN);
 
-    if (yellowState == HIGH){
-        mode = 1;
-    }
-    if (blueState == HIGH){
-        mode = 2;
-    }
-    if (greenState == HIGH){
-        mode = 3;
-    }
-    if (redState == HIGH){
-        mode = 4; 
-    }
+  // update the time since the buttons were pressed if the state hasn't changed
+  if (yellowState != lastYellowState) lastTreadTime = millis();
+  if (blueState != lastBlueState) lastArmTime = millis();
+  if (greenState != lastGreenState) lastHeadTime = millis();
+  if (redState != lastRedState) lastStopTime = millis();
 
-    Serial.print(xValue);
-    Serial.print(" ");
-    Serial.print(yValue);
-    Serial.print(" ");
-    Serial.println(mode);
-    delay(timeDelay);
+  // debounce for the buttons
+  // treads
+  if ((millis() - lastTreadTime) > debounceDelay) { // if the debounce threshold has been exceded
+    if (yellowState != treadState) { // if the button state changed
+      treadState = yellowState;
+      if (treadState == HIGH) mode = 1; // if the button is pressed, change the mode
+    }
+  }
+
+  // arms
+  if ((millis() - lastArmTime) > debounceDelay) {
+    if (blueState != armState) {
+      armState = blueState;
+      if (armState == HIGH) mode = 2;
+    }
+  }
+
+  // head
+  if ((millis() - lastHeadTime) > debounceDelay) {
+    if (greenState != headState) {
+      headState = greenState;
+      if (headState == HIGH) mode = 3;
+    }
+  }
+
+  // stop
+  if ((millis() - lastStopTime) > debounceDelay) {
+    if (redState != stopState) {
+      stopState = redState;
+      if (stopState == HIGH) mode = 4;
+    }
+  }
+
+  // save the readings from this loop iteration for the next
+  lastYellowState = yellowState;
+  lastBlueState = blueState;
+  lastGreenState = greenState;
+  lastRedState = redState;
+
+  // print to serial monitor to port data to python through pyserial
+  Serial.print(xValue);
+  Serial.print(" ");
+  Serial.print(yValue);
+  Serial.print(" ");
+  Serial.println(mode);
+  delay(timeDelay);
 }
 ```
 
 The loop runs the code in it over and over forever, and is where all the action happens. First it gets the values for the joystick’s positioning and assigns them to `xValue` and `yValue` through [`analogRead()`](https://www.arduino.cc/reference/en/language/functions/analog-io/analogread/). The program then does the same with the buttons, but instead uses [`digitalRead()`](https://www.arduino.cc/reference/en/language/functions/digital-io/digitalread/) which can only return either `HIGH` or `LOW` (2 values in opposition to `analogRead` being able to return numbers ranging from 0 to 1023).
 
-The following if statements are to determine whether or not a button was pressed, and if one was, change the mode to the corresponding number. This mode is used in the Python program reviewed below.
+The first 4 if statements are used to update the amount of time its been since the buttons have been pressed by checking if their values don't match what the previous button readings were. Then the next 4 are to check if the button has been pressed by checking the amount of time against a delay. If the value read in doesn't match the previous value, they swap, and then check if the buttons were pressed by comparing them to `HIGH`. This changes the mode accordingly. Then it saves the states from the current iteration to use in the next.
 
 `Serial.print()` and `Serial.println()` are the Serial Monitor print statements of Arduino. The purpose of having these here is to interface with the pySerial library in the Python program. It takes information from the Serial Monitor and allows us to use it for other purposes.
 
