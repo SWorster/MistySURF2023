@@ -1,7 +1,7 @@
 '''
 Skye Weaver Worster
 
-Misty waits to be touched, then counts how many times she's touched. She has different actions for each number of touches
+Misty waits to be touched, then counts how many times she's touched. She plays a different song clip for each number of touches.
 '''
 
 from mistyPy.Robot import Robot
