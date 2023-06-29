@@ -29,12 +29,12 @@ def _BumpSensor(data):
 
 def _TouchSensor(data):
     if data["message"]["isContacted"]:  # if touched
-        misty.ChangeLED(0, 255, 0)  # yellow
+        misty.ChangeLED(0, 255, 0)  # green
         misty.PlayAudio("A_purr1.mp3", volume=purr)
         misty.Drive(speed, 0)  # drive forward slowly
     else:  # if not touched
         misty.PlayAudio("A_meow3.mp3", volume=meow)
-        misty.ChangeLED(0, 0, 255)
+        misty.ChangeLED(0, 0, 255) # blue
         misty.Stop()  # stop driving
 
 
