@@ -1,9 +1,9 @@
 '''
 Skye Weaver Worster
 
-Misty looks around, trying to find your face. If she finds it, she starts following your with her head. If not, she is sad and the program ends.
+Misty looks around, trying to find the target's face. If she finds it, she starts following the target with her head. If not, she is sad and the program ends. Target has to be known, and their name must be provided. To end program, hit bump sensor.
 
-Target has to be known, and their name must be provided.
+I struggled with the head-following behavior (see comment block below). Might come back to this later.
 '''
 
 # import statements
@@ -41,6 +41,9 @@ hYaw = None  # tracks head yaw
 def _BumpSensor(data):
     # ends program when bumped
     try:
+        global seen
+        seen = True  # stops searching, if active
+        misty.ChangeLED(0, 0, 0)  # LED off
         misty.UnregisterAllEvents()  # unregister events
         misty.StopFaceRecognition()  # stop facial recognition
         print("end of program")  # confirm program has ended
@@ -61,7 +64,7 @@ def _HeadYaw(data):
 
 
 def _Follow(data):
-    # behavior for when misty has found someone to follow
+    # behavior for when Misty has found someone to follow
 
     global person
     name = data["message"]["label"]  # name of person Misty sees
@@ -86,6 +89,7 @@ def _Follow(data):
         
         Because this entire section is basically me throwing stuff at a wall to see what sticks, I'm not going to bother making these variables/tolerances global yet. I plan on coming back to this once I have more experience (and sanity).
         '''
+
         if distance > 100:  # if you're far away, larger window
             t = 3
         else:  # if you're closer, smaller window
@@ -150,29 +154,62 @@ def _FaceRecognition(data):
 
             print(f"Hello, {face}! I'm now following you!")
 
-            misty.UnregisterAllEvents()  # unregister events
-            time.sleep(1)  # give time to unregister
+            # unregister searching FR
+            misty.UnregisterEvent(Events.FaceRecognition)
+            time.sleep(1)  # give time to unregister)
 
-            # register for BumpSensor (halts execution)
-            misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                                callback_function=_BumpSensor)
+            # register for follow FR
+            misty.RegisterEvent("FaceRecognition", Events.FaceRecognition,
+                                debounce=FR_debounce, keep_alive=True, callback_function=_Follow)
 
-            # register for FR
-            # TODO: update comment if this has changed
-            misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, debounce=FR_debounce, keep_alive=True,
-                                callback_function=_Follow)
+    except Exception as e:  # this shouldn't run unless data is corrupted
+        print("Searching error:", e)
 
-            # register for HeadPitch/HeadYaw
-            misty.RegisterEvent("ActuatorPositionHP", Events.ActuatorPosition, [
-                EventFilters.ActuatorPosition.HeadPitch], debounce=AP_debounce, keep_alive=True, callback_function=_HeadPitch)
 
-            misty.RegisterEvent("ActuatorPositionHY", Events.ActuatorPosition, [
-                EventFilters.ActuatorPosition.HeadYaw], debounce=AP_debounce, keep_alive=True, callback_function=_HeadYaw)
+def moveRight():
+    global move_pitch, roll, max_right, velocity, hYaw, right_threshold
 
-            misty.KeepAlive()  # keep events live
+    misty.MoveHead(move_pitch, roll, max_right, velocity)  # move to right
 
-    except:  # this shouldn't run unless data is corrupted
-        print("except")
+    # don't proceed until fully right or target seen
+    while (hYaw > right_threshold) and not seen:
+        pass
+
+    if not seen:  # if target not seen, move left
+        moveLeft()
+
+
+def moveLeft():
+    global move_pitch, roll, max_left, velocity, hYaw, left_threshold
+
+    misty.MoveHead(move_pitch, roll, max_left, velocity)  # move to left
+
+    # don't proceed until fully left or target seen
+    while (hYaw < left_threshold) and not seen:
+        pass
+
+    if not seen:  # if target not seen, move center
+        moveCenter()
+
+
+def moveCenter():
+    global move_pitch, roll, center_yaw, velocity, hYaw, center_threshold
+
+    misty.MoveHead(move_pitch, roll, center_yaw,
+                   velocity)  # move to center
+
+    # don't proceed until fully centered or target seen
+    while (hYaw > center_threshold) and not seen:
+        pass
+
+    if not seen:  # target still not seen
+        misty.PlayAudio("s_Sadness.wav", volume=volume)  # play sad noise
+        print("Didn't see anyone :(")
+        misty.ChangeLED(255, 0, 0)  # LED red
+        time.sleep(1)  # wait for audio to finish
+
+        # pass a dummy arg to BumpSensor callback, which ends the program
+        _BumpSensor(1)
 
 
 if __name__ == "__main__":
@@ -201,23 +238,5 @@ if __name__ == "__main__":
     time.sleep(1)  # give time for registration
     misty.StartFaceRecognition()  # start facial recognition
 
-    # move Misty's head to the right, then left, then return to center. Misty will stop moving when she sees a person
-    misty.MoveHead(move_pitch, roll, max_right, velocity)  # move to right
-    while hYaw > right_threshold:  # wait until fully right
-        pass
-    misty.MoveHead(move_pitch, roll, max_left, velocity)  # move to left
-    while hYaw < left_threshold:  # wait until fully left
-        pass
-    misty.MoveHead(move_pitch, roll, center_threshold,
-                   velocity)  # move to center
-    while hYaw > center_threshold:  # wait until fully centered
-        pass
-
-    # If we make it to this point, Misty hasn't seen target
-    misty.PlayAudio("s_Sadness.wav", volume=volume)  # play sad noise
-    print("Didn't see anyone :(")
-    misty.ChangeLED(255, 0, 0)  # LED red
-    time.sleep(1)  # wait for audio to finish
-
-    # pass a dummy arg to BumpSensor callback, which ends the program
-    _BumpSensor(1)
+    if not seen:  # if target not seen, move right
+        moveRight()
