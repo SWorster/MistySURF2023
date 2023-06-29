@@ -1,17 +1,18 @@
 '''
 Skye Weaver Worster
 
-Misty drives until bumped (stop and change light depending on bumper touched)
+Misty drives until bumped (stop and change light depending on bumper touched). She does not resume moving after contact.
 
 WARNING: This code temporarily disables Misty's TOF sensor hazards, so she won't automatically stop at table edges and other drops. Be careful!
 '''
 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
+import time
 
 misty = Robot("131.229.41.135")  # robot with your IP
 volume = 10  # volume for audio
-lin_vel = 60  # linear velocity
+lin_vel = 10  # linear velocity
 ang_vel = 0  # angular velocity
 
 
@@ -32,6 +33,8 @@ def _BumpSensor(data):
         # unregister and reset hazards
         misty.UnregisterAllEvents()
         misty.UpdateHazardSettings(revertToDefault=True)
+        time.sleep(3)  # wait before turning off LED
+        misty.ChangeLED(0, 0, 0)
 
 
 if __name__ == "__main__":
