@@ -3,7 +3,7 @@ import serial
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
-misty = Robot("131.229.41.135") # create a Misty instance using its IP address (which varies from robot to robot)
+misty = Robot("<Replace w/ Misty's IP address>") # create a Misty instance using its IP address (which varies from robot to robot)
 
 'The 4 constants below are thresholds for the joystick position to move in different directions'
 NORTH = 341 # North and South are in Y
