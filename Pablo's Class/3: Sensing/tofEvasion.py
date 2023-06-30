@@ -22,7 +22,7 @@ vel = 10  # Misty's linear velocity when driving straight
 ang = 50  # Misty's angular velocity in hard turns
 turn_v = 10  # Misty's linear velocity when turning
 turn_a = 80  # Misty's angular velocity when turning
-volume = 2  # volume of Misty's audio responses
+volume = 5  # volume of Misty's audio responses
 min_d = 0.1  # distance in meters that will make Misty stop/reverse
 obs_d = 0.3  # distance where Misty registers obstacle
 TOF_debounce = 500  # Time of Flight event debounce, in milliseconds
@@ -30,10 +30,10 @@ TOF_debounce = 500  # Time of Flight event debounce, in milliseconds
 # DO NOT EDIT THESE
 sensors = [False, False, False]  # center, right, left TOF
 back = [False, False]  # back TOF (normal and emergency)
+count = 0
 
 
 def _BumpSensor(data):
-    global volume
     misty.PlayAudio("A_VineBoom.mp3", volume=volume)  # play audio clip
     misty.Stop()  # stop moving
     print("Stopped: Bump Sensor")  # print to console
@@ -164,58 +164,67 @@ def _Left(data):
 
 
 def move():
-    global sensors, back
-    total = sum(sensors)
+    global sensors, back, count
+    
+    count += 1
+    
+    if count >= 10:
+        print("       !")
+        
+        total = sum(sensors)
 
-    if not back[1]:  # back min distance
-        misty.Drive(0, ang)  # hard left turn
+        if not back[1]:  # back min distance
+            misty.Drive(0, ang)  # hard left turn
 
-    elif not back[0]:  # if back obstacle:
-        if total == 0:  # no front obstacle
-            misty.Drive(vel, 0)
+        elif not back[0]:  # if back obstacle:
+            if total == 0:  # no front obstacle
+                misty.Drive(vel, 0)
 
-        elif total == 1:  # one sensor detecting obstacle
-            if sensors[0]:  # center
+            elif total == 1:  # one sensor detecting obstacle
+                if sensors[0]:  # center
+                    misty.Drive(0, ang)  # turn hard left
+                elif sensors[1]:  # right
+                    misty.Drive(turn_v, turn_a)  # turn left
+                elif sensors[2]:  # left
+                    misty.Drive(turn_v, -turn_a)  # turn right
+
+            elif total == 2:
+                if not sensors[0]:  # left and right
+                    misty.Drive(0, ang)  # turn hard left
+                elif not sensors[1]:  # left and center
+                    misty.Drive(0, -ang)  # hard turn right
+                elif not sensors[2]:  # right and center
+                    misty.Drive(0, ang)  # hard turn left
+
+            elif total == 3:
                 misty.Drive(0, ang)  # turn hard left
-            elif sensors[1]:  # right
-                misty.Drive(turn_v, turn_a)  # turn left
-            elif sensors[2]:  # left
-                misty.Drive(turn_v, -turn_a)  # turn right
 
-        elif total == 2:
-            if not sensors[0]:  # left and right
-                misty.Drive(0, ang)  # turn hard left
-            elif not sensors[1]:  # left and center
-                misty.Drive(0, -ang)  # hard turn right
-            elif not sensors[2]:  # right and center
-                misty.Drive(0, ang)  # hard turn left
+        else:  # no back obstacle
+            if total == 0:  # no front obstacle
+                misty.Drive(vel, 0)
 
-        elif total == 3:
-            misty.Drive(0, ang)  # turn hard left
+            elif total == 1:  # one sensor detecting obstacle
+                if sensors[0]:  # center
+                    misty.Drive(-vel, 0)  # drive straight back
+                elif sensors[1]:  # right
+                    misty.Drive(turn_v, turn_a)  # turn left
+                elif sensors[2]:  # left
+                    misty.Drive(turn_v, -turn_a)  # turn right
 
-    else:  # no back obstacle
-        if total == 0:  # no front obstacle
-            misty.Drive(vel, 0)
+            elif total == 2:
+                if not sensors[0]:  # left and right
+                    misty.Drive(-vel, 0)  # drive straight back
+                elif not sensors[1]:  # left and center
+                    misty.Drive(0, -ang)  # hard turn right
+                elif not sensors[2]:  # right and center
+                    misty.Drive(0, ang)  # hard turn left
 
-        elif total == 1:  # one sensor detecting obstacle
-            if sensors[0]:  # center
+            elif total == 3:
                 misty.Drive(-vel, 0)  # drive straight back
-            elif sensors[1]:  # right
-                misty.Drive(turn_v, turn_a)  # turn left
-            elif sensors[2]:  # left
-                misty.Drive(turn_v, -turn_a)  # turn right
-
-        elif total == 2:
-            if not sensors[0]:  # left and right
-                misty.Drive(-vel, 0)  # drive straight back
-            elif not sensors[1]:  # left and center
-                misty.Drive(0, -ang)  # hard turn right
-            elif not sensors[2]:  # right and center
-                misty.Drive(0, ang)  # hard turn left
-
-        elif total == 3:
-            misty.Drive(-vel, 0)  # drive straight back
-
+                
+        count = 0
+        
+        
 
 if __name__ == "__main__":
     print("Going on an adventure!")  # print message to console
@@ -239,6 +248,3 @@ if __name__ == "__main__":
     # register for bump sensor
     misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
                         keep_alive=True, callback_function=_BumpSensor)
-
-    # Misty drives forward
-    misty.Drive(linearVelocity=vel, angularVelocity=ang)

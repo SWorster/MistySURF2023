@@ -17,6 +17,7 @@ vol1 = 10
 vol2 = 10
 vol3 = 10
 
+
 # ! Do not change this, it could break things!
 touched = False  # whether Misty is being touched
 count = 0  # number of times Misty is touched
@@ -68,6 +69,7 @@ if __name__ == "__main__":
         print(f"Misty was touched {count} times!")
 
     # play a different song for each number of touches
+    # I've already set the play time for these specific tracks
     if count == 0:
         misty.PlayAudio("A_LacrimosaShort.m4a", volume=vol0)
         misty.ChangeLED(50, 0, 200)  # dark blue/purple
@@ -81,10 +83,10 @@ if __name__ == "__main__":
         misty.ChangeLED(255, 0, 50)  # purple
         time.sleep(14.3)
     elif count == 3:
-        misty.PlayAudio("A_MiiChannel.mp3", volume=vol3)
+        print(misty.PlayAudio("A_MiiChannel.mp3", volume=vol3).json())
         misty.ChangeLED(50, 200, 255)  # teal
         time.sleep(8.5)
 
-    misty.ChangeLED(0, 0, 0)
-    misty.StopAudio()
+    misty.ChangeLED(0, 0, 0)  # LED off
+    misty.StopAudio()  # stop playing audio clips
     misty.UnregisterAllEvents()  # unregister
