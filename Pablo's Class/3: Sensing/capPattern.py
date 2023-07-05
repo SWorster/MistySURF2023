@@ -50,6 +50,12 @@ def _TouchSensor(data):
         touched = False
 
 
+def _AudioPlayComplete(data):  # when audio stops
+    misty.ChangeLED(0, 0, 0)  # LED off
+    misty.StopAudio()  # stop playing audio clips
+    misty.UnregisterAllEvents()  # unregister
+
+
 if __name__ == "__main__":
 
     # register for touch sensor
@@ -68,25 +74,20 @@ if __name__ == "__main__":
     else:
         print(f"Misty was touched {count} times!")
 
+    # register for audio completion
+    misty.RegisterEvent("AudioPlayComplete", Events.AudioPlayComplete,
+                        keep_alive=True, callback_function=_AudioPlayComplete)
+    
     # play a different song for each number of touches
-    # I've already set the play time for these specific tracks
     if count == 0:
         misty.PlayAudio("LacrimosaShort.m4a", volume=vol0)
         misty.ChangeLED(50, 0, 200)  # dark blue/purple
-        time.sleep(12.5)
     elif count == 1:
-        misty.PlayAudio("Mahler5opening.m4a", volume=vol1)
+        misty.PlayAudio("Mahler5Short.m4a", volume=vol1)
         misty.ChangeLED(200, 150, 0)  # yellow
-        time.sleep(29)
     elif count == 2:
-        misty.PlayAudio("CarelessWhisper.mp3", volume=vol2)
+        misty.PlayAudio("CarelessWhisperShort.m4a", volume=vol2)
         misty.ChangeLED(255, 0, 50)  # purple
-        time.sleep(14.3)
     elif count == 3:
         print(misty.PlayAudio("MiiChannel.mp3", volume=vol3).json())
         misty.ChangeLED(50, 200, 255)  # teal
-        time.sleep(8.5)
-
-    misty.ChangeLED(0, 0, 0)  # LED off
-    misty.StopAudio()  # stop playing audio clips
-    misty.UnregisterAllEvents()  # unregister

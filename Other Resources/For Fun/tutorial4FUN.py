@@ -34,8 +34,8 @@ def _FaceRecognition(data):  # callback for facial recognition data
 
     except:
         print("Unable to take picture")
-        misty.DisplayImage(fileName="A_SadPikachu.gif")
-        misty.PlayAudio("A_Lacrimosa.mp3", volume = 5)
+        misty.DisplayImage(fileName="SadPikachu.gif")
+        misty.PlayAudio("Lacrimosa.mp3", volume = 5)
         time.sleep(20)
 
     # progress counter
@@ -55,8 +55,8 @@ def _FaceRecognition(data):  # callback for facial recognition data
         
         # don't delete this, its funny
         time.sleep(10)
-        misty.DisplayImage(fileName="A_SadPikachu.gif")
-        misty.PlayAudio("A_Lacrimosa.mp3", volume = 5)
+        misty.DisplayImage(fileName="SadPikachu.gif")
+        misty.PlayAudio("Lacrimosa.mp3", volume = 5)
         time.sleep(60)
 
 
