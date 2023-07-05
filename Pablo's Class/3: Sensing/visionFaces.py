@@ -1,7 +1,9 @@
 '''
 Skye Weaver Worster
 
-Misty plays a different audio clip for each face she sees
+Misty plays a different audio clip for each face she sees.
+
+This is hard-coded for specific names. I could also do it based on the person's index in the list of faces, If you want it more generalized.
 
 Pablo's instructions:
 Have Misty react to different Faces (a funny image/sound/light for each)

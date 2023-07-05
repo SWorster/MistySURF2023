@@ -25,15 +25,23 @@ def _ObjectDetection(data):
     if object == "laptop":
         misty.PlayAudio("megalovania.m4a", volume)
         misty.ChangeLED(0, 255, 255)
-        end()
-    if object == "backpack":
-        misty.PlayAudio("secrettunnel.mp3", volume)
+        misty.UnregisterEvent("ObjectDetection")
+    elif object == "backpack":
+        misty.PlayAudio("kittycatShort.m4a", volume)
         misty.ChangeLED(255, 0, 255)
-        end()
-    if object == "bottle":
+        misty.UnregisterEvent("ObjectDetection")
+    elif object == "bottle":
         misty.PlayAudio("RickrollShort.mp3", volume)
         misty.ChangeLED(255, 0, 0)
-        end()
+        misty.UnregisterEvent("ObjectDetection")
+
+
+def _AudioPlayComplete(data):  # when audio stops
+    print("Program Ended: Object Detected")  # print to console
+    misty.StopObjectDetector()  # stop facial recognition
+    misty.UnregisterAllEvents()  # unregister from all events
+    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
+    misty.ChangeLED(0, 0, 0)  # LED off
 
 
 def end():
@@ -41,8 +49,6 @@ def end():
     misty.StopObjectDetector()
     misty.UnregisterAllEvents()
     print("done")
-    time.sleep(5)  # limits playback to five seconds
-    misty.StopAudio()
     misty.ChangeLED(0, 0, 0)
 
 
@@ -52,3 +58,7 @@ if __name__ == "__main__":
     # register for object detection
     misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
                         debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)
+
+    # register for audio completion
+    misty.RegisterEvent("AudioPlayComplete", Events.AudioPlayComplete,
+                        keep_alive=True, callback_function=_AudioPlayComplete)
