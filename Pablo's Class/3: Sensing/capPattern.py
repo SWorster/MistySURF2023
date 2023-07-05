@@ -59,11 +59,11 @@ def _AudioPlayComplete(data):  # when audio stops
 if __name__ == "__main__":
 
     # register for touch sensor
-    misty.RegisterEvent("TouchSensor", Events.TouchSensor, condition=None,
+    misty.RegisterEvent("TouchSensor", Events.TouchSensor,
                         keep_alive=True, callback_function=_TouchSensor)
 
     # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)
 
     while True:  # infinite loop
@@ -77,7 +77,7 @@ if __name__ == "__main__":
     # register for audio completion
     misty.RegisterEvent("AudioPlayComplete", Events.AudioPlayComplete,
                         keep_alive=True, callback_function=_AudioPlayComplete)
-    
+
     # play a different song for each number of touches
     if count == 0:
         misty.PlayAudio("LacrimosaShort.m4a", volume=vol0)

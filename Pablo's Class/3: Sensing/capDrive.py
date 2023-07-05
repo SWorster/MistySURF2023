@@ -34,7 +34,7 @@ def _TouchSensor(data):
         misty.Drive(speed, 0)  # drive forward slowly
     else:  # if not touched
         misty.PlayAudio("meow3.mp3", volume=meow)
-        misty.ChangeLED(0, 0, 255) # blue
+        misty.ChangeLED(0, 0, 255)  # blue
         misty.Stop()  # stop driving
 
 
@@ -44,9 +44,9 @@ if __name__ == "__main__":
     misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
     # register for touch sensor
-    misty.RegisterEvent("TouchSensor", Events.TouchSensor, condition=None,
+    misty.RegisterEvent("TouchSensor", Events.TouchSensor,
                         keep_alive=True, callback_function=_TouchSensor)
 
     # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)

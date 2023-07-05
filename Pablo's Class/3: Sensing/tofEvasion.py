@@ -28,7 +28,7 @@ TOF_debounce = 500  # Time of Flight event debounce, in milliseconds
 # DO NOT EDIT THESE
 sensors = [False, False, False]  # center, right, left TOF
 back = [False, False]  # back TOF (normal and emergency)
-count = 0 # counts number of readings taken
+count = 0  # counts number of readings taken
 
 
 def _BumpSensor(data):
@@ -163,11 +163,11 @@ def _Left(data):
 
 def move():
     global sensors, back, count
-    count += 1 # increment counter
-    
+    count += 1  # increment counter
+
     if count >= 10:
         print("       !")
-        
+
         total = sum(sensors)
 
         if not back[1]:  # back min distance
@@ -175,7 +175,7 @@ def move():
 
         elif not back[0]:  # if back obstacle:
             if total == 0:  # no front obstacle
-                misty.Drive(vel, 0) # drive forward
+                misty.Drive(vel, 0)  # drive forward
 
             elif total == 1:  # one sensor detecting obstacle
                 if sensors[0]:  # center
@@ -185,7 +185,7 @@ def move():
                 elif sensors[2]:  # left
                     misty.Drive(turn_v, -turn_a)  # turn right
 
-            elif total == 2: # two sensors detecting obstacle
+            elif total == 2:  # two sensors detecting obstacle
                 if not sensors[0]:  # left and right
                     misty.Drive(0, ang)  # turn hard left
                 elif not sensors[1]:  # left and center
@@ -193,12 +193,13 @@ def move():
                 elif not sensors[2]:  # right and center
                     misty.Drive(0, ang)  # hard turn left
 
-            elif total == 3: # all sensors detecting obstacle (emergency override)
+            # all sensors detecting obstacle (emergency override)
+            elif total == 3:
                 misty.Drive(0, ang)  # turn hard left
 
         else:  # no back obstacle
             if total == 0:  # no front obstacle
-                misty.Drive(vel, 0) # drive forward
+                misty.Drive(vel, 0)  # drive forward
 
             elif total == 1:  # one sensor detecting obstacle
                 if sensors[0]:  # center
@@ -218,9 +219,9 @@ def move():
 
             elif total == 3:
                 misty.Drive(-vel, 0)  # drive straight back
-                
+
         count = 0
-        
+
 
 if __name__ == "__main__":
     print("Going on an adventure!")  # print message to console
@@ -242,5 +243,5 @@ if __name__ == "__main__":
                         EventFilters.TimeOfFlightPosition.Back], debounce=TOF_debounce, keep_alive=True, callback_function=_Back)
 
     # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)

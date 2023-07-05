@@ -47,7 +47,7 @@ def _SourceTrackDataMessage(data):
 
         sectors = [front, right, back, left]  # list of sector values
         s_max = max(sectors)  # maximum volume
-        
+
         if s_max > trigger:  # if sound is loud enough to trigger movement
             place = sectors.index(s_max)  # find where loudest avg sound is
             if place == 0:  # front
@@ -79,5 +79,5 @@ if __name__ == "__main__":
     time.sleep(1)  # give time for fans to stop
 
     # register for SourceTrackDataMessage
-    misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage, condition=None,
+    misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage,
                         debounce=STDM_debounce, keep_alive=True, callback_function=_SourceTrackDataMessage)

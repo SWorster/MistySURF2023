@@ -121,7 +121,7 @@ if __name__ == "__main__":
     misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
     # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)
 
     # subscribe to DriveEncoders

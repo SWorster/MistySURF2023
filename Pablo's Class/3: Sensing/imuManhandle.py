@@ -14,10 +14,11 @@ t = 2  # tolerance (degrees)
 IMU_debounce = 100  # debounce for IMU (milliseconds)
 
 
-def _BumpSensor(data):
-    # if bumper hit, change LED to white
-    if data["message"]["isContacted"]:
-        misty.ChangeLED(255, 255, 255)
+def _TouchSensor(data):  # end program when head touched
+    misty.UnregisterAllEvents()  # unregister
+    misty.ChangeLED(0, 0, 0)  # LED off
+    misty.StopAudio()  # stop playing audio clips
+    print("Program ended (cap touch)")
 
 
 def _IMU(data):
@@ -65,9 +66,9 @@ def _IMU(data):
 if __name__ == "__main__":
 
     # register for IMU
-    misty.RegisterEvent("IMU", Events.IMU, condition=None,
-                        debounce=IMU_debounce, keep_alive=True, callback_function=_IMU)
+    misty.RegisterEvent("IMU", Events.IMU, debounce=IMU_debounce,
+                        keep_alive=True, callback_function=_IMU)
 
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
-                        keep_alive=True, callback_function=_BumpSensor)
+    # register for cap touch sensor
+    misty.RegisterEvent("TouchSensor", Events.TouchSensor,
+                        keep_alive=True, callback_function=_TouchSensor)
