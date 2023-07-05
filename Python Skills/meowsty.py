@@ -51,29 +51,29 @@ def _CapTouch(message):
 
             # if-else statements on part_touched
             if part_touched == "Chin" and touched:
-                misty.PlayAudio("A_purr1.mp3", purr1)
+                misty.PlayAudio("purr1.mp3", purr1)
                 misty.TransitionLED(0, 0, 0, 255, 100, 255,
                                     "TransitOnce", 2000)
                 print("chin scritches <3")
 
             elif part_touched == "HeadLeft" and touched:
-                misty.PlayAudio("A_meow1.mp3", meow1)
+                misty.PlayAudio("meow1.mp3", meow1)
                 print("left scritches")
 
             elif part_touched == "HeadRight" and touched:
-                misty.PlayAudio("A_meow2.mp3", meow2)
+                misty.PlayAudio("meow2.mp3", meow2)
                 print("right scritches")
 
             elif part_touched == "HeadBack" and touched:
-                misty.PlayAudio("A_meow3.mp3", meow3)
+                misty.PlayAudio("meow3.mp3", meow3)
                 print("back scritches")
 
             elif part_touched == "HeadFront" and touched:
-                misty.PlayAudio("A_purr2.mp3", purr2)
+                misty.PlayAudio("purr2.mp3", purr2)
                 print("front scritches")
 
             elif part_touched == "Scruff" and touched:
-                misty.PlayAudio("A_hiss.mp3", hiss)
+                misty.PlayAudio("hiss.mp3", hiss)
                 print("HISS")
 
         # if a place has already been touched:

@@ -125,10 +125,10 @@ def _BumpSensor(data):
     print(name, hit)
     if hit:
         misty.ChangeLED(255, 0, 0)
-        misty.PlayAudio("A_meow1.mp3", 10)
+        misty.PlayAudio("meow1.mp3", 10)
     else:
         misty.ChangeLED(0, 0, 0)
-        misty.PlayAudio("A_meow2.mp3", 10)
+        misty.PlayAudio("meow2.mp3", 10)
 
 
 def _TouchSensor(data):
@@ -137,7 +137,7 @@ def _TouchSensor(data):
     print(name, hit)
     if hit:
         misty.ChangeLED(0, 255, 0)
-        misty.PlayAudio("A_purr1.mp3", 30)
+        misty.PlayAudio("purr1.mp3", 30)
     else:
         misty.ChangeLED(0, 255, 0)
         misty.StopAudio()

@@ -21,7 +21,7 @@ def _SlamData(data):
         startMovement = True
     elif ("HasPose" not in status) or ("LostPose" in status): # make the LED red if she lost her pose or mapping isn't ready yet
         misty.ChangeLED(255, 0, 0)
-        misty.PlayAudio("A_VineBoom.mp3", 5)
+        misty.PlayAudio("VineBoom.mp3", 5)
 
 def treads(coords): # Controls the treads for overall mobility
     split = coords.split() # data format: [x, y, mode]

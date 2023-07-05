@@ -16,7 +16,7 @@ volume = 2  # audio volume
 
 def _BumpSensor(data):
     print("Program Ended: Bump Sensor")  # print to console
-    misty.PlayAudio("A_VineBoom.mp3", volume=volume)  # play audio clip
+    misty.PlayAudio("VineBoom.mp3", volume=volume)  # play audio clip
     end()
 
 def _AudioPlayComplete(data):  # when audio stops
@@ -46,13 +46,13 @@ def _FaceRecognition(data):  # callback for face recognition
 
             # play different audio for each person
             if name == "Skye":
-                misty.PlayAudio("A_megalovania.m4a", volume)
+                misty.PlayAudio("megalovania.m4a", volume)
             elif name == "JuliaYu":
-                misty.PlayAudio("A_RickrollShort.mp3", volume)
+                misty.PlayAudio("RickrollShort.mp3", volume)
             elif name == "test":
-                misty.PlayAudio("A_LacrimosaShort.m4a", volume)
+                misty.PlayAudio("LacrimosaShort.m4a", volume)
             else:
-                misty.PlayAudio("A_sorryDave.mp3", volume)
+                misty.PlayAudio("sorryDave.mp3", volume)
 
     except Exception as e:
         print("Facial Recognition error:", e)

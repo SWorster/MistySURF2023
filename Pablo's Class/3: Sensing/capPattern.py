@@ -71,19 +71,19 @@ if __name__ == "__main__":
     # play a different song for each number of touches
     # I've already set the play time for these specific tracks
     if count == 0:
-        misty.PlayAudio("A_LacrimosaShort.m4a", volume=vol0)
+        misty.PlayAudio("LacrimosaShort.m4a", volume=vol0)
         misty.ChangeLED(50, 0, 200)  # dark blue/purple
         time.sleep(12.5)
     elif count == 1:
-        misty.PlayAudio("A_Mahler5opening.m4a", volume=vol1)
+        misty.PlayAudio("Mahler5opening.m4a", volume=vol1)
         misty.ChangeLED(200, 150, 0)  # yellow
         time.sleep(29)
     elif count == 2:
-        misty.PlayAudio("A_CarelessWhisper.mp3", volume=vol2)
+        misty.PlayAudio("CarelessWhisper.mp3", volume=vol2)
         misty.ChangeLED(255, 0, 50)  # purple
         time.sleep(14.3)
     elif count == 3:
-        print(misty.PlayAudio("A_MiiChannel.mp3", volume=vol3).json())
+        print(misty.PlayAudio("MiiChannel.mp3", volume=vol3).json())
         misty.ChangeLED(50, 200, 255)  # teal
         time.sleep(8.5)
 

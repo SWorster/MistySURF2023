@@ -32,7 +32,7 @@ count = 0 # counts number of readings taken
 
 
 def _BumpSensor(data):
-    misty.PlayAudio("A_VineBoom.mp3", volume=volume)  # play audio clip
+    misty.PlayAudio("VineBoom.mp3", volume=volume)  # play audio clip
     misty.Stop()  # stop moving
     print("Stopped: Bump Sensor")  # print to console
     misty.UnregisterAllEvents()  # unregister from all events (ends program)

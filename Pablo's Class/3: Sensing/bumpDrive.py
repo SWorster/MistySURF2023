@@ -28,7 +28,7 @@ def _BumpSensor(data):
             misty.ChangeLED(0, 0, 255)  # blue
         if name == "brl":  # back left
             misty.ChangeLED(255, 160, 0)  # yellow
-        misty.PlayAudio("A_meow1.mp3", volume=volume)
+        misty.PlayAudio("meow1.mp3", volume=volume)
 
         # unregister and reset hazards
         misty.UnregisterAllEvents()

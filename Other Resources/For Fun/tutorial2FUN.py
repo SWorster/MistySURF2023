@@ -30,7 +30,7 @@ def tof_callback(data):  # callback for TOF
         if (distance < limit and is_driving):  # if driving into obstacle
             print("Misty is", distance, "meters from an obstacle")
             misty.ChangeLED(255, 0, 0)
-            misty.PlayAudio("A_RickrollShort.mp3", volume)
+            misty.PlayAudio("RickrollShort.mp3", volume)
             misty.Stop()  # stop driving
             is_driving = False  # no longer driving
             print("Stopped: Obstacle")
@@ -51,7 +51,7 @@ def move_callback(data):  # callback for movement
 
         if (l_vel+r_vel < stopped and is_driving):  # if stopped
             misty.ChangeLED(0, 255, 0)
-            misty.PlayAudio("A_VineBoom.mp3", volume)
+            misty.PlayAudio("VineBoom.mp3", volume)
             print("Stopped: time limit reached")
             misty.UnregisterAllEvents()  # unregister
     except:

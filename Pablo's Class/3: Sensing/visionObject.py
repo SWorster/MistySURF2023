@@ -23,15 +23,15 @@ def _ObjectDetection(data):
 
     # if she sees a specific object, she reacts
     if object == "laptop":
-        misty.PlayAudio("A_megalovania.m4a", volume)
+        misty.PlayAudio("megalovania.m4a", volume)
         misty.ChangeLED(0, 255, 255)
         end()
     if object == "backpack":
-        misty.PlayAudio("A_secrettunnel.mp3", volume)
+        misty.PlayAudio("secrettunnel.mp3", volume)
         misty.ChangeLED(255, 0, 255)
         end()
     if object == "bottle":
-        misty.PlayAudio("A_RickrollShort.mp3", volume)
+        misty.PlayAudio("RickrollShort.mp3", volume)
         misty.ChangeLED(255, 0, 0)
         end()
 

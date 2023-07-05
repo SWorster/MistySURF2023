@@ -86,7 +86,7 @@ def _BumpSensor(data):
         if sum(contact) > 1:  # multiple contacts, end program
             misty.Stop()
             misty.ChangeLED(0, 0, 0)  # LED off
-            misty.PlayAudio("A_meow1.mp3", volume=volume)
+            misty.PlayAudio("meow1.mp3", volume=volume)
             misty.UnregisterAllEvents()  # unregister and reset hazards
             misty.UpdateHazardSettings(revertToDefault=True)
 
