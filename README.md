@@ -5,7 +5,7 @@
 #### 2023 SURF Program
 
 <img
-  src="/Other Resources/For Fun/Misty Photos/misty.jpg"
+  src="/Other Resources/For Fun/Misty Photos/Misty.jpg"
   alt="Hello! <3"
   style="display: inline-block; margin: 0 auto; max-width: 300px">
 
