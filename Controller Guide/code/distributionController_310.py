@@ -47,7 +47,7 @@ def _BumpSensor(data): # When bumped, robot LED changes color and stops
         touched = data["message"]["isContacted"] # boolean. True if touched, False if released
         partTouched = data["message"]["sensorId"] # string sensor source
         if touched: # if a bumper was pressed, change the according value in the array to True, the color of the LED, and stop the robot from moving
-            misty.PlayAudio("A_VineBoom.mp3", 5)
+            misty.PlayAudio("VineBoom.mp3", 5)
             match partTouched:
                 case "bfr": # front right
                     bumperTouched[1] = True
@@ -164,7 +164,7 @@ def init(): # Resets Misty's head position and LED color. Disables the hazard To
     misty.UpdateHazardSettings(disableTimeOfFlights = True)
     misty.MoveHead(0, 0, 0)
     misty.ChangeLED(255, 200, 0)
-    # misty.PlayAudio("A_Circus.mp3", 5)
+    # misty.PlayAudio("Circus.mp3", 5)
 
 if __name__ == "__main__":
     init()
