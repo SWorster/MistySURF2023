@@ -1,7 +1,7 @@
 '''
 Skye Weaver Worster
 
-WORK IN PROGRESS. HAVE NOT STARTED. THIS IS A COPY OF VISIONOBJECT CODE
+WORK IN PROGRESS
 
 Misty reacts to faces
 
@@ -19,38 +19,46 @@ OD_debounce = 1000  # object detection debounce, in ms
 volume = 5  # audio volume
 
 
-def _ObjectDetection(data):
-    object = data["message"]["description"]
-    print(object)  # print what Misty sees
-
-    # if she sees a specific object, she reacts
-    if object == "laptop":
-        misty.PlayAudio("A_megalovania.m4a", volume)
-        misty.ChangeLED(0, 255, 255)
-        end()
-    if object == "backpack":
-        misty.PlayAudio("A_secrettunnel.mp3", volume)
-        misty.ChangeLED(255, 0, 255)
-        end()
-    if object == "bottle":
-        misty.PlayAudio("A_RickrollShort.mp3", volume)
-        misty.ChangeLED(255, 0, 0)
-        end()
+def _BumpSensor(data):
+    misty.PlayAudio("A_VineBoom.mp3", volume=volume)  # play audio clip
+    misty.Stop()  # stop moving
+    print("Stopped: Bump Sensor")  # print to console
+    misty.UnregisterAllEvents()  # unregister from all events (ends program)
+    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
+    misty.ChangeLED(0, 0, 0)  # LED off
 
 
-def end():
-    # stop and unregister
-    misty.StopObjectDetector()
-    misty.UnregisterAllEvents()
-    print("done")
-    time.sleep(5)  # limits playback to five seconds
-    misty.StopAudio()
-    misty.ChangeLED(0, 0, 0)
+def _FaceRecognition(data):  # callback for face recognition
+    try:  # handles irrelevant/malformed data
+        name = data["message"]["label"]  # name of person Misty sees
+        if (name != "unknown person" and name != None):  # if person is known/valid
+            print(f"A face was recognized. Hello there, {name}!")
+            misty.StopFaceRecognition()  # ends facial recognition
+            print("Unregistering from all events.")
+            misty.UnregisterAllEvents()  # unregisters from events
+            print("Program complete!")
+    except Exception as e:
+        print(e)
+
 
 
 if __name__ == "__main__":
-    misty.StartObjectDetector(min_confidence, 0, 5)  # start detection
 
-    # register for object detection
-    misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
-                        debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)
+    # unregister from all events to clear existing facial recognition
+    print("Unregistering")
+    misty.UnregisterAllEvents()
+    
+    # register for bump sensor
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor, condition=None,
+                        keep_alive=True, callback_function=_BumpSensor)
+
+
+    # Store the list of known faces and print it
+    faceJSON = misty.GetKnownFaces().json()  # get list of known faces as JSON
+    face_array = faceJSON["result"]  # convert to array
+    print("Learned faces:", face_array)  # print to console
+
+
+    # register for face recognition events
+    misty.RegisterEvent("FaceRecognition", Events.FaceRecognition,
+                        keep_alive=True, callback_function=_FaceRecognition)
