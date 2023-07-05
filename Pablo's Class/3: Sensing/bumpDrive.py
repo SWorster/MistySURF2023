@@ -11,7 +11,7 @@ from mistyPy.Events import Events
 import time
 
 misty = Robot("131.229.41.135")  # robot with your IP
-volume = 10  # volume for audio
+volume = 3  # volume for audio
 lin_vel = 10  # linear velocity
 ang_vel = 0  # angular velocity
 

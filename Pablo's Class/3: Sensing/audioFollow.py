@@ -12,7 +12,7 @@ import time
 
 misty = Robot("131.229.41.135")  # robot object
 STDM_debounce = 100  # SourceTrackDataMessage debounce, in ms
-trigger = 10  # sound volume that causes movement
+trigger = 20  # sound volume that causes movement
 
 # speeds for movement
 v_front = 20
@@ -32,6 +32,7 @@ def _BumpSensor(data):
 
 
 def _SourceTrackDataMessage(data):
+    misty.ChangeLED(0, 255, 0)
     try:
         # get array of 360 values
         polar = data["message"]["voiceActivityPolar"]
@@ -71,10 +72,11 @@ if __name__ == "__main__":
     misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         callback_function=_BumpSensor)
 
-    misty.StartRecordingAudio("test")  # start listening
+    misty.StartRecordingAudio("test.wav")  # start listening
 
     time.sleep(1)  # give time for fans to stop
 
+    misty.ChangeLED(255, 0, 0)
     # register for SourceTrackDataMessage
     misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage,
                         debounce=STDM_debounce, keep_alive=True, callback_function=_SourceTrackDataMessage)
