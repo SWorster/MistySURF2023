@@ -1,9 +1,11 @@
 '''
 Skye Weaver Worster
 
-This code assumes that you've cloned the github repo to your computer. Replace the path variable with the path to your clone's "Misty Photos" directory.
+Ensures Misty has the same photos and audio as the GitHub repository, and deletes extraneous photos and audio.
 
-For a version that also deletes extraneous images and audio, see mediaSync.py.
+This code assumes that you've cloned the github repo to your computer. Replace the path variable with the path to your clone's "MistySURF2023" directory.
+
+This code does not inspect and compare the contents of each file; we only look at file names.
 '''
 
 from mistyPy.Robot import Robot
@@ -42,6 +44,10 @@ for x in gh_images:  # look at all github images
         except Exception as e:  # error handling
             print(f"Could not save {x}: {e}")
 
+for x in short_img: # if Misty has an image that's not in GH, delete it
+    if x not in gh_images:
+        misty.DeleteImage(x)
+        print(f"Deleted {x} from Misty")
 
 # get github audio
 sound_path = f"{your_path}/MistySURF2023/Other Resources/Misty Sounds"
@@ -70,3 +76,9 @@ for x in gh_sounds:  # look at all github clips
 
         except Exception as e:  # error handling
             print(f"Could not save {x}: {e}")
+
+
+for x in short_sounds: # if Misty has a clip that's not in GH, delete it
+    if x not in gh_sounds:
+        misty.DeleteAudio(x)
+        print(f"Deleted {x} from Misty")
