@@ -3,9 +3,7 @@ Skye Weaver Worster
 
 WORK IN PROGRESS
 
-Only doing front sensors, because Misty will only move forward, because I say so.
-
-I'm also not doing "sliding window" tactics due to sanity constraints.
+I'm not doing "sliding window" tactics due to sanity constraints.
 
 Pablo's instructions:
 Have Misty react (change directions or actions) depending on changes coming in through ToF. obstacle evasion
@@ -30,7 +28,7 @@ TOF_debounce = 500  # Time of Flight event debounce, in milliseconds
 # DO NOT EDIT THESE
 sensors = [False, False, False]  # center, right, left TOF
 back = [False, False]  # back TOF (normal and emergency)
-count = 0
+count = 0 # counts number of readings taken
 
 
 def _BumpSensor(data):
@@ -165,8 +163,7 @@ def _Left(data):
 
 def move():
     global sensors, back, count
-    
-    count += 1
+    count += 1 # increment counter
     
     if count >= 10:
         print("       !")
@@ -178,7 +175,7 @@ def move():
 
         elif not back[0]:  # if back obstacle:
             if total == 0:  # no front obstacle
-                misty.Drive(vel, 0)
+                misty.Drive(vel, 0) # drive forward
 
             elif total == 1:  # one sensor detecting obstacle
                 if sensors[0]:  # center
@@ -188,7 +185,7 @@ def move():
                 elif sensors[2]:  # left
                     misty.Drive(turn_v, -turn_a)  # turn right
 
-            elif total == 2:
+            elif total == 2: # two sensors detecting obstacle
                 if not sensors[0]:  # left and right
                     misty.Drive(0, ang)  # turn hard left
                 elif not sensors[1]:  # left and center
@@ -196,12 +193,12 @@ def move():
                 elif not sensors[2]:  # right and center
                     misty.Drive(0, ang)  # hard turn left
 
-            elif total == 3:
+            elif total == 3: # all sensors detecting obstacle (emergency override)
                 misty.Drive(0, ang)  # turn hard left
 
         else:  # no back obstacle
             if total == 0:  # no front obstacle
-                misty.Drive(vel, 0)
+                misty.Drive(vel, 0) # drive forward
 
             elif total == 1:  # one sensor detecting obstacle
                 if sensors[0]:  # center
@@ -223,7 +220,6 @@ def move():
                 misty.Drive(-vel, 0)  # drive straight back
                 
         count = 0
-        
         
 
 if __name__ == "__main__":
