@@ -23,15 +23,12 @@ v_left = -20
 
 def _BumpSensor(data):
     # ends program when bumped
-    try:
-        misty.Stop()  # stop moving
-        misty.StopRecordingAudio()  # stop recording audio
-        misty.ChangeLED(0, 0, 0)  # LED off
-        misty.UnregisterAllEvents()  # unregister events
-        misty.UpdateHazardSettings(revertToDefault=True)  # default TOF
-        print("end of program")  # confirm program has ended
-    except Exception as e:
-        print("\nCOULD NOT END PROGRAM", e, "\n")
+    misty.Stop()  # stop moving
+    misty.StopRecordingAudio()  # stop recording audio
+    misty.ChangeLED(0, 0, 0)  # LED off
+    misty.UnregisterAllEvents()  # unregister events
+    misty.UpdateHazardSettings(revertToDefault=True)  # default TOF
+    print("end of program")  # confirm program has ended
 
 
 def _SourceTrackDataMessage(data):

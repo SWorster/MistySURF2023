@@ -14,6 +14,7 @@ from mistyPy.Robot import Robot
 import time
 
 misty = Robot("131.229.41.135")  # robot object with your IP
+volume = 5  # audio volume
 
 # drive command
 drive_l = 30  # linear velocity
@@ -40,7 +41,7 @@ misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
 # start of instructions
 misty.ChangeLED(0, 0, 255)  # LED turns blue
-misty.PlayAudio("s_Joy2.wav", volume=10)  # play sound
+misty.PlayAudio("s_Joy2.wav", volume=volume)  # play sound
 time.sleep(1)
 
 # movement 1: drive forward for 3 seconds at speed 30
@@ -59,7 +60,7 @@ time.sleep(3)
 
 # end of instructions
 misty.ChangeLED(0, 255, 0)  # LED turns green
-misty.PlayAudio("s_Joy4.wav", volume=10)  # play sound
+misty.PlayAudio("s_Joy4.wav", volume=volume)  # play sound
 
 # reset hazard settings
 misty.UpdateHazardSettings(revertToDefault=True)

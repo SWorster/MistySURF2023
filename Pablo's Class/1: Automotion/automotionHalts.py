@@ -14,7 +14,7 @@ import time
 
 # parameters you can/should change
 misty = Robot("131.229.41.135")  # Misty robot with your IP
-person = "Skye"  # person to look for
+person = "test"  # person to look for
 FR_debounce = 500  # facial recognition debounce
 AP_debounce = 100  # actuator position debounce
 volume = 2  # volume for audio clips
@@ -137,10 +137,8 @@ def _Follow(data):
 
 
 def _FaceRecognition(data):
-    '''
-    when she sees someone, she processes it
-    if it's a known person, she stops and fixates on that person
-    '''
+    # when she sees someone, she processes it
+    # if it's a known person, she stops and fixates on that person
 
     try:  # try to get face name, compare against known faces
         face = data["message"]["label"]  # face from data
@@ -166,7 +164,7 @@ def _FaceRecognition(data):
         print("Searching error:", e)
 
 
-def moveRight():
+def moveRight():  # moves head to the right
     global move_pitch, roll, max_right, velocity, hYaw, right_threshold
 
     misty.MoveHead(move_pitch, roll, max_right, velocity)  # move to right
@@ -179,7 +177,7 @@ def moveRight():
         moveLeft()
 
 
-def moveLeft():
+def moveLeft():  # moves head to the left
     global move_pitch, roll, max_left, velocity, hYaw, left_threshold
 
     misty.MoveHead(move_pitch, roll, max_left, velocity)  # move to left
@@ -192,7 +190,7 @@ def moveLeft():
         moveCenter()
 
 
-def moveCenter():
+def moveCenter():  # moves head to the center
     global move_pitch, roll, center_yaw, velocity, hYaw, center_threshold
 
     misty.MoveHead(move_pitch, roll, center_yaw,
@@ -219,6 +217,10 @@ if __name__ == "__main__":
 
     misty.MoveHead(start_pitch, 0, 0)  # forward and up for better view
 
+    # register for bump sensor
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                        callback_function=_BumpSensor)
+
     # register for facial recognition
     misty.RegisterEvent("FaceRecognition", Events.FaceRecognition,
                         callback_function=_FaceRecognition, debounce=FR_debounce, keep_alive=True)
@@ -230,10 +232,6 @@ if __name__ == "__main__":
     # register for actuator position head yaw
     misty.RegisterEvent("ActuatorPositionHY", Events.ActuatorPosition, [
                         EventFilters.ActuatorPosition.HeadYaw], debounce=AP_debounce, keep_alive=True, callback_function=_HeadYaw)
-
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                        callback_function=_BumpSensor)
 
     time.sleep(1)  # give time for registration
     misty.StartFaceRecognition()  # start facial recognition
