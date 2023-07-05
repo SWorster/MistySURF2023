@@ -1,12 +1,12 @@
 '''
 Skye Weaver Worster
 
-This code forcibly resets and clears everything from Misty. It's very useful to provide a clean slate when debugging. It can also be used during other programs using the following:
+This code forcibly resets and clears everything from Misty. It's very useful to provide a clean slate when debugging. It can also be called from other programs using the following:
 
 import os
 os.system('python3 <path-to-file>/reset.py')
 
-I would strongly encourage alternate methods of resetting Misty, like unregistering in your code or using the Misty Studio reset option in Settings. This should only be used to quickly transition out of a program that isn't stopping properly. It shouldn't be used to set Misty's preconditions before running a program, or to gracefully end a running program.
+This program should only be used to quickly transition out of a program that isn't stopping properly. It shouldn't be used to set Misty's preconditions before running a program, or to gracefully end a running program. I would strongly encourage alternate methods of resetting Misty, like unregistering from events and stopping processes in your code, or using the Misty Studio reset option in the Settings tab.
 '''
 
 from mistyPy.Robot import Robot  # import robot class
@@ -21,7 +21,7 @@ misty.Stop()  # stop moving treads
 misty.SetDisplaySettings(True)  # reset display
 misty.ChangeLED(0, 0, 0)  # LED off
 
-# I'm not commenting all of these. Documentation exists for a reason.
+# Cancels and stops every process or skill
 misty.CancelSkill()
 misty.CancelFaceTraining()
 misty.StopArTagDetector()
