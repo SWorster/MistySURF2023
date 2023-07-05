@@ -3,7 +3,7 @@ import serial
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
-misty = Robot("131.229.41.135") # create a Misty instance using its IP address (which varies from robot to robot)
+misty = Robot("<Replace w/ Misty's IP address>") # create a Misty instance using its IP address (which varies from robot to robot)
 
 'The 4 constants below are thresholds for the joystick position to move in different directions'
 NORTH = 341 # North and South are in Y
@@ -66,9 +66,10 @@ def init(): # Resets Misty's head position and LED color. Disables the hazard To
 
 if __name__ == "__main__":
     init()
-    ser = serial.Serial('COM11', 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+    ser = serial.Serial('<Replace w/ COM port of the Arduino>', 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+    # create an event listener for Misty's slam status; callbeck is used whenever there is an update to the status
     misty.RegisterEvent(event_name = "stats", event_type = Events.SlamStatus, callback_function = _SlamData, keep_alive = True)
-    misty.StartMapping()
+    misty.StartMapping() # starts the mapping process
     while True:
         line = ser.readline() # get next line of the serial monitor (its in bytes)
         if line:
@@ -79,5 +80,5 @@ if __name__ == "__main__":
                 if int(strip.split()[2]) == 4: # break out of infinite while if specific button pressed
                     misty.UnregisterAllEvents()
                     break
-    misty.StopMapping()
+    misty.StopMapping() # ends the mapping process; needed because it can cause errors if not ended gracefully
     ser.close() # close the serial connection
