@@ -1,9 +1,11 @@
 '''
 Skye Weaver Worster
 
-WORK IN PROGRESS
+Misty evades obstacles while driving forward.
 
-I'm not doing "sliding window" tactics due to sanity constraints.
+Our robot's left TOF isn't sending data frequently. This means Misty refuses to see obstacles on the left, or she continually sees them even when they aren't there. There's no way to fix this, as far as I know.
+
+Also, I'm not doing "sliding window" tactics due to sanity constraints. If you think this is necessary, I can sacrifice some of my will to live in exchange for emotional validation upon completion.
 
 Pablo's instructions:
 Have Misty react (change directions or actions) depending on changes coming in through ToF. obstacle evasion
@@ -19,13 +21,14 @@ from mistyPy.EventFilters import EventFilters
 
 misty = Robot("131.229.41.135")  # Robot object with your IP
 vel = 10  # Misty's linear velocity when driving straight
-ang = 50  # Misty's angular velocity in hard turns
+ang = 40  # Misty's angular velocity in hard turns
 turn_v = 10  # Misty's linear velocity when turning
-turn_a = 80  # Misty's angular velocity when turning
+turn_a = 60  # Misty's angular velocity when turning
 volume = 5  # volume of Misty's audio responses
 min_d = 0.1  # distance in meters that will make Misty stop/reverse
 obs_d = 0.3  # distance where Misty registers obstacle
 TOF_debounce = 10  # Time of Flight event debounce, in milliseconds
+num_readings = 10 # number of readings to take before calling move function
 
 # DO NOT EDIT THESE
 sensors = [False, False, False]  # center, right, left TOF
@@ -77,7 +80,6 @@ def _TOF(data):  # callback for time of flight
             elif ID == "toffl":  # left
                 x = 2
 
-
             if (distance < obs_d and status == 0):  # sees obstacle ahead
                 sensors[x] = True  # record True
 
@@ -91,10 +93,10 @@ def _TOF(data):  # callback for time of flight
 
 
 def move():
-    global sensors, back, count
+    global sensors, back, count, num_readings
     count += 1  # increment counter
 
-    if count >= 10:
+    if count >= num_readings:
 
         total = sum(sensors)
         print(sensors, back, total)
