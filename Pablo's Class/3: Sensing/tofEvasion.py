@@ -25,11 +25,11 @@ turn_a = 80  # Misty's angular velocity when turning
 volume = 5  # volume of Misty's audio responses
 min_d = 0.1  # distance in meters that will make Misty stop/reverse
 obs_d = 0.3  # distance where Misty registers obstacle
-TOF_debounce = 500  # Time of Flight event debounce, in milliseconds
+TOF_debounce = 10  # Time of Flight event debounce, in milliseconds
 
 # DO NOT EDIT THESE
 sensors = [False, False, False]  # center, right, left TOF
-back = [False, False]  # back TOF (normal and emergency)
+back = False  # back TOF
 count = 0  # counts number of readings taken
 
 
@@ -49,14 +49,8 @@ def _Back(data):
         distance = data["message"]["distanceInMeters"]  # distance variable
         status = data["message"]["status"]  # 0 if valid reading
 
-        if (distance < obs_d and status == 0):  # sees obstacle ahead
-            back = [True, False]  # obstacle True, min distance False
-
-        elif (distance > obs_d):  # doesn't see obstacle
-            back = [False, False]  # obstacle False, min distance False
-
-        elif (distance < min_d and status == 0):  # obstacle too close
-            back = [True, True]  # obstacle True, min distance True
+        if (distance < min_d and status == 0):  # if obstacle too close
+            back = True  # obstacle close
 
         move()  # call movement function
 
@@ -72,7 +66,7 @@ def _TOF(data):  # callback for time of flight
         status = data["message"]["status"]  # 0 if valid reading
         ID = data["message"]["sensorId"]
 
-        if (distance < min_d and status == 0):  # obstacle too close
+        if (distance < min_d and status == 0):  # obstacle too close, can't move forward
             sensors = [True, True, True]  # as if all sensors detect obs
 
         else:  # no emergency
@@ -82,6 +76,7 @@ def _TOF(data):  # callback for time of flight
                 x = 1
             elif ID == "toffl":  # left
                 x = 2
+
 
             if (distance < obs_d and status == 0):  # sees obstacle ahead
                 sensors[x] = True  # record True
@@ -95,87 +90,16 @@ def _TOF(data):  # callback for time of flight
         print("TOF Error:", e)
 
 
-''' old TOF callbacks
-def _Center(data):  # center TOF callback
-    global min_d, obs_d, sensors
-
-    try:  # try-except block catches malformed/irrelevant responses
-        distance = data["message"]["distanceInMeters"]  # distance variable
-        status = data["message"]["status"]  # 0 if valid reading
-
-        if (distance < obs_d and status == 0):  # sees obstacle ahead
-            sensors[0] = True  # record True
-
-        elif (distance > obs_d):  # doesn't see obstacle
-            sensors[0] = False  # record False
-
-        elif (distance < min_d and status == 0):  # obstacle too close
-            sensors = [True, True, True]  # as if all sensors detect obs
-
-        move()  # call movement function
-
-    except Exception as e:
-        print(e)  # ignore irrelevant data
-def _Right(data):
-    global min_d, obs_d, sensors
-
-    try:  # try-except block catches malformed/irrelevant responses
-        distance = data["message"]["distanceInMeters"]  # distance variable
-        status = data["message"]["status"]  # 0 if valid reading
-
-        if (distance < obs_d and status == 0):  # sees obstacle ahead
-            sensors[1] = True  # record True
-
-        elif (distance > obs_d):  # doesn't see obstacle
-            sensors[1] = False  # record False
-
-        elif (distance < min_d and status == 0):  # obstacle too close
-            sensors = [True, True, True]  # as if all sensors detect obs
-
-        move()  # call movement function
-
-    except Exception as e:
-        print(e)  # ignore irrelevant data
-
-
-
-
-def _Left(data):
-    global min_d, obs_d, sensors
-
-    try:  # try-except block catches malformed/irrelevant responses
-        distance = data["message"]["distanceInMeters"]  # distance variable
-        status = data["message"]["status"]  # 0 if valid reading
-
-        if (distance < obs_d and status == 0):  # sees obstacle ahead
-            sensors[2] = True  # record True
-
-        elif (distance > obs_d):  # doesn't see obstacle
-            sensors[2] = False  # record False
-
-        elif (distance < min_d and status == 0):  # obstacle too close
-            sensors = [True, True, True]  # as if all sensors detect obs
-
-        move()  # call movement function
-
-    except Exception as e:
-        print(e)  # ignore irrelevant data
-'''
-
-
 def move():
     global sensors, back, count
     count += 1  # increment counter
 
     if count >= 10:
-        print("       !")
 
         total = sum(sensors)
+        print(sensors, back, total)
 
-        if not back[1]:  # back min distance
-            misty.Drive(0, ang)  # hard left turn
-
-        elif not back[0]:  # if back obstacle:
+        if back:  # if back obstacle
             if total == 0:  # no front obstacle
                 misty.Drive(vel, 0)  # drive forward
 
@@ -247,3 +171,71 @@ if __name__ == "__main__":
     # register for bump sensor
     misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)
+
+
+''' old TOF callbacks
+def _Center(data):  # center TOF callback
+    global min_d, obs_d, sensors
+
+    try:  # try-except block catches malformed/irrelevant responses
+        distance = data["message"]["distanceInMeters"]  # distance variable
+        status = data["message"]["status"]  # 0 if valid reading
+
+        if (distance < obs_d and status == 0):  # sees obstacle ahead
+            sensors[0] = True  # record True
+
+        elif (distance > obs_d):  # doesn't see obstacle
+            sensors[0] = False  # record False
+
+        elif (distance < min_d and status == 0):  # obstacle too close
+            sensors = [True, True, True]  # as if all sensors detect obs
+
+        move()  # call movement function
+
+    except Exception as e:
+        print(e)  # ignore irrelevant data
+def _Right(data):
+    global min_d, obs_d, sensors
+
+    try:  # try-except block catches malformed/irrelevant responses
+        distance = data["message"]["distanceInMeters"]  # distance variable
+        status = data["message"]["status"]  # 0 if valid reading
+
+        if (distance < obs_d and status == 0):  # sees obstacle ahead
+            sensors[1] = True  # record True
+
+        elif (distance > obs_d):  # doesn't see obstacle
+            sensors[1] = False  # record False
+
+        elif (distance < min_d and status == 0):  # obstacle too close
+            sensors = [True, True, True]  # as if all sensors detect obs
+
+        move()  # call movement function
+
+    except Exception as e:
+        print(e)  # ignore irrelevant data
+
+
+
+
+def _Left(data):
+    global min_d, obs_d, sensors
+
+    try:  # try-except block catches malformed/irrelevant responses
+        distance = data["message"]["distanceInMeters"]  # distance variable
+        status = data["message"]["status"]  # 0 if valid reading
+
+        if (distance < obs_d and status == 0):  # sees obstacle ahead
+            sensors[2] = True  # record True
+
+        elif (distance > obs_d):  # doesn't see obstacle
+            sensors[2] = False  # record False
+
+        elif (distance < min_d and status == 0):  # obstacle too close
+            sensors = [True, True, True]  # as if all sensors detect obs
+
+        move()  # call movement function
+
+    except Exception as e:
+        print(e)  # ignore irrelevant data
+'''

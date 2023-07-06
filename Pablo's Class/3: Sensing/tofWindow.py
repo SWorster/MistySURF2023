@@ -1,7 +1,9 @@
 '''
 Skye Weaver Worster
 
-Tutorial #2 was remarkably similar to the prompt, so I modified it with a sliding TOF window.
+Misty drives forward until she is close to an obstacle. The distance is determined through a sliding window of time-of-flight measurements.
+
+This is a modified version of Python Tutorial #2.
 
 Pablo's instructions:
 Start Misty at pose0; Have her advance until ToF averages to below a threshold value (in a sliding window of time); then, stop and change light
@@ -25,7 +27,7 @@ threshold = 0.3  # distance in meters that will make Misty stop
 min_speed = 0.1  # the minimum speed at which Misty is still considered to be "driving"
 TOF_debounce = 5  # Time of Flight event debounce, in milliseconds
 DE_debounce = 500  # DriveEncoders event debounce, in milliseconds
-window_size = 5  # how many measurements to store
+window_size = 10  # how many measurements to store
 
 # DO NOT EDIT THESE
 window = []  # empty list to store data over time
@@ -38,11 +40,14 @@ def _TimeOfFlight(data):  # callback for time of flight
     try:  # try-except block catches malformed/irrelevant responses
         distance = data["message"]["distanceInMeters"]  # distance variable
         status = data["message"]["status"]  # 0 if valid reading
+        
+        if status != 0: # if some error
+            distance = 1.3 # record long-range distance
 
         window.append(distance)  # append dist to window list
         if full:  # if list is full
             del window[0]  # delete first element
-        elif len(window) == window_size:
+        elif len(window) == window_size: # if full not flipped
             full = True  # flip full if size reached
 
         avg = sum(window)/len(window)  # get and print average

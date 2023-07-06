@@ -27,7 +27,7 @@ def _IMU(data):
     p = data["message"]["pitch"]  # get pitch
     r = data["message"]["roll"]  # get roll
 
-    # pitch and roll measurements can be -360 to 360. To simplify things, we'll just use -180 to 180. Otherwise, we'd have to account for 359 equalling -1, for example.
+    # pitch and roll measurements can be -360 to 360. To simplify things, we'll just use -180 to 180. This is to account for 359 equalling -1, for example.
     if p > 180:
         p = p-360
     elif p < -180:
