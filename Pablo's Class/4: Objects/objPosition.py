@@ -1,9 +1,7 @@
 '''
 Skye Weaver Worster
 
-WORK IN PROGRESS OBVIOUSLY
-
-Pablo's Instructions: 1) turn in place until seeing object A; 2) keep turning until seeing object B), then return half the rotation (from A to B) and then advance until passing "through" the two objects. The idea is that, if we place two objects a couple feet apart, Misty should be able to pass "through" them.
+This just prints the middle position of the object.
 '''
 
 
@@ -17,11 +15,6 @@ ang_vel = 0  # angular velocity
 OD_debounce = 1000  # object detection debounce in ms
 min_confidence = .2 # minimum confidence required to send report
 
-# ! Do not change these!
-yaw1=None
-yaw2=None
-yaw=None
-avg=0
 
 def _BumpSensor(data):
     misty.Stop()  # stop moving
@@ -32,29 +25,35 @@ def _BumpSensor(data):
     misty.UpdateHazardSettings(revertToDefault=True)  # reset TOFs
     print("end of program")
 
-def _yaw(data):
-    global yaw
-    yaw = data["message"]["yaw"]  # get yaw
 
 
 def _ObjectDetection(data):
     object = data["message"]["description"]
     print(object)  # print what Misty sees
 
-    if yaw1==None and object == "bottle":
+    # if she sees a specific object, she reacts
+    if object == "bottle":
+        # misty.Stop()
+        # misty.StopObjectDetector()
+        # misty.PlayAudio("megalovania.m4a", volume)
+        # misty.ChangeLED(0, 255, 255)
+        
+        
         left = data["message"]["imageLocationLeft"]
         right = data["message"]["imageLocationRight"]
-        
-        global avg
-        avg = (right+left)/2
-    elif object == "backpack":
-        left = data["message"]["imageLocationLeft"]
-        right = data["message"]["imageLocationRight"]
-        
-        global avg
-        avg = (right+left)/2
     
 
+        print((right+left)/2)
+
+        
+        
+        
+    # elif object == "backpack":
+    #     misty.Stop()
+    #     misty.PlayAudio("kittycatShort.m4a", volume)
+    #     misty.ChangeLED(255, 0, 255)
+    
+    
 
 if __name__ == "__main__":
 
@@ -71,33 +70,4 @@ if __name__ == "__main__":
     misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
                         debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)
 
-    misty.RegisterEvent("Yaw", Events.IMU, debounce = 10, keep_alive=True, callback_function=_yaw)
     # misty.Drive(lin_vel, ang_vel)
-    
-    
-    
-    # bottle to Misty's left
-    misty.Drive(0,-10) # turn left
-    while not (140<avg<180): # turn until bottle in range
-        pass
-    
-    misty.Stop() # stop moving
-
-    yaw1 = yaw # record and print yaw1
-    print(yaw1)
-    
-    # backpack to Misty's right
-    misty.Drive(0,10) # turn right
-    while not (140<avg<180): # turn until backpack in range
-        pass
-    
-    misty.Stop() # stop moving
-
-    yaw2 = yaw # record yaw
-    print(yaw2)
-    
-    misty.UnregisterAllEvents()
-    misty.StopObjectDetector()
-    
-
-    if 

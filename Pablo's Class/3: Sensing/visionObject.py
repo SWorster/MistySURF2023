@@ -12,7 +12,7 @@ from mistyPy.Events import Events
 import time
 
 misty = Robot("131.229.41.135")  # robot object
-min_confidence = .6  # confidence required to send event, form 0 to 1
+min_confidence = .6  # confidence required to send event, from 0 to 1
 OD_debounce = 1000  # object detection debounce, in ms
 volume = 5  # audio volume
 
