@@ -1,4 +1,5 @@
 # Imports
+from datetime import datetime, timedelta
 import serial
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
@@ -11,15 +12,26 @@ SOUTH = 682
 LEFT = 341 # Left and Right are in X
 RIGHT = 682
 
+'Globals for callback reference'
 startMovement = False # this will prevent Misty from moving until she has a pose
+startedMapping = False
+lostStartTime = datetime.now()
+hasPose = False
 
 def _SlamData(data):
-    global startMovement
-    status = data["message"]["slamStatus"]["statusList"]
+    global startMovement, startedMapping, lostStartTime, hasPose
+    status = data["message"]["slamStatus"]["statusList"] # gets and stores the list of current statuses of the slam system
+    print(data["message"]["created"], status)
     if "HasPose" in status: # make the LED green if she has a pose
         misty.ChangeLED(0, 255, 0)
-        startMovement = True
-    elif ("HasPose" not in status) or ("LostPose" in status): # make the LED red if she lost her pose or mapping isn't ready yet
+        startMovement = True # let Misty start to move because she has a pose
+        startedMapping = True # flags that Misty has started to map
+        hasPose = True # flags that she has a pose
+    elif ("HasPose" not in status) and (not startedMapping): # make the LED red if she lost her pose or mapping isn't ready yet
+        misty.ChangeLED(255, 0, 0)
+    elif startedMapping == True and "LostPose" in status:
+        lostStartTime = datetime.now() # records the current time that the robot lost pose
+        hasPose = False
         misty.ChangeLED(255, 0, 0)
         misty.PlayAudio("VineBoom.mp3", 5)
 
@@ -77,8 +89,10 @@ if __name__ == "__main__":
             if " " in string:
                 strip = string.strip() # strip the string of a newline character and return character
                 mode(strip)
-                if int(strip.split()[2]) == 4: # break out of infinite while if specific button pressed
+                'if the button pressed is the exit button, or about 30 seconds have elapsed since Misty lost pose and has not reestablished, stop the program'
+                if int(strip.split()[2]) == 4 or ((lostStartTime + timedelta(seconds = 30)).timestamp() <= datetime.now().timestamp() and startedMapping and not hasPose): # break out of infinite while if specific button pressed
                     misty.UnregisterAllEvents()
+                    misty.ChangeLED(0, 0, 0)
                     break
     misty.StopMapping() # ends the mapping process; needed because it can cause errors if not ended gracefully
     ser.close() # close the serial connection
