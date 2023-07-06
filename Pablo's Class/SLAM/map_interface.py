@@ -1,4 +1,6 @@
 from mistyPy.Robot import Robot
+import numpy as np
+from PIL import Image as im
 
 misty = Robot("<Replace w/ Misty's IP address>")
 
@@ -33,6 +35,25 @@ def output_grid(): # output the occupancy grid of the current map to a specified
     map_data.writelines(liststr)
     map_data.close()
 
+def map_visual(): # creates an image of the current map in your working directory
+    pic_name = input("Enter what you want the map to be called (include the file extension): ")
+    arr = np.array(misty.GetMap().json()["result"]["grid"])
+    for row in range(arr.shape[0]):
+        for col in range(arr.shape[1]):
+            if arr[row][col] == 1: # open = 1
+                arr[row][col] = 255
+            elif arr[row][col] == 2: # occupied = 2
+                arr[row][col] = 0
+            elif arr[row][col] == 3: # obscured = 3
+                arr[row][col] = 200
+            else: # unknown = 0
+                arr[row][col] = 100
+    arr = arr.astype(np.uint8)
+    data = im.fromarray(arr)
+    data = data.rotate(180) # originally when created is upside down in comparison to studio's image, so need to rotate it
+    data.save(pic_name, format = "PNG")
+
+
 def print_instructions(): # prints the option menu
     huh = """
     1: Print Misty's current maps
@@ -42,8 +63,9 @@ def print_instructions(): # prints the option menu
     5: Delete a map
     6: Delete all maps
     7: Get the occupancy grid of the current map
-    8: Print the options again
-    9: Exit
+    8: Create an image of the current map
+    9: Print the options again
+    10: Exit
     """
     print(huh)
 
@@ -51,9 +73,7 @@ if __name__ == "__main__":
     print("Welcome to the programized map controller.\nYou have the following options:")
     print_instructions()
     choice = "0"
-    # if using Python 3.9, you will need to adjust the match case below to be an if-else chain
-    # if using Python 3.10, you can run this program as is
-    while choice != "9":
+    while choice != "10":
         choice = input("Pick from the above: ")
         match choice:
             case "1":
@@ -71,8 +91,12 @@ if __name__ == "__main__":
             case "7":
                 output_grid()
             case "8":
-                print_instructions()
+                map_visual()
             case "9":
+                print_instructions()
+            case "10":
                 print("Goodbye mapping nerd")
             case other:
                 print("Invalid choice. Please try again.")
+        if choice != "10":
+            print_instructions()
