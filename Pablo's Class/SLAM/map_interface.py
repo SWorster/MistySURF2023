@@ -1,8 +1,11 @@
 from mistyPy.Robot import Robot
 import numpy as np
 from PIL import Image as im
+import cv2
 
 misty = Robot("<Replace w/ Misty's IP address>")
+x_path_coords = []
+y_path_coords = []
 
 def print_all_maps(): # print all maps from Misty's memory
     for map in misty.GetSlamMaps().json()["result"]:
@@ -53,6 +56,15 @@ def map_visual(): # creates an image of the current map in your working director
     data = data.rotate(180) # originally when created is upside down in comparison to studio's image, so need to rotate it
     data.save(pic_name, format = "PNG")
 
+def click_event(event, x, y, flags, params):
+    global x_path_coords, y_path_coords
+    if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_RBUTTONDOWN:
+        print(280 - y, " ", 280 - x)
+        x_path_coords.append(280 - y)
+        y_path_coords.append(280 - x)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        cv2.putText(img, str(280 - y) + "," + str(280 - x), (x, y), font, .4, (255, 0, 0), 2)
+        cv2.imshow("image", img)
 
 def print_instructions(): # prints the option menu
     huh = """
@@ -65,7 +77,8 @@ def print_instructions(): # prints the option menu
     7: Get the occupancy grid of the current map
     8: Create an image of the current map
     9: Print the options again
-    10: Exit
+    10: Create a path with a given map
+    11: Exit
     """
     print(huh)
 
@@ -95,6 +108,23 @@ if __name__ == "__main__":
             case "9":
                 print_instructions()
             case "10":
+                x_path_coords.clear()
+                y_path_coords.clear()
+                map_to_path = input("Enter the name of the map you want to get the coords of (with the extension): ")
+                try:
+                    img = cv2.imread(map_to_path, 1)
+                    cv2.imshow('image', img)
+                except:
+                    print("Exception occured, check the file name")
+                else:
+                    print("Use the cursor to indicate the places you want Misty to go.\nOnce done, press any key to exit.")
+                    cv2.setMouseCallback('image', click_event)
+                    cv2.waitKey(0)
+                    cv2.destroyAllWindows()
+                if len(x_path_coords) > 0:
+                    print(x_path_coords)
+                    print(y_path_coords)
+            case "11":
                 print("Goodbye mapping nerd")
             case other:
                 print("Invalid choice. Please try again.")
