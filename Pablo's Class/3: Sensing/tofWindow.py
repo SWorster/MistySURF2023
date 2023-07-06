@@ -5,6 +5,8 @@ Tutorial #2 was remarkably similar to the prompt, so I modified it with a slidin
 
 Pablo's instructions:
 Start Misty at pose0; Have her advance until ToF averages to below a threshold value (in a sliding window of time); then, stop and change light
+
+WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
 '''
 
 

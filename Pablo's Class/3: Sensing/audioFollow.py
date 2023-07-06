@@ -3,7 +3,7 @@ Skye Weaver Worster
 
 Misty moves/turns towards the loudest sound. Can be stopped with bump sensors.
 
-WARNING: this code disables Misty's TOF sensors, and only re-enables them if the program is terminated via the bump sensors.
+WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
 '''
 
 from mistyPy.Robot import Robot

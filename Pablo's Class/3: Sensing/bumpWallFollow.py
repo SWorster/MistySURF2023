@@ -3,7 +3,7 @@ Skye Weaver Worster
 
 Misty uses her bump sensors to follow a wall. She halts when more than one bumper is pressed.
 
-WARNING: This code temporarily disables Misty's TOF sensor hazards, so she won't automatically stop at table edges and other drops. Be careful!
+WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
 '''
 
 from mistyPy.Robot import Robot

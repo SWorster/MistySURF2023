@@ -7,6 +7,8 @@ I'm not doing "sliding window" tactics due to sanity constraints.
 
 Pablo's instructions:
 Have Misty react (change directions or actions) depending on changes coming in through ToF. obstacle evasion
+
+WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
 '''
 
 
