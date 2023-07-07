@@ -13,12 +13,16 @@ import time
 
 misty = Robot("131.229.41.135")  # robot with your IP
 volume = 3  # volume for audio
-ang_vel = 0  # angular velocity for searching turn
+
+ang_vel = 10  # angular velocity for searching turn
+
+center = 160  # measurement of center in Misty's view (units unknown)
+tol = 20  # tolerance for object detection (units unknown)
 OD_debounce = 1000  # object detection debounce in ms
-min_confidence = .5  # minimum confidence required to send report
+min_confidence = .2  # minimum confidence required to send report
 obj1 = "bottle"  # object to the left
 obj2 = "backpack"  # object to the right
-tol = 10  # tolerance for movement, in degrees
+
 d_dist = 2  # driving distance, in meters
 d_time = 10  # time to drive forward, in seconds
 
@@ -27,9 +31,13 @@ yaw1 = None
 yaw2 = None
 yaw = None
 avg = 0
+o1seen = False
+o2seen = False
 
 
 def _BumpSensor(data):
+    global o1seen, o2seen
+    o1seen, o2seen = True  # set to True, stops while loops
     misty.Stop()  # stop moving
     misty.StopObjectDetector()  # stop detecting objects
     misty.UnregisterAllEvents()  # unregister all
@@ -48,19 +56,91 @@ def _ObjectDetection(data):
     object = data["message"]["description"]
     print(object)  # print what Misty sees
 
-    global obj1, obj2, avg
+    global obj1, obj2, avg, o1seen, o2seen
 
     if yaw1 == None and object == obj1:
         left = data["message"]["imageLocationLeft"]
         right = data["message"]["imageLocationRight"]
 
         avg = (right+left)/2
+        o1seen = True
 
-    elif object == obj2:
+    elif yaw1 != None and object == obj2:
         left = data["message"]["imageLocationLeft"]
         right = data["message"]["imageLocationRight"]
 
         avg = (right+left)/2
+        o2seen = True
+
+
+def moveLeft():  # moves head to the left
+    global ang_vel, center, tol, avg
+
+    misty.Drive(0, ang_vel)  # turn left
+
+    # turn until obj1 in range
+    while not o1seen and not (center-tol < avg < center+tol):
+        pass
+
+    misty.Stop()  # stop moving
+    yaw1 = yaw  # record and print yaw1
+    print(yaw1)
+
+    if o1seen:  # if target seen, move right
+        moveRight()
+    else:
+        print("DID NOT SEE OBJ1")
+        _BumpSensor(1)
+
+
+def moveRight():  # moves head to the left
+    global ang_vel, center, tol, avg
+
+    misty.Drive(0, -ang_vel)  # turn left
+
+    # turn until obj2 in range
+    while not o2seen and not (center-tol < avg < center+tol):
+        pass
+
+    misty.Stop()
+    yaw2 = yaw  # record and print yaw2
+    print(yaw2)
+
+    if o2seen:  # if target seen
+        driveForward()
+    else:
+        print("DID NOT SEE OBJ2")
+        _BumpSensor(1)
+
+
+def driveForward():
+    global yaw1, yaw2, d_dist, d_time
+
+    # stop OD and unregister events
+    misty.StopObjectDetector()
+    misty.UnregisterEvent("ObjectDetection")
+    misty.UnregisterEvent("IMU")
+
+    # convert yaw values to range 0-360
+    yaw1 = yaw1 % 360
+    yaw2 = yaw2 % 360
+
+    # if y1 and y2 in "normal" range
+    if yaw2 > yaw1:
+        middle = (yaw1+yaw2)/2
+
+    # if y2 smaller than y1 (straddling 0-360 line)
+    elif yaw1 > yaw2:
+        # average anyway, then flip across circle, then convert to range 0-360
+        middle = (180 - (yaw1+yaw2)/2) % 360
+
+    else:
+        middle = yaw1  # if something goes wrong, drive towards obj1
+
+    misty.DriveHeading(middle, d_dist, d_time*1000)
+
+    time.sleep(d_time)  # wait until drive done
+    _BumpSensor(1)
 
 
 if __name__ == "__main__":
@@ -81,48 +161,24 @@ if __name__ == "__main__":
     misty.RegisterEvent("Yaw", Events.IMU, debounce=10,
                         keep_alive=True, callback_function=_yaw)
 
-    # obj1 to Misty's left
-    misty.Drive(0, -ang_vel)  # turn left
-    while not (140 < avg < 180):  # turn until obj1 in range
-        pass
+    moveLeft()  # go to moveLeft function
 
-    misty.Stop()  # stop moving
+# # obj1 to Misty's left
+# misty.Drive(0, ang_vel)  # turn left
+# while not (center-tol < avg < center+tol):  # turn until obj1 in range
+#     pass
 
-    yaw1 = yaw  # record and print yaw1
-    print(yaw1)
+# misty.Stop()  # stop moving
 
-    # obj2 to Misty's right
-    misty.Drive(0, ang_vel)  # turn right
-    while not (140 < avg < 180):  # turn until obj2 in range
-        pass
+# yaw1 = yaw  # record and print yaw1
+# print(yaw1)
 
-    misty.Stop()  # stop moving
+# # obj2 to Misty's right
+# misty.Drive(0, -ang_vel)  # turn right
+# while not (center-tol < avg < center+tol):  # turn until obj2 in range
+#     pass
 
-    yaw2 = yaw  # record yaw
-    print(yaw2)
-    
-    # stop OD and unregister events
-    misty.StopObjectDetector()
-    misty.UnregisterEvent("ObjectDetection")
-    misty.UnregisterEvent("IMU")
+# misty.Stop()  # stop moving
 
-    # convert yaw values to range 0-360
-    yaw1 = yaw1 % 360
-    yaw2 = yaw2 % 360
-
-    # if y1 and y2 in "normal" range
-    if yaw2 > yaw1:
-        middle = (yaw1+yaw2)/2
-
-    # if y2 smaller than y1 (straddling 0-360 line)
-    elif yaw1 > yaw2:
-        # average anyway, then flip across circle, then convert to range 0-360
-        middle = (180 - (yaw1+yaw2)/2) % 360
-    
-    else:
-        middle = yaw1 # if something goes wrong, drive towards obj1
-
-    misty.DriveHeading(middle, d_dist, d_time*1000)
-
-    time.sleep(d_time) # wait until drive done
-    _BumpSensor(1)
+# yaw2 = yaw  # record yaw
+# print(yaw2)

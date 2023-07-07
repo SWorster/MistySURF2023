@@ -16,6 +16,13 @@ min_confidence = .6  # confidence required to send event, from 0 to 1
 OD_debounce = 1000  # object detection debounce, in ms
 volume = 5  # audio volume
 
+def _BumpSensor(data):
+    misty.StopObjectDetector()  # stop detecting objects
+    misty.UnregisterAllEvents()  # unregister all
+    misty.ChangeLED(0, 0, 0)  # LED off
+    misty.StopAudio()  # stop audio
+    misty.UpdateHazardSettings(revertToDefault=True)  # reset TOFs
+    print("end of program")
 
 def _ObjectDetection(data):
     object = data["message"]["description"]
@@ -62,3 +69,7 @@ if __name__ == "__main__":
     # register for audio completion
     misty.RegisterEvent("AudioPlayComplete", Events.AudioPlayComplete,
                         keep_alive=True, callback_function=_AudioPlayComplete)
+    
+    # register for bump sensor
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                        keep_alive=True, callback_function=_BumpSensor)
