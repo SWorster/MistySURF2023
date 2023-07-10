@@ -3,7 +3,7 @@ Skye Weaver Worster
 
 Misty is now Meowsty. No FUR-ther explanation provided. (please laugh at the pun)
 
-Audio files are in Other Resources > For Fun > MistyMedia > Misty Sounds > cat. You can also download them by running the mediaUpload file.
+Audio files are in Other Resources > For Fun > MistyMedia > Misty Sounds > cat. You can also download them by running the mediaSync file.
 '''
 
 # import statements
