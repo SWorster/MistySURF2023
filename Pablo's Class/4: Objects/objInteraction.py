@@ -72,7 +72,7 @@ def _ObjectDetection(data):
         avg = (right+left)/2
 
 
-def moveLeft():  # moves head to the left
+def moveLeft():  # turns left
     global ang_vel, center, tol, avg
 
     misty.Drive(0, ang_vel)  # turn left
@@ -91,10 +91,10 @@ def moveLeft():  # moves head to the left
         _BumpSensor(1)
 
 
-def moveRight():  # moves head to the left
+def moveRight():  # turns right
     global ang_vel, center, tol, avg
 
-    misty.Drive(0, -ang_vel)  # turn left
+    misty.Drive(0, -ang_vel)  # turn right
 
     # stops if avg is in range, or bumped
     while not (center-tol < avg < center+tol) and not bumped:

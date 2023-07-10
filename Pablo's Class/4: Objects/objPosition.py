@@ -13,7 +13,7 @@ volume = 3  # volume for audio
 lin_vel = 10  # linear velocity
 ang_vel = 0  # angular velocity
 OD_debounce = 1000  # object detection debounce in ms
-min_confidence = .2 # minimum confidence required to send report
+min_confidence = .2  # minimum confidence required to send report
 
 
 def _BumpSensor(data):
@@ -26,34 +26,12 @@ def _BumpSensor(data):
     print("end of program")
 
 
-
 def _ObjectDetection(data):
     object = data["message"]["description"]
-    print(object)  # print what Misty sees
+    left = data["message"]["imageLocationLeft"]
+    right = data["message"]["imageLocationRight"]
+    print(object, (right+left)/2)  # print what Misty sees
 
-    # if she sees a specific object, she reacts
-    if object == "bottle":
-        # misty.Stop()
-        # misty.StopObjectDetector()
-        # misty.PlayAudio("megalovania.m4a", volume)
-        # misty.ChangeLED(0, 255, 255)
-        
-        
-        left = data["message"]["imageLocationLeft"]
-        right = data["message"]["imageLocationRight"]
-    
-
-        print((right+left)/2)
-
-        
-        
-        
-    # elif object == "backpack":
-    #     misty.Stop()
-    #     misty.PlayAudio("kittycatShort.m4a", volume)
-    #     misty.ChangeLED(255, 0, 255)
-    
-    
 
 if __name__ == "__main__":
 
@@ -63,11 +41,9 @@ if __name__ == "__main__":
     # register for bump sensor
     misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)
-    
+
     misty.StartObjectDetector(min_confidence, 0, 5)  # start detection
 
     # register for object detection
     misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
                         debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)
-
-    # misty.Drive(lin_vel, ang_vel)
