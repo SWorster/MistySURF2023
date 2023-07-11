@@ -4,7 +4,6 @@ Skye Weaver Worster
 This just prints the middle position of the object.
 '''
 
-
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
@@ -13,7 +12,7 @@ volume = 3  # volume for audio
 lin_vel = 10  # linear velocity
 ang_vel = 0  # angular velocity
 OD_debounce = 1000  # object detection debounce in ms
-min_confidence = .2  # minimum confidence required to send report
+min_confidence = .6  # minimum confidence required to send report
 
 
 def _BumpSensor(data):
@@ -28,6 +27,7 @@ def _BumpSensor(data):
 
 def _ObjectDetection(data):
     object = data["message"]["description"]
+
     left = data["message"]["imageLocationLeft"]
     right = data["message"]["imageLocationRight"]
     print(object, (right+left)/2)  # print what Misty sees
