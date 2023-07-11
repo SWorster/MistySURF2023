@@ -90,7 +90,7 @@ if __name__ == "__main__":
                 strip = string.strip() # strip the string of a newline character and return character
                 mode(strip)
                 'if the button pressed is the exit button, or about 30 seconds have elapsed since Misty lost pose and has not reestablished, stop the program'
-                if int(strip.split()[2]) == 4 or ((lostStartTime + timedelta(seconds = 30)).timestamp() <= datetime.now().timestamp() and startedMapping and not hasPose): # break out of infinite while if specific button pressed
+                if int(strip.split()[2]) == 4 or ((lostStartTime + timedelta(seconds = 30)).timestamp() <= datetime.now().timestamp() and startedMapping and not hasPose):
                     misty.UnregisterAllEvents()
                     misty.ChangeLED(0, 0, 0)
                     break
