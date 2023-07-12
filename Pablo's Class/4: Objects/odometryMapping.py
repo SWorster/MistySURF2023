@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster, with invaluable assistance from Julia Yu
 
 Pablo's Instructions: Have the sequence of motions from the "Obj Interaction" Activity printed out and a graphical representation of the path visualized (forward 30cm; left 45 degrees; forward 55cm; right 15 degrees; etc). basically, run previous activity and record movement/position data, then display on top of provided map
 
@@ -29,6 +29,10 @@ Alternatively, there is a built-in tracking functionality. It seems designed to 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 import time
+import matplotlib.pyplot as plt
+import pandas as pd
+from PIL import Image as im
+import numpy as np
 
 misty = Robot("131.229.41.135")  # robot with your IP
 obj1 = "book"  # object to the left
@@ -44,6 +48,8 @@ OD_debounce = 1000  # object detection debounce in ms
 min_confidence = .2  # minimum confidence required to send report
 center = 160  # measurement of center in Misty's view (units unknown)
 tol = 100  # tolerance for object detection (units unknown)
+
+map_name = "pain.png" # name of map to plot on top of
 
 
 # ! Do not change these!
@@ -78,6 +84,41 @@ def output():
     print(f"Turn right {first_dist} degrees")
     print(f"Turn left {second_dist} degrees")
     print(f"Drive forward {d_dist} meters")
+    
+    # ! figure out how to get image from Julia
+    
+    map_list = misty.GetSlamMaps()["result"] # list of maps, with key and name values
+    key = None
+    for m in map_list:
+        if m["name"] == map_name:
+            key = m["key"]
+    if key != None:
+        misty.SetCurrentSlamMap(key) # set current map
+    else:
+        print("Map not found, using current map")
+
+    # get current map data
+    arr = np.array(misty.GetMap().json()["result"]["grid"])
+    size = arr.shape[0]
+    for row in range(arr.shape[0]):
+        for col in range(arr.shape[1]):
+            if arr[row][col] == 1: # open = 1
+                arr[row][col] = 255
+            elif arr[row][col] == 2: # occupied = 2
+                arr[row][col] = 0
+            elif arr[row][col] == 3: # obscured = 3
+                arr[row][col] = 200
+            else: # unknown = 0
+                arr[row][col] = 100
+    arr = arr.astype(np.uint8)
+    data = im.fromarray(arr)
+    data = data.rotate(180) # originally when created is upside down in comparison to studio's image, so need to rotate it
+    data.save(map_name, format = "PNG")
+    
+    img = plt.imread(map_name)
+    fig, ax = plt.subplots() 
+    ax.imshow(img, extent=[0, size, 0, size])
+    plt.show()
 
 
 
