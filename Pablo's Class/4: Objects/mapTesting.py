@@ -12,22 +12,23 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from PIL import Image as im
 import numpy as np
+import math
 
 misty = Robot("131.229.41.135")  # robot with your IP
 map_name = "pain.png"  # name of map to plot on top of
 
-
 obj1 = "book"  # object to the left
 obj2 = "bottle"  # object to the right
 
-ang_vel = 15  # searching turn angular velocity
-d_dist = 1  # thru driving distance, in meters
+d_meter = 1  # thru driving distance, in meters
 d_time = 10  # thru driving time, in seconds
+ang_vel = 15  # searching turn angular velocity
 
 imu_debounce = 10  # imu callback debounce, in ms
-
 OD_debounce = 1000  # object detection debounce in ms
 min_confidence = .2  # minimum confidence required to send report
+
+# TODO find values for these
 center = 160  # measurement of center in Misty's view (units unknown)
 tol = 100  # tolerance for object detection (units unknown)
 
@@ -38,6 +39,7 @@ yaw1 = None  # yaw of first object center
 yaw2 = None  # yaw of second object center
 middle = None  # calculated yaw of middle of two objects
 actual_middle = None  # actual yaw at middle (wherever Misty ended up)
+
 yaw = None  # current yaw from IMU
 avg = 0  # center of current target object
 bumped = False  # whether Misty has been bumped
@@ -45,22 +47,6 @@ first_dist = None  # degrees of first turn (right)
 second_dist = None  # degrees of second turn (left)
 
 
-print(f"Initial heading: {start_yaw}")
-print(f"Max turn heading: {yaw2}")
-print(f"Total turn distance: {first_dist}")
-print(f"{obj1} heading: {yaw1}")
-print(f"{obj2} heading: {yaw2}")
-print(f"Calculated middle heading: {middle}")
-print(f"Actual middle heading: {actual_middle}")
-print(f"Second turn distance: {second_dist}")
-print(f"Driving distance: {d_dist}")
-
-print("\nInstructions:")
-print(f"Turn right {first_dist} degrees")
-print(f"Turn left {second_dist} degrees")
-print(f"Drive forward {d_dist} meters")
-
-# ! figure out how to get image from Julia
 
 # list of maps, with key and name values
 map_list = misty.GetSlamMaps().json()["result"]
@@ -96,6 +82,43 @@ img = plt.imread(map_name)
 fig, ax = plt.subplots()
 ax.imshow(img, extent=[0, size, 0, size], cmap='gray')
 
+
+# metersPerCell is the area in m^2 covered by each cell.
+# cell length is therefore sqrt(mPC).
+# converting from cell to meters is c_d / scale
+# converting from meters to cell is m_d * scale
+scale = math.sqrt(misty.GetMap().json()["result"]["metersPerCell"])
+
+start_yaw = 180  # initial yaw
+yaw1 = 100  # yaw of first object center
+yaw2 = 40  # yaw of second object center
+actual_middle = (yaw1+yaw2)/2  # actual yaw at middle (wherever Misty ended up)
+d_meter = 1  # thru driving distance, in meters
+
+
+# TODO get starting position in terms of map orientation
+# seems like position is values from 0-1 that scale how many pixels are in a meter. not something i can deal with yet
+x1 = 100  # starting x
+y1 = 100  # starting y
+
+d_cell = scale * d_meter  # distance in cell, from meters
+
+# ? Is map oriented with initial yaw = 0? for now i'm assuming that Misty's 0 yaw is along the x axis. I can adjust this later if needed.
+
+# calculate and plot driving path
+x2 = x1 + d_cell * math.cos(actual_middle)
+y2 = y1 + d_cell * math.sin(actual_middle)
+plt.plot([x1, x2], [y1, y2], 'ro-')
+
+# calculate and plot first object angle
+x2 = x1 + d_cell * math.cos(yaw1)
+y2 = y1 + d_cell * math.sin(yaw1)
+plt.plot([x1, x2], [y1, y2], 'yo-')
+
+# calculate and plot second object angle
+x2 = x1 + d_cell * math.cos(yaw2)
+y2 = y1 + d_cell * math.sin(yaw2)
+plt.plot([x1, x2], [y1, y2], 'bo-')
+
+plt.legend("Movement", f"{obj1}", f"{obj2}")
 plt.show()
-
-
