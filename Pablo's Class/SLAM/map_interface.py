@@ -1,11 +1,11 @@
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
-import numpy as np
 from PIL import Image as im
+import numpy as np
 import cv2
 import serial
 
-misty = Robot("<Misty IP address goes here>")
+misty = Robot("<Misty IP address>")
 
 'The 4 constants below are thresholds for the joystick position to move in different directions'
 NORTH = 341 # North and South are in Y
@@ -16,7 +16,11 @@ RIGHT = 682
 x_path_coords = []
 y_path_coords = []
 
+current_x = 0
+current_y = 0
+
 tracking = False
+slamReset = False
 
 def treads(coords): # Controls the treads for overall mobility
     split = coords.split() # data format: [x, y, mode]
@@ -42,7 +46,7 @@ def treads(coords): # Controls the treads for overall mobility
         misty.Stop() # stop Misty from moving (default position on joystick)
 
 def _SlamStats(data):
-    global tracking
+    global tracking, slamReset
     print(data["message"])
     if data["message"]["slamStatus"]["runMode"] == "Tracking":
         tracking = True
@@ -50,6 +54,17 @@ def _SlamStats(data):
     else:
         tracking = False
         misty.ChangeLED(255, 0, 0)
+    
+    if "Ready" in data["message"]["slamStatus"]["statusList"]:
+        slamReset = True
+    else:
+        slamReset = False
+
+def _GridLoc(data):
+    global current_x, current_y
+    # print(data["message"]["occupancyGridCell"].values()) # is a dictionary
+    current_x, current_y = data["message"]["occupancyGridCell"].values()
+    print(current_x, current_y)
 
 def print_all_maps(): # print all maps from Misty's memory
     for map in misty.GetSlamMaps().json()["result"]:
@@ -115,8 +130,8 @@ def click_event(event, x, y, flags, params):
 def follow_path():
     if len(x_path_coords) > 0:
         misty.RegisterEvent(event_name = "stats", event_type = Events.SlamStatus, callback_function = _SlamStats, keep_alive = True)
-        misty.StartTracking()
-        ser = serial.Serial('<Arduino COM here>', 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+        ser = serial.Serial('<Arduino COM>', 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+        misty.ResetSlam()
         print("go")
     else:
         print("Please create a path first!")
@@ -128,8 +143,18 @@ def follow_path():
         path = path + str(x_path_coords[index_coord]) + ":" + str(y_path_coords[index_coord]) + ","
     path = path[:-1]
 
+    print(x_path_coords[-1], y_path_coords[-1])
+
+    while not slamReset:
+        pass
+
+    misty.StartTracking()
+
     while not tracking: # catch to hold it here while not localized
-        line = ser.readline() # get next line of the serial monitor (its in bytes)
+        try:
+            line = ser.readline() # get next line of the serial monitor (its in bytes)
+        except:
+            print("error with serial readings")
         if line:
             string = line.decode() # convert the bytes to a string
             if " " in string:
@@ -139,10 +164,17 @@ def follow_path():
                     break
     ser.close() # close the serial connection
 
-    # misty.FollowPath(path, .2)
+    misty.RegisterEvent(event_name = "location", event_type = Events.SelfState, callback_function = _GridLoc, keep_alive = True)
+    misty.FollowPath(path, .3)
+
+    while current_x != x_path_coords[-1] and current_y != y_path_coords[-1]:
+        pass
+
+    print(path)
+
     misty.StopTracking()
     misty.UnregisterAllEvents()
-    
+
 def print_instructions(): # prints the option menu
     huh = """
     1: Print Misty's current maps
@@ -169,7 +201,6 @@ if __name__ == "__main__":
     print("Welcome to the programized map controller.\nYou have the following options:")
     print_instructions()
     choice = "0"
-
     while choice != "11":
         choice = input("Pick from the above: ")
         match choice:
