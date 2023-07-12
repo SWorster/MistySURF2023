@@ -15,7 +15,7 @@ import numpy as np
 import math
 
 misty = Robot("131.229.41.135")  # robot with your IP
-map_name = "pain.png"  # name of map to plot on top of
+map_name = "polish dancing cow"  # name of map to plot on top of
 
 obj1 = "book"  # object to the left
 obj2 = "bottle"  # object to the right
@@ -45,7 +45,6 @@ avg = 0  # center of current target object
 bumped = False  # whether Misty has been bumped
 first_dist = None  # degrees of first turn (right)
 second_dist = None  # degrees of second turn (left)
-
 
 
 # list of maps, with key and name values
