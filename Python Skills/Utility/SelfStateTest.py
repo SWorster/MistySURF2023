@@ -1,48 +1,72 @@
 '''
 Skye Weaver Worster
 
-Gets current SelfState data
-'''
+Gets current SelfState data. Compares data from "location", "pose", and "homogeneousCoordinates". If different, prints differences. If identical (which they usually are), only prints one.
 
+This must be used in conjunction with Misty Studio's mapping interface. Here's how:
+
+1. In the Mapping tab, load the current map. Click Start Tracking.
+2. Wait for pose indicator to turn from red to white (Misty has localized).
+3. Run this program.
+'''
 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot with your IP
-
-
-def _BumpSensor(data):
-    misty.UnregisterAllEvents()
+ss_debounce = 1000  # debounce in milliseconds
 
 
 def _SelfState(data):
     try:
-        m = data["message"]
+        # * behold: the JSON Matryoshka Doll!
+        m = data["message"]  # message field in data
+        l = m["location"]  # location field in message
+        p = l["pose"]  # pose field in location
+        h = p["homogeneousCoordinates"]  # homo field in pose
 
-        l = m["location"]
-        print("location bde: ", l["bearing"], l["distance"], l["elevation"])
+        # list of fields to print
+        names = ["bearing", "distance", "elevation",
+                 "pitch", "roll", "yaw", "x", "y", "z"]
 
-        p = l["pose"]
-        print("pose bde: ", p["bearing"], p["distance"], p["elevation"])
-        print("pose pry: ", p["pitch"], p["roll"], p["yaw"])
-        print("pose xyz: ", p["x"], p["y"], p["z"])
+        # list of fields in location
+        short_names = ["bearing", "distance", "elevation"]
 
-        h = p["homogeneousCoordinates"]
-        print("homo bde: ", h["bearing"], h["distance"], h["elevation"])
-        print("homo pry: ", h["pitch"], h["roll"], h["yaw"])
-        print("homo xyz: ", h["x"], h["y"], h["z"])
+        print("\n")  # give room for formatting
+
+        for x in range(0, 9):  # for each field
+            y = names[x]  # field name
+            spaces = " "*(10-len(y))  # spaces to print even columns
+
+            if y in short_names:  # compare all three
+                if l[y] == p[y] == h[y]:  # if all equal
+                    if p[y] < 0:  # adjust spaces for negative sign
+                        spaces = " "*(9-len(y))
+                    print(f"{y}: {spaces}{p[y]}")
+                else:  # if not equal, assume all different
+                    print(
+                        f"{y}: {spaces}{l[y]} (loc), {p[y]} (pose), {h[y]} (homo)")
+
+            else:  # compare pose and homo
+                if p[y] == h[y]:  # if equal
+                    if p[y] < 0:  # adjust spaces for negative sign
+                        spaces = " "*(9-len(y))
+                    print(f"{y}: {spaces}{p[y]}")
+                else:  # if not equal, print both
+                    print(f"{y}: {spaces}{p[y]} (pose) and {h[y]} (homo)")
+
+        misty.UnregisterAllEvents()  # unregister (ends program)
+
     except Exception as e:
-        print(e)
-
-    misty.UnregisterAllEvents()
+        # NoneType exception is thrown when invalid message sent
+        if str(e) == "'NoneType' object is not subscriptable":
+            print(".", end="")  # print waiting sign
+        else:
+            print(e)
 
 
 if __name__ == "__main__":
 
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                        keep_alive=True, callback_function=_BumpSensor)
-
-    # register for object detection
+    # register for self state
     misty.RegisterEvent("SelfState", Events.SelfState,
-                        debounce=1000, keep_alive=True, callback_function=_SelfState)
+                        debounce=ss_debounce, keep_alive=True, callback_function=_SelfState)
