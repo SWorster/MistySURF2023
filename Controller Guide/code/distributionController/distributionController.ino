@@ -1,3 +1,10 @@
+/*
+Note: if using the HC-05 for the Bluetooth capable controller with the Arduino Nano Every (or Nano, either one),
+you MUST use Serial1.begin() and Serial1.println().
+This is because of there being 2 Serial ports for the Nano, using Serial just outputs it to the COM port that is from the USB.
+Using Serial1 means that it would output to the serial from the pins on the board corresponding to the HC-05
+*/
+
 // Joystick pins, can be adjusted according to physical wiring
 #define VRX_PIN A1  // Arduino pin connected to VRX pin
 #define VRY_PIN A0  // Arduino pin connected to VRY pin
@@ -21,8 +28,8 @@ int redState = 0;
 int mode = 1;               // mode variable for the serial monitor
 const int timeDelay = 150;  // adjust this to change the amount of time each loop iteration takes in milliseconds (the higher it is, the more data you'll miss)
 
-int treadState; // current state the button is in
-int lastYellowState = LOW; // track the previous state the button was in
+int treadState;             // current state the button is in
+int lastYellowState = LOW;  // track the previous state the button was in
 
 int armState;
 int lastBlueState = LOW;
@@ -39,11 +46,13 @@ unsigned long lastArmTime = 0;
 unsigned long lastHeadTime = 0;
 unsigned long lastStopTime = 0;
 
-unsigned long debounceDelay = 150; // the debounce time; increase if the output flickers
+unsigned long debounceDelay = 150;  // the debounce time; increase if the output flickers
 
 void setup() {
-  Serial.begin(9600);  // start the serial monitor at a baudrate of 9600 (baudrate it the number of bits a second it reads in)
-  while (!Serial);    // will hold the program here while the serial monitor is not initialized
+  // Serial.begin(9600);  // start the serial monitor at a baudrate of 9600 (baudrate it the number of bits a second it reads in)
+  Serial1.begin(9600);  // Nano Bluetooth capability uses this
+  // while (!Serial);  // will hold the program here while the serial monitor is not initialized (use with Arduino Uno or Arduino Nano w/ no Bluetooth)
+  while (!Serial1);  // will hold the program here while the serial monitor is not initialized (use with Arduino Nano + Bluetooth)
 
   // identifies everything as an input (button input something to board -> do something)
   pinMode(TREAD_BTN, INPUT);
@@ -69,12 +78,12 @@ void loop() {
   if (greenState != lastGreenState) lastHeadTime = millis();
   if (redState != lastRedState) lastStopTime = millis();
 
-  // debounce for the buttons
+  // debounce for the buttons (taken and adapted from the example button debounce code from Arduino)
   // treads
-  if ((millis() - lastTreadTime) > debounceDelay) { // if the debounce threshold has been exceded
-    if (yellowState != treadState) { // if the button state changed
+  if ((millis() - lastTreadTime) > debounceDelay) {  // if the debounce threshold has been exceded
+    if (yellowState != treadState) {                 // if the button state changed
       treadState = yellowState;
-      if (treadState == HIGH) mode = 1; // if the button is pressed, change the mode
+      if (treadState == HIGH) mode = 1;  // if the button is pressed, change the mode
     }
   }
 
@@ -109,10 +118,18 @@ void loop() {
   lastRedState = redState;
 
   // print to serial monitor to port data to python through pyserial
-  Serial.print(xValue);
-  Serial.print(" ");
-  Serial.print(yValue);
-  Serial.print(" ");
-  Serial.println(mode);
+  // Serial is for Arduino Uno, Bluetooth or wired, and Nano, wired only
+  // Serial.print(xValue);
+  // Serial.print(" ");
+  // Serial.print(yValue);
+  // Serial.print(" ");
+  // Serial.println(mode);
+
+  // Serial1 is for Nano with Bluetooth only
+  Serial1.print(xValue);
+  Serial1.print(" ");
+  Serial1.print(yValue);
+  Serial1.print(" ");
+  Serial1.println(mode);
   delay(timeDelay);
 }
