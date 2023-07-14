@@ -21,6 +21,8 @@
 # Uploading the Arduino code to the board
 * Starting off, let's assume you’re using the IDE that is downloadable [here](https://www.arduino.cc/en/software). It’s a similar process with the Web Editor and the older Arduino uploader if you decide to go with those routes, so you can follow along regardless.
 
+* Side note: If you are using the Nano Every, you'll need to install a driver for the IDE to recognize the board, link [here](https://docs.arduino.cc/software/ide-v1/tutorials/getting-started/cores/arduino-megaavr).
+
 * First, have the board plugged into your computer through USB.
 
 * Open the IDE and check that the board selected in the upper left is the board you’re using (it should automatically detect the COM port that it’s using, you’ll need that for a line in the Python controller file). *Refer to figure 1 for help.*
@@ -32,9 +34,10 @@
 
 * Close the serial monitor, which you can do by either closing the IDE or clicking the little “x” that appears on the serial monitor tab at the bottom of the screen (you must do this before you run the python file since only 1 application can access the serial monitor at a time). *Refer to figure 3 for help.*
 
-* If you are using the HC-05 Bluetooth module to enable wireless communication between the hardware and your computer, unplug the 2 wires that go to the Arduino's Tx and Rx pins, since having those wired to the board while uploading will cause an error.
+* If you are using the HC-05 Bluetooth module to enable wireless communication between the hardware and your computer, unplug the 2 wires that go to the Arduino Uno's Tx and Rx pins, since having those wired to the board while uploading will cause an error. If you are using an Arduino Nano, you don't need to do this. For more info as to why, read [this](https://docs.arduino.cc/tutorials/nano-every/uart).
 
 * Please note, if the following text appears when you are uploading the sketch to an Arduino Nano Every, refer to [this link](https://support.arduino.cc/hc/en-us/articles/4405239282578-avrdude-jtagmkII-initialize-Cannot-locate-flash-and-boot-memories-in-description) for more information about what that means.
+
 ![Nano Every Warning](imgs/every_warning.png)
 
 ![Reference 1](imgs/ref1.png)
