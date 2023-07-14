@@ -75,8 +75,9 @@ PHASE 1: LOCALIZATION
 def _SelfState(data):
     'get current location in grid (current map)'
     global current_x, current_y
+    if data["message"]["occupancyGridCell"]["x"] == 0:
+        print(".",end="")
     current_x, current_y = data["message"]["occupancyGridCell"].values()
-    #print(data["message"])
 
 
 def _SlamStatus(data):
@@ -102,6 +103,10 @@ def localize():
     global start_x, start_y, is_tracking
 
     try:
+        
+        # register for bump sensor
+        misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                            keep_alive=True, callback_function=_BumpSensor)
 
         # get the desired map from Misty, or use current map
         # map list with keys/names
@@ -115,40 +120,37 @@ def localize():
             print("Using map", map_name)
         else:
             print("Map not found, using current map")
-            
-        
 
         # register for slam status event to get tracking data
         misty.RegisterEvent(event_name="SlamStatus", event_type=Events.SlamStatus,
                             keep_alive=True, callback_function=_SlamStatus)
-        
+
         misty.ResetSlam()
-        
+
         print("\nresetting slam")
-        
+
         while not slam_reset and not bumped:
             pass
-    
+
         misty.StartTracking()  # start tracking current location in map
 
         # register for self state events to get position
         misty.RegisterEvent(event_name="SelfState", event_type=Events.SelfState,
                             keep_alive=True, callback_function=_SelfState)
 
-        # register for bump sensor
-        misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                            keep_alive=True, callback_function=_BumpSensor)
-        
-    
         print("\nlocalizing")
 
         while not is_tracking and not bumped:
             pass  # wait until location found
 
         if bumped:
-            print("bumped")
+            print("Bumped!")
             _BumpSensor(1)
         else:
+            print("waiting on non-0")
+            while start_x == 0:
+                pass # wait until we get numerical data that isn't 0
+            
             start_x = current_x  # record starting coordinates
             start_y = current_y
             print("location:", start_x, start_y)
@@ -455,6 +457,7 @@ def output():
 '''
 PHASE 4: PANIC BUTTON
 '''
+
 
 def panic(location, e):
     print(f"ERROR IN {location}: {e}")
