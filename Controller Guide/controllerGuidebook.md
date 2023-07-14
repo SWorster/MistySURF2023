@@ -4,13 +4,13 @@
 
 ## Wiring the Circuit
 
-### [Arduino Uno Version](https://www.circuito.io/app?components=97,97,97,97,512,11021,611984)
+### [Arduino Uno Version](https://www.circuito.io/app?components=97,97,97,97,512,11021,611984,2631981)
 
 <img src = "imgs/wiring1_v1.png" width = "60%" height = "70%">
 
 ![Arduino Uno Layout V2](imgs/wiring1_v2.png)
 
-### [Arduino Nano / Nano Every Version](https://www.circuito.io/app?components=97,97,97,97,514,11022,611984)
+### [Arduino Nano / Nano Every Version](https://www.circuito.io/app?components=97,97,97,97,514,11022,611984,2631981)
 
 ##### Note: the board in the picture is a Nano, but Nano Every has the same pin ordering, size, and better specs
 
@@ -30,7 +30,9 @@
 
 * After the program is uploaded, check that everything works by opening the serial monitor in the upper right corner where there is a magnifying glass. If it prints out a series of 3 numbers that change when you move the joystick and press the buttons, that means everything is wired correctly and it’s ready to go. *Refer to figure 3 for help.*
 
-* Close the serial monitor (you can do this by either closing the IDE or clicking the little “x” that appears on the serial monitor tab at the bottom of the screen (you must do this before you run the python file since only 1 application can access the serial monitor at a time). *Refer to figure 3 for help.*
+* Close the serial monitor, which you can do by either closing the IDE or clicking the little “x” that appears on the serial monitor tab at the bottom of the screen (you must do this before you run the python file since only 1 application can access the serial monitor at a time). *Refer to figure 3 for help.*
+
+* If you are using the HC-05 Bluetooth module to enable wireless communication between the hardware and your computer, unplug the 2 wires that go to the Arduino's Tx and Rx pins, since having those wired to the board while uploading will cause an error.
 
 * Please note, if the following text appears when you are uploading the sketch to an Arduino Nano Every, refer to [this link](https://support.arduino.cc/hc/en-us/articles/4405239282578-avrdude-jtagmkII-initialize-Cannot-locate-flash-and-boot-memories-in-description) for more information about what that means.
 ![Nano Every Warning](imgs/every_warning.png)
@@ -466,7 +468,10 @@ if __name__ == "__main__":
     misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, keep_alive = True, debounce = 150)
 
     while True:
-        line = ser.readline() # get next line of the serial monitor (its in bytes)
+        try:
+            line = ser.readline() # get next line of the serial monitor (its in bytes)
+        except:
+            print("Serial reading issue, please wait.")
         if line:
             string = line.decode() # convert the bytes to a string
             if " " in string:
@@ -474,7 +479,6 @@ if __name__ == "__main__":
                 mode(strip)
                 if int(strip.split()[2]) == 4: # break out of infinite while if specific button pressed
                     misty.UnregisterAllEvents()
-                    misty.StopAudio()
                     break
     ser.close() # close the serial connection
 ```
