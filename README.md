@@ -20,9 +20,9 @@ So far, we have made the following:
 - Controller guide, for how to make and program an Arduino-based joystick controller
 - Python skills, a collection of programs for Misty
 - Object detection and audio localization
+- SLAM mapping
 
 This will be continually updated throughout the summer as we continue our work. Here's an overview of the areas we plan on exploring further:
 
-- SLAM mapping
 - Onboard Python
 - Speech and conversations
