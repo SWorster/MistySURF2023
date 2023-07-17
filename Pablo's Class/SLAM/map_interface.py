@@ -62,10 +62,8 @@ def _SlamStats(data):
 
 def _GridLoc(data):
     global current_x, current_y
-    # print(data["message"]["occupancyGridCell"].values()) # is a dictionary
     current_x, current_y = data["message"]["occupancyGridCell"].values()
-    print(current_x, current_y)
-
+    
 def print_all_maps(): # print all maps from Misty's memory
     for map in misty.GetSlamMaps().json()["result"]:
         print(map)
@@ -143,8 +141,6 @@ def follow_path():
         path = path + str(x_path_coords[index_coord]) + ":" + str(y_path_coords[index_coord]) + ","
     path = path[:-1]
 
-    print(x_path_coords[-1], y_path_coords[-1])
-
     while not slamReset:
         pass
 
@@ -169,8 +165,6 @@ def follow_path():
 
     while current_x != x_path_coords[-1] and current_y != y_path_coords[-1]:
         pass
-
-    print(path)
 
     misty.StopTracking()
     misty.UnregisterAllEvents()
