@@ -4,7 +4,9 @@ import time
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
-misty = Robot("<insert Misty IP>") # create a Misty instance using its IP address (which varies from robot to robot)
+'Place the following information into the 2 constants below'
+MISTY_IP = "<insert Misty IP>"
+ARDUINO_PORT = "<insert Arduino COM>"
 
 'Variables for use throughout the program'
 moveForwardToF = True # ToF variables to track if Misty can move in the corresponding direction based on obstacles in her path
@@ -18,6 +20,8 @@ NORTH = 341 # North and South are in Y
 SOUTH = 682
 LEFT = 341 # Left and Right are in X
 RIGHT = 682
+
+misty = Robot(MISTY_IP) # create a Misty instance using its IP address (which varies from robot to robot)
 
 def _TOFProcessor(data): # Processes the ToF sensor's data, will prevent collisions
     global moveForwardToF, moveBackwardToF # these global variables will change if there is something detected in front of, or behind, Misty
@@ -164,7 +168,7 @@ def init(): # Resets Misty's head position and LED color. Disables the hazard To
 
 if __name__ == "__main__":
     init()
-    ser = serial.Serial("<insert Arduino COM>", 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+    ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
     time.sleep(1) # stop for a second
 
     'set up the event listeners for the bumpers and ToF respectively'
