@@ -8,6 +8,19 @@ plan for this program:
 -do object searching behavior (done)
 -finish tracking and get new position)
 -make plot
+
+Note: we record two "middle" values that represent the middle of the left turn. One is the calculated/intended middle, and the other is where Misty actually ends up due to processing/communication lag. I decided to use DriveHeading to have Misty return to the calculated heading as she drives forward, instead of going straight forward from the inaccurate middle. We're cutting so many corners anyway that this isn't a huge deal, but I wanted to record it.
+
+I'm assuming that the l-r center of Misty's vision is 150, because the left seems to be about 0 and the right about 300. I've set the window for detection super high, so anything within 50-250 should register. This gives Misty plenty of time to see objects, as long as the turn speed isn't set too high.
+
+Speaking of turn speed: slower is better. Going too fast shakes Misty's head, which messes with OD and SLAM.
+
+
+TODO: graph axes vs pixel locations. might be more accurate to graph Misty at the center of the cell in the occupancy grid, as opposed to the cell's corner furthest from the origin. counterpoint: i'm tired of this program and no one can tell anyways.
+
+TODO: make graph square?
+
+TODO: IMU yaw vs occupancy grid?
 '''
 
 
@@ -34,8 +47,6 @@ ang_vel = 15  # searching turn angular velocity
 imu_debounce = 10  # imu callback debounce, in ms
 OD_debounce = 1000  # object detection debounce in ms
 min_confidence = .2  # minimum confidence required to send report
-
-# TODO find values for these
 center = 150  # measurement of center in Misty's view (units unknown)
 tol = 100  # tolerance for object detection (units unknown)
 
@@ -46,6 +57,7 @@ start_yaw = None  # initial yaw
 yaw1 = None  # yaw of first object center
 yaw2 = None  # yaw of second object center
 middle = None  # actual yaw at middle (wherever Misty ended up)
+calc_middle = None  # calculated yaw of middle of two objects
 start_x = None  # starting x position
 start_y = None  # starting y position
 final_x = None  # ending x position
@@ -57,14 +69,12 @@ avg = 0  # center of current target object
 bumped = False  # whether Misty has been bumped
 first_dist = None  # degrees of first turn (right)
 second_dist = None  # degrees of second turn (left)
-calc_middle = None  # calculated yaw of middle of two objects
 
 # SLAM and tracking
 current_x = None  # current x location from SelfState
 current_y = None  # current y location from SelfState
 is_tracking = False  # whether Misty is currently tracking
-# ? haven't done anything with this. checking to see if everything else works first
-slam_reset = False
+slam_reset = False  # whether Misty's SLAM has finished resetting
 
 
 '''
@@ -76,21 +86,21 @@ def _SelfState(data):
     'get current location in grid (current map)'
     global current_x, current_y
     if data["message"]["occupancyGridCell"]["x"] == 0:
-        print(".",end="")
+        print(".", end="", flush=True)
+    else:
+        print("", flush=True)
     current_x, current_y = data["message"]["occupancyGridCell"].values()
 
 
 def _SlamStatus(data):
-    print(data["message"]["slamStatus"]["runMode"])
+    print(data["message"]["slamStatus"]["runMode"], end="      ")
     print(data["message"]["slamStatus"]["statusList"])
     'get whether Misty is currently tracking'
     global is_tracking, slam_reset
     if data["message"]["slamStatus"]["runMode"] == "Tracking":
         is_tracking = True
-        misty.ChangeLED(0, 255, 255)  # LED teal
     else:
         is_tracking = False
-        misty.ChangeLED(255, 0, 0)  # LED red
 
     if "Ready" in data["message"]["slamStatus"]["statusList"]:
         slam_reset = True
@@ -103,7 +113,6 @@ def localize():
     global start_x, start_y, is_tracking
 
     try:
-        
         # register for bump sensor
         misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                             keep_alive=True, callback_function=_BumpSensor)
@@ -125,20 +134,21 @@ def localize():
         misty.RegisterEvent(event_name="SlamStatus", event_type=Events.SlamStatus,
                             keep_alive=True, callback_function=_SlamStatus)
 
-        misty.ResetSlam()
+        misty.ResetSlam()  # reset slam
 
         print("\nresetting slam")
+        misty.ChangeLED(255, 100, 0)  # LED orange
 
         while not slam_reset and not bumped:
-            pass
+            pass  # wait for slam to reset
 
+        print("\nlocalizing")
+        misty.ChangeLED(0, 255, 255)  # LED cyan
         misty.StartTracking()  # start tracking current location in map
 
         # register for self state events to get position
         misty.RegisterEvent(event_name="SelfState", event_type=Events.SelfState,
                             keep_alive=True, callback_function=_SelfState)
-
-        print("\nlocalizing")
 
         while not is_tracking and not bumped:
             pass  # wait until location found
@@ -146,11 +156,14 @@ def localize():
         if bumped:
             print("Bumped!")
             _BumpSensor(1)
+
         else:
+            misty.ChangeLED(255, 200, 0)  # LED yellow
             print("waiting on non-0")
+
             while start_x == 0:
-                pass # wait until we get numerical data that isn't 0
-            
+                pass  # wait until we get numerical data that isn't 0
+
             start_x = current_x  # record starting coordinates
             start_y = current_y
             print("location:", start_x, start_y)
@@ -226,15 +239,8 @@ def searching():
     global yaw1, yaw2, avg, start_yaw
 
     try:
-
-        # ignore TOF sensors
-        misty.UpdateHazardSettings(disableTimeOfFlights=True)
-
+        misty.UpdateHazardSettings(disableTimeOfFlights=True)  # ignore TOF
         misty.StartObjectDetector(min_confidence, 0, 5)  # start detection
-
-        # # register for bump sensor
-        # misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-        #                     keep_alive=True, callback_function=_BumpSensor)
 
         # register for object detection
         misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
@@ -246,14 +252,13 @@ def searching():
 
         time.sleep(1)  # give time to register events
 
-        start_yaw = yaw  # record initial yaw
         misty.ChangeLED(0, 0, 255)  # LED blue
+        start_yaw = yaw  # record initial yaw
 
         misty.Drive(0, -ang_vel)  # turn right
 
-        # stops if avg is in range, or bumped
         while not (center-tol < avg < center+tol) and not bumped:
-            pass
+            pass  # stops if avg is in range, or bumped
 
         if bumped:  # if bumped
             print("Bumped!")
@@ -264,11 +269,9 @@ def searching():
             yaw1 = yaw  # record and print yaw1
             print(yaw1)
             avg = 0  # reset avg
-            misty.ChangeLED(255, 200, 0)  # LED yellow
 
-            # stops if avg is in range, or bumped
             while not (center-tol < avg < center+tol) and not bumped:
-                pass
+                pass  # stops if avg is in range, or bumped
 
             if bumped:  # Misty was bumped
                 print("Bumped!")
@@ -280,13 +283,12 @@ def searching():
                 print(yaw2)
                 misty.ChangeLED(255, 0, 255)  # LED purple
                 driveForward()  # call drive forward function
+
     except Exception as e:
         panic("moveRight", e)
 
 
 def driveForward():
-    # use IMU to get close to right heading, then use driveHeading for precision
-
     global calc_middle, first_dist, second_dist, middle
 
     # calculate total turn distance (degrees)
@@ -296,9 +298,8 @@ def driveForward():
         first_dist = yaw2-start_yaw
 
     try:
-        # stop OD and unregister unnecessary events
-        misty.StopObjectDetector()
-        misty.UnregisterEvent("ObjectDetection")
+        misty.StopObjectDetector()  # stop detection
+        misty.UnregisterEvent("ObjectDetection")  # unregister detection
 
         # if start_y and y2 in "normal" range
         # 360 > start_y > y2 > 0
@@ -323,6 +324,7 @@ def driveForward():
                 pass
 
         misty.Stop()  # stop moving
+        misty.ChangeLED(0, 255, 0)  # LED green
 
         middle = yaw  # record actual yaw of turn
 
@@ -341,7 +343,8 @@ def driveForward():
 
             misty.DriveHeading(calc_middle, d_meter, d_time*1000,
                                False)  # drive towards heading
-            misty.ChangeLED(0, 255, 0)  # LED green
+
+            misty.ChangeLED(255, 255, 255)  # LED white
 
             time.sleep(d_time+.5)  # wait until drive done
 
@@ -378,19 +381,19 @@ def relocalize():
         final_x = current_x  # record final coordinates
         final_y = current_y
 
-        # unregister from events. tracking will stay on, we just won't get data.
-        misty.UnregisterEvent("SlamStatus")
+        misty.UnregisterEvent("SlamStatus")  # unregister events
         misty.UnregisterEvent("SelfState")
-
+        misty.StopTracking()  # stop tracking
         output()
+
     except Exception as e:
         panic("relocalize", e)
 
 
 def output():
     try:
-        # get current map data
-        arr = np.array(misty.GetMap().json()["result"]["grid"])
+        arr = np.array(misty.GetMap().json()["result"]["grid"])  # current map
+        # convert to 0-255 values for grey scale
         for row in range(arr.shape[0]):
             for col in range(arr.shape[1]):
                 if arr[row][col] == 1:  # open = 1
@@ -401,27 +404,23 @@ def output():
                     arr[row][col] = 200
                 else:  # unknown = 0
                     arr[row][col] = 100
-        arr = arr.astype(np.uint8)
-        data = im.fromarray(arr)
-        # originally when created is upside down in comparison to studio's image, so need to rotate it
-        data = data.rotate(180)
+        arr = arr.astype(np.uint8)  # convert to unsigned 8bit integer
+        data = im.fromarray(arr)  # create image from array
+        data = data.rotate(180)  # rotate to match Misty Studio orientation
         data.save(img_name, format="PNG")
 
-        img = plt.imread(img_name)
-        fig, ax = plt.subplots()
-        ax.imshow(img, extent=[0, data.size[0], 0, data.size[1]], cmap='gray')
-        ax.set_xlim(0, data.size[0])
+        img = plt.imread(img_name)  # open image in matplotlib
+        fig, ax = plt.subplots()  # create figure
+        ax.imshow(img, extent=[0, data.size[0], 0,
+                  data.size[1]], cmap='gray')  # display image as plot background
+        ax.set_xlim(0, data.size[0]) # set axes to match graph
         ax.set_ylim(0, data.size[1])
+        
+        # TODO: force graph to be square (if needed)
 
-        '''
-        CALCULATING DRIVING PATH
-        '''
-
-        'metersPerCell is the area in m^2 covered by each cell. cell length is therefore sqrt(mPC). converting from cell to meters is c_d * scale, converting from meters to cell is m_d / scale'
+        # metersPerCell is the area in m^2 covered by each cell. cell length is therefore sqrt(mPC). converting from cell to meters is c_d * scale, converting from meters to cell is m_d / scale
         mpc = misty.GetMap().json()["result"]["metersPerCell"]
-        print(mpc)
         scale = math.sqrt(mpc)
-        print(scale)
 
         d_cell = d_meter/scale  # distance driven in cells, from meters
 
@@ -430,8 +429,8 @@ def output():
         # x = r cos theta, y = r sin theta
 
         # calculate and plot driving path
-        x2 = start_x + d_cell * math.cos(middle)
-        y2 = start_y + d_cell * math.sin(middle)
+        x2 = start_x + d_cell * math.cos(calc_middle)
+        y2 = start_y + d_cell * math.sin(calc_middle)
         plt.plot([start_x, x2], [start_y, y2], 'r.-', label="movement")
 
         # calculate and plot first object angle
@@ -449,7 +448,8 @@ def output():
 
         plt.legend(loc="lower left")
 
-        plt.show()
+        plt.show() # show plot
+        
     except Exception as e:
         panic("output", e)
 
@@ -471,6 +471,10 @@ def panic(location, e):
     plt.close()  # close plot
     print("end of program, hopefully")
 
+
+'''
+MAIN
+'''
 
 if __name__ == "__main__":
     localize()
