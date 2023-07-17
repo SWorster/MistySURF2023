@@ -1,3 +1,4 @@
+# Imports
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 from PIL import Image as im
@@ -5,7 +6,9 @@ import numpy as np
 import cv2
 import serial
 
-misty = Robot("<Misty IP address>")
+'Place the following information into the 2 constants below'
+MISTY_IP = "<Misty's IP>"
+ARDUINO_PORT = "<Arduino's COM>"
 
 'The 4 constants below are thresholds for the joystick position to move in different directions'
 NORTH = 341 # North and South are in Y
@@ -13,16 +16,39 @@ SOUTH = 682
 LEFT = 341 # Left and Right are in X
 RIGHT = 682
 
+'The following 2 lists are for tracking the path the user wants Misty to follow'
 x_path_coords = []
 y_path_coords = []
 
+'The following 2 ints are to track where Misty is in the given map via SelfState'
 current_x = 0
 current_y = 0
 
+'The following 2 booleans are to hold the program at certain points until it reaches a certain status'
 tracking = False
 slamReset = False
 
-def treads(coords): # Controls the treads for overall mobility
+misty = Robot(MISTY_IP) # create a Misty instance using its IP address (which varies from robot to robot)
+
+def _SlamStats(data): # used when following a path; determines when the tracking status is active
+    global tracking, slamReset
+    if "Ready" in data["message"]["slamStatus"]["statusList"]: # finds when slam is ready to start; used to see when it should proceed after reset
+        slamReset = True
+    else:
+        slamReset = False
+
+    if data["message"]["slamStatus"]["runMode"] == "Tracking": # gets whether or not Misty is currently tracking her location on a given map
+        tracking = True
+        misty.ChangeLED(0, 255, 255)
+    else:
+        tracking = False
+        misty.ChangeLED(255, 0, 0)
+    
+def _GridLoc(data): # updates the current location of Misty; given by SelfState
+    global current_x, current_y
+    current_x, current_y = data["message"]["occupancyGridCell"].values()
+
+def treads(coords): # Controls the treads for overall mobility (from the controller file)
     split = coords.split() # data format: [x, y, mode]
     x = int(split[0])
     y = int(split[1])
@@ -45,25 +71,6 @@ def treads(coords): # Controls the treads for overall mobility
     else:
         misty.Stop() # stop Misty from moving (default position on joystick)
 
-def _SlamStats(data):
-    global tracking, slamReset
-    print(data["message"])
-    if data["message"]["slamStatus"]["runMode"] == "Tracking":
-        tracking = True
-        misty.ChangeLED(0, 255, 255)
-    else:
-        tracking = False
-        misty.ChangeLED(255, 0, 0)
-    
-    if "Ready" in data["message"]["slamStatus"]["statusList"]:
-        slamReset = True
-    else:
-        slamReset = False
-
-def _GridLoc(data):
-    global current_x, current_y
-    current_x, current_y = data["message"]["occupancyGridCell"].values()
-    
 def print_all_maps(): # print all maps from Misty's memory
     for map in misty.GetSlamMaps().json()["result"]:
         print(map)
@@ -113,7 +120,7 @@ def map_visual(): # creates an image of the current map in your working director
     data = data.rotate(180) # originally when created is upside down in comparison to studio's image, so need to rotate it
     data.save(pic_name, format = "PNG")
 
-def click_event(event, x, y, flags, params):
+def click_event(event, x, y, flags, params): # code restructured from https://www.geeksforgeeks.org/displaying-the-coordinates-of-the-points-clicked-on-the-image-using-python-opencv/
     global x_path_coords, y_path_coords
     height = img.shape[0]
     width = img.shape[1]
@@ -125,12 +132,11 @@ def click_event(event, x, y, flags, params):
         cv2.putText(img, str(height - y) + "," + str(width - x), (x, y), font, .4, (255, 0, 0), 2)
         cv2.imshow("image", img)
 
-def follow_path():
-    if len(x_path_coords) > 0:
+def follow_path(): # follows a user-specified path via tracking
+    if len(x_path_coords) > 0: # checks to see that there is a path already stored for Misty to follow
         misty.RegisterEvent(event_name = "stats", event_type = Events.SlamStatus, callback_function = _SlamStats, keep_alive = True)
-        ser = serial.Serial('<Arduino COM>', 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+        ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
         misty.ResetSlam()
-        print("go")
     else:
         print("Please create a path first!")
         return
@@ -141,7 +147,7 @@ def follow_path():
         path = path + str(x_path_coords[index_coord]) + ":" + str(y_path_coords[index_coord]) + ","
     path = path[:-1]
 
-    while not slamReset:
+    while not slamReset: # wait until slam has finished resetting and is ready to continue
         pass
 
     misty.StartTracking()
@@ -160,10 +166,11 @@ def follow_path():
                     break
     ser.close() # close the serial connection
 
+    # SelfState won't pick up Misty's current location unless it is called after tracking has been started and pose has been achieved
     misty.RegisterEvent(event_name = "location", event_type = Events.SelfState, callback_function = _GridLoc, keep_alive = True)
     misty.FollowPath(path, .3)
 
-    while current_x != x_path_coords[-1] and current_y != y_path_coords[-1]:
+    while current_x != x_path_coords[-1] and current_y != y_path_coords[-1]: # wait until Misty gets to the last location in the string
         pass
 
     misty.StopTracking()
