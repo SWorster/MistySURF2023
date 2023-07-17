@@ -5,7 +5,10 @@ import numpy as np
 import cv2
 import serial
 
-misty = Robot("<Misty IP address>")
+MISTY_IP = "<Misty IP Address>"
+ARDUINO_PORT = "<Arduino COM>"
+
+misty = Robot(MISTY_IP)
 
 'The 4 constants below are thresholds for the joystick position to move in different directions'
 NORTH = 341 # North and South are in Y
@@ -13,12 +16,15 @@ SOUTH = 682
 LEFT = 341 # Left and Right are in X
 RIGHT = 682
 
+'The following 2 lists are for tracking the path the user wants Misty to follow'
 x_path_coords = []
 y_path_coords = []
 
+'The following 2 ints are to track where Misty is in the given map via SelfState'
 current_x = 0
 current_y = 0
 
+'The following 2 booleans are to hold the program at certain points until it reaches a certain status'
 tracking = False
 slamReset = False
 
@@ -62,8 +68,10 @@ def _SlamStats(data):
 
 def _GridLoc(data):
     global current_x, current_y
+    # print(data["message"]["occupancyGridCell"].values()) # is a dictionary
     current_x, current_y = data["message"]["occupancyGridCell"].values()
-    
+    # print(current_x, current_y)
+
 def print_all_maps(): # print all maps from Misty's memory
     for map in misty.GetSlamMaps().json()["result"]:
         print(map)
@@ -128,9 +136,9 @@ def click_event(event, x, y, flags, params):
 def follow_path():
     if len(x_path_coords) > 0:
         misty.RegisterEvent(event_name = "stats", event_type = Events.SlamStatus, callback_function = _SlamStats, keep_alive = True)
-        ser = serial.Serial('<Arduino COM>', 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+        ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
         misty.ResetSlam()
-        print("go")
+        # print("go")
     else:
         print("Please create a path first!")
         return
