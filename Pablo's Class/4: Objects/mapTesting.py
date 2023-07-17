@@ -417,8 +417,12 @@ def output():
         ax.imshow(img, extent=[0, data.size[0], 0,
                   data.size[1]], cmap='gray')  # display image as plot background
 
+        ax.invert_yaxis()  # moves origin to bottom right
+        ax.set_xlabel("y axis")
+        ax.set_ylabel("x axis")
+
         # commented this out so that axes will resize to fit all points
-        # ax.set_xlim(0, data.size[0])  # set axes to match graph
+        # ax.set_xlim(data.size[0], 0)  # set axes to match graph
         # ax.set_ylim(0, data.size[1])
 
         # TODO: force graph to be square (if needed)
@@ -430,10 +434,14 @@ def output():
 
         d_cell = d_meter/scale  # distance driven in cells, from meters
 
-        # ? Is map oriented with initial yaw = 0? for now i'm assuming that Misty's 0 yaw is along the x axis. I can adjust this later if needed.
+        # ? Is map oriented with initial yaw = 0? i'm not changing anything until i know for sure
 
-        # x = r cos theta, y = r sin theta
+        test(plt, d_cell, calc_middle, "r", "movement")
+        test(plt, d_cell, yaw1, "g", obj1)
+        test(plt, d_cell, yaw2, "b", obj2)
+        test(plt, d_cell, [final_x, final_y], "y", "real end (SLAM)", True)
 
+        """
         # calculate and plot driving path
         end_x = start_x + d_cell * math.cos(calc_middle)
         end_y = start_y + d_cell * math.sin(calc_middle)
@@ -450,26 +458,27 @@ def output():
         plt.plot([start_x, x2], [start_y, y2], 'b.-', label=obj2)
 
         # plot actual position
-        plt.plot([start_x, final_x], [start_y, final_y],
-                 'y.-', label="real end (SLAM)")
-
+        plt.plot([start_x, final_x], [start_y, final_y],'y.-', label="real end (SLAM)")
+        
         print("start:", start_x, start_y)
         print("obj1:", x1, y1)
         print("obj2:", x2, y2)
         print("odometry:", end_x, end_y)
         print("SLAM:", final_x, final_y)
-
+        
         plt.legend(loc="lower right")
         try:
-            
             text_str = '\n'.join(((f"yaws: {calc_middle} {yaw1} {yaw2}"), (f"obj1: {x1} {y1}"), (
-            f"obj2: {x2} {y2}"), (f"odometry: {end_x} {end_y}"), (f"SLAM: {final_x} {final_y}")))
+                f"obj2: {x2} {y2}"), (f"odometry: {end_x} {end_y}"), (f"SLAM: {final_x} {final_y}")))
 
-            # props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-
-            ax.text(0.05, 0.95, text_str, transform=ax.transAxes, fontsize=5, verticalalignment='top') # bbox=props
+            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+            ax.text(0.05, 0.05, text_str, transform=ax.transAxes, fontsize=5,
+                    verticalalignment='top', bbox=props)  # text box properties
         except Exception as e:
             print(e)
+        """
+        
+        plt.legend(loc="lower right",fontsize=5)
 
         os.chdir("/Users/skyeworster/Desktop/pic")  # ! remove later
         plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)
@@ -480,10 +489,21 @@ def output():
         panic("output", e)
 
 
+def test(plt, d_cell, theta, color, label, no_angle=False):
+    if no_angle:
+        text = f"{label}: {theta[1]}, {theta[0]}"
+        plt.plot([start_y, theta[1]], [start_x, theta[0]], f'{color}.-', text)
+        print(text)
+    else:
+        x = start_x + d_cell * math.cos(theta)
+        y = start_y + d_cell * math.sin(theta)
+        text = f"{label}: {y}, {x}"
+        plt.plot([start_y, y], [start_x, x], f'{color}.-', text)
+        print(text)
+
 '''
 PHASE 4: PANIC BUTTON
 '''
-
 
 def panic(location, e):
     print(f"ERROR IN {location}: {e}")
