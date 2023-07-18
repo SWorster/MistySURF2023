@@ -66,12 +66,11 @@ def _HeadYaw(data):
 def _Follow(data):
     # behavior for when Misty has found someone to follow
 
-    global person
     name = data["message"]["label"]  # name of person Misty sees
 
     # if she sees person of interest
     if name == person:
-        global hYaw, hPitch, seen
+        global seen
 
         # get face location
         bearing = data["message"]["bearing"]
@@ -165,8 +164,6 @@ def _FaceRecognition(data):
 
 
 def moveRight():  # moves head to the right
-    global move_pitch, roll, max_right, velocity, hYaw, right_threshold
-
     misty.MoveHead(move_pitch, roll, max_right, velocity)  # move to right
 
     # don't proceed until fully right or target seen
@@ -178,8 +175,6 @@ def moveRight():  # moves head to the right
 
 
 def moveLeft():  # moves head to the left
-    global move_pitch, roll, max_left, velocity, hYaw, left_threshold
-
     misty.MoveHead(move_pitch, roll, max_left, velocity)  # move to left
 
     # don't proceed until fully left or target seen

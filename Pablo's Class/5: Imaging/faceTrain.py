@@ -12,7 +12,6 @@ name = "test"  # the target's name, with no spaces or special characters
 
 
 def _FaceTraining(data):  # callback for face training
-
     try:  # handles irrelevant/malformed data
         # if process is complete, unregister from FT event and start recognition
         if data["message"]["isProcessComplete"]:  # when face training ends
@@ -24,7 +23,6 @@ def _FaceTraining(data):  # callback for face training
 
 
 if __name__ == "__main__":
-
     # unregister from all events to clear existing facial recognition
     misty.UnregisterAllEvents()
 

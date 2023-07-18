@@ -69,9 +69,8 @@ def _Follow(data):
     global person
     name = data["message"]["label"]  # name of person Misty sees
 
-    if name != person: # ignore other people
-        return # exits callback
-
+    if name != person:  # ignore other people
+        return  # exits callback
 
     global hYaw, hPitch, seen
 

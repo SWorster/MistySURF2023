@@ -24,8 +24,6 @@ Alternatively, there is a built-in tracking functionality. It seems designed to 
 '''
 
 
-
-
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 import time
@@ -49,7 +47,7 @@ min_confidence = .2  # minimum confidence required to send report
 center = 160  # measurement of center in Misty's view (units unknown)
 tol = 100  # tolerance for object detection (units unknown)
 
-map_name = "pain.png" # name of map to plot on top of
+map_name = "pain.png"  # name of map to plot on top of
 
 
 # ! Do not change these!
@@ -57,19 +55,19 @@ start_yaw = None  # initial yaw
 yaw1 = None  # yaw of first object center
 yaw2 = None  # yaw of second object center
 middle = None  # calculated yaw of middle of two objects
-actual_middle = None # actual yaw at middle (wherever Misty ended up)
+actual_middle = None  # actual yaw at middle (wherever Misty ended up)
 yaw = None  # current yaw from IMU
 avg = 0  # center of current target object
 bumped = False  # whether Misty has been bumped
-first_dist = None # degrees of first turn (right)
-second_dist = None # degrees of second turn (left)
+first_dist = None  # degrees of first turn (right)
+second_dist = None  # degrees of second turn (left)
 
 '''
 SECOND PHASE (MAPPING)
 '''
 
+
 def output():
-    global start_yaw, yaw1, yaw2, middle, actual_middle, d_dist, d_time, first_dist, second_dist
     print(f"Initial heading: {start_yaw}")
     print(f"Max turn heading: {yaw2}")
     print(f"Total turn distance: {first_dist}")
@@ -79,21 +77,22 @@ def output():
     print(f"Actual middle heading: {actual_middle}")
     print(f"Second turn distance: {second_dist}")
     print(f"Driving distance: {d_dist}")
-    
+
     print("\nInstructions:")
     print(f"Turn right {first_dist} degrees")
     print(f"Turn left {second_dist} degrees")
     print(f"Drive forward {d_dist} meters")
-    
+
     # ! figure out how to get image from Julia
-    
-    map_list = misty.GetSlamMaps()["result"] # list of maps, with key and name values
+
+    # list of maps, with key and name values
+    map_list = misty.GetSlamMaps()["result"]
     key = None
     for m in map_list:
         if m["name"] == map_name:
             key = m["key"]
     if key != None:
-        misty.SetCurrentSlamMap(key) # set current map
+        misty.SetCurrentSlamMap(key)  # set current map
     else:
         print("Map not found, using current map")
 
@@ -102,29 +101,30 @@ def output():
     size = arr.shape[0]
     for row in range(arr.shape[0]):
         for col in range(arr.shape[1]):
-            if arr[row][col] == 1: # open = 1
+            if arr[row][col] == 1:  # open = 1
                 arr[row][col] = 255
-            elif arr[row][col] == 2: # occupied = 2
+            elif arr[row][col] == 2:  # occupied = 2
                 arr[row][col] = 0
-            elif arr[row][col] == 3: # obscured = 3
+            elif arr[row][col] == 3:  # obscured = 3
                 arr[row][col] = 200
-            else: # unknown = 0
+            else:  # unknown = 0
                 arr[row][col] = 100
     arr = arr.astype(np.uint8)
     data = im.fromarray(arr)
-    data = data.rotate(180) # originally when created is upside down in comparison to studio's image, so need to rotate it
-    data.save(map_name, format = "PNG")
-    
+    # originally when created is upside down in comparison to studio's image, so need to rotate it
+    data = data.rotate(180)
+    data.save(map_name, format="PNG")
+
     img = plt.imread(map_name)
-    fig, ax = plt.subplots() 
+    fig, ax = plt.subplots()
     ax.imshow(img, extent=[0, size, 0, size])
     plt.show()
-
 
 
 '''
 FIRST PHASE (DRIVING)
 '''
+
 
 def _BumpSensor(data):
     # runs when program ends or Misty is bumped
@@ -211,7 +211,7 @@ def driveForward():
     # use IMU to get close to right heading, then use driveHeading for precision
 
     global middle, first_dist, second_dist, actual_middle
-    
+
     # calculate total turn distance (degrees)
     if start_yaw < yaw2:  # start_yaw -- 0/360 -- yaw2
         first_dist = 360 - (yaw2-start_yaw)
@@ -234,7 +234,6 @@ def driveForward():
             # average, then flip across circle, then convert to range 0-360
             middle = (180 - (yaw1+yaw2)/2) % 360
 
-
         misty.Drive(0, ang_vel)  # turn left
 
         if yaw > middle:  # if 0-360 gap between current and next heading
@@ -247,15 +246,14 @@ def driveForward():
                 pass
 
         misty.Stop()  # stop moving
-        
-        actual_middle = yaw # record actual yaw of turn
+
+        actual_middle = yaw  # record actual yaw of turn
 
         # calculate total turn distance (degrees)
         if yaw > yaw2:
             second_dist = yaw-yaw2
         else:  # if straddling 0-360 gap, yaw2 > yaw
             second_dist = yaw2-yaw
-
 
         if not bumped:
             time.sleep(1)  # time to stop moving

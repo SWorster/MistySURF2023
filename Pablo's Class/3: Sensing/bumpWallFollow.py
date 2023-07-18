@@ -12,7 +12,7 @@ from mistyPy.Events import Events
 misty = Robot("131.229.41.135")  # robot with your IP
 volume = 2  # volume for audio
 lin_vel = 10  # linear velocity for driving forward
-lin_turn = 5 # linear velocity for backing up turn. Don't set this too low!
+lin_turn = 5  # linear velocity for backing up turn. Don't set this too low!
 ang_vel = 80  # angular velocity for backing up turn
 d_time = 1500  # drive time for backing up turn, in milliseconds
 DE_debounce = 100  # drive encoders debounce
@@ -20,11 +20,12 @@ min_speed = 1  # the minimum speed at which Misty is still considered to be "dri
 
 # ! Do not change these!
 current = None  # which bumper we're using for turning in place
-backup = False  #  whether Misty is in backup mode
-driving = False # whether Misty is moving while in backup mode
+backup = False  # whether Misty is in backup mode
+driving = False  # whether Misty is moving while in backup mode
+
 
 def _DriveEncoders(data):
-    global backup, lin_vel, min_speed, driving
+    global backup, driving
 
     try:
         if current != None:  # if touching something
@@ -34,14 +35,15 @@ def _DriveEncoders(data):
             left_vel = abs(data["message"]["leftVelocity"])
             right_vel = abs(data["message"]["rightVelocity"])
             vel = left_vel+right_vel  # total velocity
-            
-            if vel > min_speed and not driving: # if moving and haven't flipped driving yet
-                driving = True # have started driving
-            elif vel <  min_speed and not driving: # if haven't started driving yet
-                pass # wait for treads to start moving
-            elif vel < min_speed and driving:  # if not moving anymore (DriveTime ended)
+
+            if vel > min_speed and not driving:  # if moving and haven't flipped driving yet
+                driving = True  # have started driving
+            elif vel < min_speed and not driving:  # if haven't started driving yet
+                pass  # wait for treads to start moving
+            # if not moving anymore (DriveTime ended)
+            elif vel < min_speed and driving:
                 backup = False  # end backup mode
-                driving = False # no longer driving
+                driving = False  # no longer driving
                 misty.Drive(lin_vel, 0)  # go forward
 
         print(" backup", backup, "driving", driving)
@@ -51,7 +53,7 @@ def _DriveEncoders(data):
 
 
 def _BumpSensor(data):
-    global current, lin_vel, lin_turn, ang_vel, d_time, volume
+    global current
 
     if data["message"]["isContacted"] == True:  # if Misty hits something
         misty.Stop()  # stop moving (should happen automatically)
@@ -65,7 +67,7 @@ def _BumpSensor(data):
             misty.UnregisterAllEvents()  # unregister and reset hazards
             misty.UpdateHazardSettings(revertToDefault=True)
 
-        else: # if only one bumper hit
+        else:  # if only one bumper hit
             current = name  # set current
 
             # behavior for each bumper

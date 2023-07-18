@@ -11,6 +11,7 @@ from mistyPy.Events import Events
 misty = Robot("131.229.41.135")
 volume = 50  # playback volume
 
+
 def _VoiceRecord(data):
     if data["message"]["success"]:  # if recorded successfully
         # register for audio completion event

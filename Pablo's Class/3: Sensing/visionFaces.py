@@ -16,20 +16,24 @@ misty = Robot("131.229.41.135")  # robot object
 FR_debounce = 1000  # facial recognition debounce, in ms
 volume = 2  # audio volume
 
+
 def _BumpSensor(data):
     print("Program Ended: Bump Sensor")  # print to console
     misty.PlayAudio("VineBoom.mp3", volume=volume)  # play audio clip
     end()
 
+
 def _AudioPlayComplete(data):  # when audio stops
     print("Program Ended: Face Detected")  # print to console
     end()
+
 
 def end():
     misty.StopFaceRecognition()  # stop facial recognition
     misty.UnregisterAllEvents()  # unregister from all events
     misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
     misty.ChangeLED(0, 0, 0)  # LED off
+
 
 def _FaceRecognition(data):  # callback for face recognition
     try:  # handles irrelevant/malformed data

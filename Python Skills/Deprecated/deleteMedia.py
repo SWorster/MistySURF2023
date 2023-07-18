@@ -13,7 +13,6 @@ misty = Robot("131.229.41.135")  # Robot object with your IP
 image_list = misty.GetImageList().json()["result"]  # get list of images
 
 for image in image_list:  # for each image
-
     # if image isn't a system asset or one of the ones we want to keep
     if image["systemAsset"] == False and image["name"][0] != "A":
         s = misty.DeleteImage(image["name"])  # delete image
@@ -30,7 +29,6 @@ print("")
 clip_list = misty.GetAudioList().json()["result"]  # get list of clips
 
 for clip in clip_list:  # for each clip
-
     # if clip isn't a system asset or one of the ones we want to keep
     if clip["systemAsset"] == False and clip["name"][0] != "A":
         s = misty.DeleteAudio(clip["name"])  # delete clip

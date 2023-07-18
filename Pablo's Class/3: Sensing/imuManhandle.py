@@ -22,8 +22,6 @@ def _TouchSensor(data):  # end program when head touched
 
 
 def _IMU(data):
-    global t
-
     p = data["message"]["pitch"]  # get pitch
     r = data["message"]["roll"]  # get roll
 

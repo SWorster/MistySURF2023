@@ -477,8 +477,8 @@ def output():
         except Exception as e:
             print(e)
         """
-        
-        plt.legend(loc="lower right",fontsize=5)
+
+        plt.legend(loc="lower right", fontsize=5)
 
         os.chdir("/Users/skyeworster/Desktop/pic")  # ! remove later
         plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)
@@ -501,9 +501,11 @@ def test(plt, d_cell, theta, color, label, no_angle=False):
         plt.plot([start_y, y], [start_x, x], f'{color}.-', text)
         print(text)
 
+
 '''
 PHASE 4: PANIC BUTTON
 '''
+
 
 def panic(location, e):
     print(f"ERROR IN {location}: {e}")

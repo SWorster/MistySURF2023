@@ -23,51 +23,43 @@ mode = 0  # * mode of operation
 
 
 def _Center(data):  # center TOF
-    global range
     # if close to obstacle and distance is valid, print
     if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("CENTER: ", data["message"]["distanceInMeters"])
 
 
 def _Right(data):
-    global range
     if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("RIGHT: ", data["message"]["distanceInMeters"])
 
 
 def _Left(data):
-    global range
     if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("LEFT: ", data["message"]["distanceInMeters"])
 
 
 def _Back(data):
-    global range
     if data["message"]["distanceInMeters"] <= range and data["message"]["status"] == 0:
         print("BACK: ", data["message"]["distanceInMeters"])
 
 
 def _DRight(data):
-    global edge
     # if drop-off detected and distance is valid, print
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("DOWNRIGHT: ", data["message"]["distanceInMeters"])
 
 
 def _DLeft(data):
-    global edge
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("DOWNLEFT: ", data["message"]["distanceInMeters"])
 
 
 def _BL(data):
-    global edge
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("BACKLEFT: ", data["message"]["distanceInMeters"])
 
 
 def _BR(data):
-    global edge
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
         print("BACKRIGHT: ", data["message"]["distanceInMeters"])
 

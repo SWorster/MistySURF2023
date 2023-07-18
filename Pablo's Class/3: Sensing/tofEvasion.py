@@ -28,7 +28,7 @@ volume = 5  # volume of Misty's audio responses
 min_d = 0.1  # distance in meters that will make Misty stop/reverse
 obs_d = 0.3  # distance where Misty registers obstacle
 TOF_debounce = 10  # Time of Flight event debounce, in milliseconds
-num_readings = 10 # number of readings to take before calling move function
+num_readings = 10  # number of readings to take before calling move function
 
 # DO NOT EDIT THESE
 sensors = [False, False, False]  # center, right, left TOF
@@ -46,7 +46,7 @@ def _BumpSensor(data):
 
 
 def _Back(data):
-    global back, min_d, obs_d
+    global back
 
     try:
         distance = data["message"]["distanceInMeters"]  # distance variable
@@ -62,7 +62,7 @@ def _Back(data):
 
 
 def _TOF(data):  # callback for time of flight
-    global min_d, obs_d, sensors
+    global sensors
 
     try:
         distance = data["message"]["distanceInMeters"]  # distance variable
@@ -93,7 +93,7 @@ def _TOF(data):  # callback for time of flight
 
 
 def move():
-    global sensors, back, count, num_readings
+    global count
     count += 1  # increment counter
 
     if count >= num_readings:

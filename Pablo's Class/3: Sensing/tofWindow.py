@@ -35,19 +35,19 @@ full = False  # tracks whether window is full
 
 
 def _TimeOfFlight(data):  # callback for time of flight
-    global threshold, is_driving, volume, full, window   # global variables
+    global is_driving, full, window  # global variables
 
     try:  # try-except block catches malformed/irrelevant responses
         distance = data["message"]["distanceInMeters"]  # distance variable
         status = data["message"]["status"]  # 0 if valid reading
-        
-        if status != 0: # if some error
-            distance = 1.3 # record long-range distance
+
+        if status != 0:  # if some error
+            distance = 1.3  # record long-range distance
 
         window.append(distance)  # append dist to window list
         if full:  # if list is full
             del window[0]  # delete first element
-        elif len(window) == window_size: # if full not flipped
+        elif len(window) == window_size:  # if full not flipped
             full = True  # flip full if size reached
 
         avg = sum(window)/len(window)  # get and print average
@@ -72,7 +72,7 @@ def _TimeOfFlight(data):  # callback for time of flight
 
 
 def _DriveEncoders(data):  # callback for movement
-    global min_speed, is_driving, volume  # global variables
+    global is_driving
 
     try:  # try-except block catches malformed/irrelevant responses
 

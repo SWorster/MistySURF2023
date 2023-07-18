@@ -44,7 +44,7 @@ for x in gh_images:  # look at all github images
         except Exception as e:  # error handling
             print(f"Could not save {x}: {e}")
 
-for x in short_img: # if Misty has an image that's not in GH, delete it
+for x in short_img:  # if Misty has an image that's not in GH, delete it
     if x not in gh_images:
         misty.DeleteImage(x)
         print(f"Deleted {x} from Misty")
@@ -78,7 +78,7 @@ for x in gh_sounds:  # look at all github clips
             print(f"Could not save {x}: {e}")
 
 
-for x in short_sounds: # if Misty has a clip that's not in GH, delete it
+for x in short_sounds:  # if Misty has a clip that's not in GH, delete it
     if x not in gh_sounds:
         misty.DeleteAudio(x)
         print(f"Deleted {x} from Misty")
