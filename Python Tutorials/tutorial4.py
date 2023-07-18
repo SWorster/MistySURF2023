@@ -21,7 +21,7 @@ height = 420  # image height
 
 
 def _FaceRecognition(data):  # callback for facial recognition data
-    global count, num_pictures, image_list  # reference global variables
+    global count, image_list  # reference global variables
 
     print("Taking picture!")  # print each time callback executes
 

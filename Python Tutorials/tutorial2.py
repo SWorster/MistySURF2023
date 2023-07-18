@@ -21,7 +21,7 @@ DE_debounce = 500  # DriveEncoders event debounce, in milliseconds
 
 
 def _TimeOfFlight(data):  # callback for time of flight
-    global threshold, is_driving, volume   # global variables
+    global is_driving  # global variable
 
     try:  # try-except block catches malformed/irrelevant responses
         distance = data["message"]["distanceInMeters"]  # distance variable
@@ -45,7 +45,7 @@ def _TimeOfFlight(data):  # callback for time of flight
 
 
 def _DriveEncoders(data):  # callback for movement
-    global min_speed, is_driving, volume  # global variables
+    global is_driving  # global variable
 
     try:  # try-except block catches malformed/irrelevant responses
 

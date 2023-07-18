@@ -96,7 +96,7 @@ if __name__ == "__main__":
 
 Now we need to get data from the TOF sensor. In Python, this is called registering instead of subscribing. The parameters are similar, but vary according to the specific event type we’re using. Always check the [documentation](https://docs.mistyrobotics.com/misty-ii/robot/sensor-data/) before working with an event. For TOF, the parameters are as follows:
 
-1. `event_name`: the human-readable name of the event we’re creating. Call this one `"CenterTimeOfFlight"`
+1. `event_name`: the human-readable name of the event we’re creating. Call this one `CenterTimeOfFlight`
 2. `event_type`: the Event object associated with this event. Here, we use `Events.TimeOfFlight`
 3. `Condition`: some events are transmitted together, so we need to filter out unwanted sensor readings. This uses the `EventFilters` class we imported earlier: `[EventFilters.TimeOfFlightPosition.FrontCenter]`. Note that this must be in brackets.
 4. `debounce`: the frequency that Misty will send data, in milliseconds. This should usually be 0, but 5 is also acceptable when Misty is moving at lower speeds. There are some event types that will send data in certain conditions, and not constantly (for example, `BumpSensor` only sends data when Misty’s bump sensors are touched). In those cases, do not specify a `debounce` value. We already specified this value as the global variable `TOF_debounce`
@@ -119,14 +119,14 @@ Once we’ve registered to these events, they’ll immediately start collecting 
 misty.DriveTime(linearVelocity=driving_speed, angularVelocity=driving_angle, timeMs=driving_time*1000)
 ```
 
-Let’s go back and write our callbacks. First is the TOF callback, which takes the data from the sensor as a parameter. Start by referencing the global variables we'll use; we specify that they're `global` here because otherwise Python would create local variables with the same names.
+Let’s go back and write our callbacks. First is the TOF callback, which takes the data from the sensor as a parameter. Start by referencing the global variable we'll change in this function. We specify that `is_driving` is `global` here because otherwise Python would create a local variable with the same name. We don't need to reference the other globals here, like `threshold`, because we won't be changing those.
 
 ```python
 def _TimeOfFlight(data):
-    global threshold, is_driving, volume
+    global is_driving
 ```
 
-We use another `try` block to handle data that doesn’t match the format we’re looking for (like registration messages and errors). We can access the TOF sensor’s distance measurement by indexing the `data` object. We can also tell whether the distance measurement is valid with the boolean passed in the `"status"` field.
+We use another `try` block to handle data that doesn’t match the format we’re looking for (like registration messages and errors). We can access the TOF sensor’s distance measurement by indexing the `data` object. We can also tell whether the distance measurement is valid with the boolean passed in the `status` field.
 
 ```python
 try:
@@ -136,9 +136,9 @@ except Exception as e:
     print(e)
 ```
 
-Now we need to program the behavior we want from Misty. At this point, the `isDriving` variable becomes very useful. We don’t want Misty to react to obstacles unless she’s moving. When we code the movement callback later, we’ll have it change `isDriving` to `True` once Misty starts moving. We can use this to have Misty react when an obstacle is within the threshold we set, the distance measurement is valid, and Misty is moving.
+Now we need to program the behavior we want from Misty. At this point, the `is_driving` variable becomes very useful. We don’t want Misty to react to obstacles unless she’s moving. When we code the movement callback later, we’ll have it change `is_driving` to `True` once Misty starts moving. We can use this to have Misty react when an obstacle is within the threshold we set, the distance measurement is valid, and Misty is moving.
 
-There are several things that we want Misty to do in this case. First, we print a message to the console and change Misty’s LED to red. We then play an audio file at a set volume. Most importantly, we send a `Stop` command to stop Misty’s movement. Now that she’s finished moving, we change `isDriving` to `False`. We then print a message to the console saying why she stopped. Finally, we unregister from all events; this kills the processes that have been giving us TOF and movement data. We can also revert the hazard settings to their defaults, if we changed that earlier.
+There are several things that we want Misty to do in this case. First, we print a message to the console and change Misty’s LED to red. We then play an audio file at a set volume. Most importantly, we send a `Stop` command to stop Misty’s movement. Now that she’s finished moving, we change `is_driving` to `False`. We then print a message to the console saying why she stopped. Finally, we unregister from all events; this kills the processes that have been giving us TOF and movement data. We can also revert the hazard settings to their defaults, if we changed that earlier.
 
 ```python
 if (distance < threshold and status == 0 and is_driving):
@@ -152,14 +152,14 @@ if (distance < threshold and status == 0 and is_driving):
     misty.UpdateHazardSettings(revertToDefault=True)
 ```
 
-Let’s start on the movement callback. It begins just like the TOF callback, but uses different global variables:
+Let’s start on the movement callback. It begins just like the TOF callback, where we reference the global variable we need to change:
 
 ```python
 def _DriveEncoders(data):
-    global min_speed, is_driving, volume
+    global is_driving
 ```
 
-In a `try` block, store the left and right tread velocities. If they are greater than the `min_speed` we set earlier, Misty is moving and `isDriving` is flipped to `True`. It might seem reasonable to instead compare these velocities to 0, but remember that these measurements come from sensors that may be slightly inaccurate.
+In a `try` block, store the left and right tread velocities. If they are greater than the `min_speed` we set earlier, Misty is moving and `is_driving` is flipped to `True`. It might seem reasonable to instead compare these velocities to 0, but remember that these measurements come from sensors that may be slightly inaccurate.
 
 ```python
 try:
@@ -169,7 +169,7 @@ try:
         is_driving = True
 ```
 
-Now we need to detect whether Misty is stopped. Because the sensors on her treads are a bit inaccurate, we give a little bit of leeway by comparing to `min_speed` instead of 0. Importantly, we need to specify that `isDriving` is `True`; otherwise, we might accidentally run this section of code before Misty starts moving.
+Now we need to detect whether Misty is stopped. Because the sensors on her treads are a bit inaccurate, we give a little bit of leeway by comparing to `min_speed` instead of 0. Importantly, we need to specify that `is_driving` is `True`; otherwise, we might accidentally run this section of code before Misty starts moving.
 
 If Misty is stopped, then we want to change her LED to green, play an audio file, print a message to the console, and unregister from all events. If we changed the hazard settings earlier, this is where we should reset them.
 
@@ -224,7 +224,7 @@ Now we register for face recognition events. This should feel familiar after the
 misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, keep_alive=True, callback_function=_FaceRecognition)
 ```
 
-Let’s get the list of faces Misty already knows. When we get a response form Misty, we need to translate it into a JSON format so that we can parse it. The list of faces is in the `“result”` field of the JSON file.
+Let’s get the list of faces Misty already knows. When we get a response form Misty, we need to translate it into a JSON format so that we can parse it. The list of faces is in the `result` field of the JSON file.
 
 ```python
 faceJSON = misty.GetKnownFaces().json()
@@ -262,7 +262,7 @@ def _FaceTraining(data):
         print(e)
 ```
 
-The `_FaceRecognition` callback is triggered any time a face recognition event occurs (when Misty finds your name on the list, or after face training). When we receive `FaceRecognition` data, we can check to see who was recognized by accessing the `"label"` field. After checking to make sure that the name isn’t invalid, we print a greeting and unregister from all events.
+The `_FaceRecognition` callback is triggered any time a face recognition event occurs (when Misty finds your name on the list, or after face training). When we receive `FaceRecognition` data, we can check to see who was recognized by accessing the `label` field. After checking to make sure that the name isn’t invalid, we print a greeting and unregister from all events.
 
 ```python
 def _FaceRecognition(data):
@@ -322,11 +322,11 @@ misty.RegisterEvent("FaceRecognition", Events.FaceRecognition, keep_alive=True, 
 misty.StartFaceDetection()
 ```
 
-Let's tackle the callback function `_FaceRecognition` that gets called whenever we detect a face. Reference our global variables so that we can use them later, and print a line to the console.
+Let's tackle the callback function `_FaceRecognition` that gets called whenever we detect a face. Reference our global variables so that we can change them later, and print a line to the console.
 
 ```python
 def _FaceRecognition(data):
-    global count, num_pictures, image_list
+    global count, image_list
     print("Taking picture!")
 ```
 
@@ -347,7 +347,7 @@ Next, we take the picture. `TakePicture` uses the following [parameters](https:/
 5. `DisplayOnScreen`: displays the image on Misty's screen when `True`
 6. `OverwriteExisting`: if another file already has the same name, replace it with the new photo if `True`.
 
-We confirm that we've taken and saved the picture properly by storing the response it gives us, converting it to a JSON with `.json()`, and indexing the `"name"` field. We print this name and store it in the array of images.
+We confirm that we've taken and saved the picture properly by storing the response it gives us, converting it to a JSON with `.json()`, and indexing the `name` field. We print this name and store it in the array of images.
 
 ```python
 image = misty.TakePicture(True, imageName, 320, 240, True, True)
