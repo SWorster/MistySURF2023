@@ -409,7 +409,7 @@ def output():
                     arr[row][col] = 100
         arr = arr.astype(np.uint8)  # convert to unsigned 8bit integer
         data = im.fromarray(arr)  # create image from array
-        data = data.rotate(180)  # rotate to match Misty Studio orientation
+        data = data.rotate(90)  # rotate to match axes
         data.save(img_name, format="PNG")
 
         img = plt.imread(img_name)  # open image in matplotlib
@@ -417,66 +417,56 @@ def output():
         ax.imshow(img, extent=[0, data.size[0], 0,
                   data.size[1]], cmap='gray')  # display image as plot background
 
-        ax.invert_yaxis()  # moves origin to bottom right
-        ax.set_xlabel("y axis")
-        ax.set_ylabel("x axis")
-
-        # commented this out so that axes will resize to fit all points
-        # ax.set_xlim(data.size[0], 0)  # set axes to match graph
-        # ax.set_ylim(0, data.size[1])
-
-        # TODO: force graph to be square (if needed)
+        ax.set_xlabel("x axis")
+        ax.set_ylabel("y axis")
 
         # metersPerCell is the area in m^2 covered by each cell. cell length is therefore sqrt(mPC). converting from cell to meters is c_d * scale, converting from meters to cell is m_d / scale
         mpc = misty.GetMap().json()["result"]["metersPerCell"]
         scale = math.sqrt(mpc)
-        print(mpc, scale)
+        print("mpc:", mpc, "scale:", scale)
 
-        d_cell = d_meter/scale  # distance driven in cells, from meters
+        # ! CHANGE THIS BACK TO d_cell = d_meter/scale, i think?????? ASK PABLO
+        d_cell = d_meter/mpc  # distance driven in cells, from meters
 
         # ? Is map oriented with initial yaw = 0? i'm not changing anything until i know for sure
 
-        test(plt, d_cell, calc_middle, "r", "movement")
-        test(plt, d_cell, yaw1, "g", obj1)
-        test(plt, d_cell, yaw2, "b", obj2)
-        test(plt, d_cell, [final_x, final_y], "y", "real end (SLAM)", True)
+        # calculate and plot start_yaw
+        x0 = start_x + d_cell * math.cos(start_yaw)
+        y0 = start_y + d_cell * math.sin(start_yaw)
+        plt.plot([start_x, x0], [start_y, y0], 'k.-', label="start yaw")
 
-        """
         # calculate and plot driving path
         end_x = start_x + d_cell * math.cos(calc_middle)
         end_y = start_y + d_cell * math.sin(calc_middle)
-        plt.plot([start_x, end_x], [start_y, end_y], 'r.-', label="movement")
+        plt.plot([start_y, end_y], [start_x, end_x], 'r.-', label="movement")
 
         # calculate and plot first object angle
         x1 = start_x + d_cell * math.cos(yaw1)
         y1 = start_y + d_cell * math.sin(yaw1)
-        plt.plot([start_x, x1], [start_y, y1], 'g.-', label=obj1)
+        plt.plot([start_y, y1], [start_x, x1], 'g.-', label=obj1)
 
         # calculate and plot second object angle
         x2 = start_x + d_cell * math.cos(yaw2)
         y2 = start_y + d_cell * math.sin(yaw2)
-        plt.plot([start_x, x2], [start_y, y2], 'b.-', label=obj2)
+        plt.plot([start_y, y2], [start_x, x2], 'b.-', label=obj2)
 
         # plot actual position
-        plt.plot([start_x, final_x], [start_y, final_y],'y.-', label="real end (SLAM)")
-        
-        print("start:", start_x, start_y)
-        print("obj1:", x1, y1)
-        print("obj2:", x2, y2)
-        print("odometry:", end_x, end_y)
-        print("SLAM:", final_x, final_y)
-        
-        plt.legend(loc="lower right")
-        try:
-            text_str = '\n'.join(((f"yaws: {calc_middle} {yaw1} {yaw2}"), (f"obj1: {x1} {y1}"), (
-                f"obj2: {x2} {y2}"), (f"odometry: {end_x} {end_y}"), (f"SLAM: {final_x} {final_y}")))
+        plt.plot([start_y, final_y], [start_x, final_x],
+                 'y.-', label="real end (SLAM)")
 
-            props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-            ax.text(0.05, 0.05, text_str, transform=ax.transAxes, fontsize=5,
-                    verticalalignment='top', bbox=props)  # text box properties
-        except Exception as e:
-            print(e)
-        """
+        text_str = '\n'.join(((f"start SLAM: {start_x} {start_y}, yaw : {start_yaw}"),
+                              (f"end SLAM: {final_x} {final_y}"),
+                              (f"end odometry: {end_x} {end_y}"),
+                              (f"distance: {d_meter} meters = {d_cell} cells"),
+                              (f"{obj1}: yaw {yaw1}, dot position {x1} {y1}"),
+                              (f"{obj2}: yaw {yaw2}, dot position {x2} {y2}"),
+                              (f"middle yaw: {calc_middle}")))
+
+        print(text_str)
+
+        props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
+        ax.text(0.02, 0.02, text_str, transform=ax.transAxes, fontsize=5,
+                verticalalignment='bottom', bbox=props)  # text box properties
 
         plt.legend(loc="lower right", fontsize=5)
 
@@ -484,22 +474,10 @@ def output():
         plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)
 
         # plt.show()  # show plot
+        print("program complete")
 
     except Exception as e:
         panic("output", e)
-
-
-def test(plt, d_cell, theta, color, label, no_angle=False):
-    if no_angle:
-        text = f"{label}: {theta[1]}, {theta[0]}"
-        plt.plot([start_y, theta[1]], [start_x, theta[0]], f'{color}.-', text)
-        print(text)
-    else:
-        x = start_x + d_cell * math.cos(theta)
-        y = start_y + d_cell * math.sin(theta)
-        text = f"{label}: {y}, {x}"
-        plt.plot([start_y, y], [start_x, x], f'{color}.-', text)
-        print(text)
 
 
 '''
