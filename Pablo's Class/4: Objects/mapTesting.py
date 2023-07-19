@@ -90,7 +90,7 @@ def _SelfState(data):
     if data["message"]["occupancyGridCell"]["x"] == 0:
         print(".", end="", flush=True)  # show we're waiting on this
     else:
-        pass  # should the following line be up here?
+        pass  # ? should the following line be up here?
     current_x, current_y = data["message"]["occupancyGridCell"].values()
 
 
