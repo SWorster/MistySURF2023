@@ -1,11 +1,13 @@
 '''
 Skye Weaver Worster, with invaluable assistance from Julia Yu
 
+Pablo's Instructions: Have the sequence of motions from the "Obj Interaction" Activity printed out and a graphical representation of the path visualized (forward 30cm; left 45 degrees; forward 55cm; right 15 degrees; etc). basically, run previous activity and record movement/position data, then display on top of provided map
+
 plan for this program:
 -set desired map
 -get Misty to localize in map
 -start tracking
--do object searching behavior (done)
+-do object searching behavior
 -finish tracking and get new position)
 -make plot
 
@@ -18,34 +20,7 @@ Speaking of turn speed: slower is better. Going too fast shakes Misty's head, wh
 
 TODO: graph axes vs pixel locations. might be more accurate to graph Misty at the center of the cell in the occupancy grid, as opposed to the cell's corner furthest from the origin. counterpoint: i'm tired of this program and no one can tell anyways.
 
-TODO: make graph square?
-
 TODO: IMU yaw vs occupancy grid?
-
-
-
-Skye Weaver Worster, with invaluable assistance from Julia Yu
-
-Pablo's Instructions: Have the sequence of motions from the "Obj Interaction" Activity printed out and a graphical representation of the path visualized (forward 30cm; left 45 degrees; forward 55cm; right 15 degrees; etc). basically, run previous activity and record movement/position data, then display on top of provided map
-
-
-Ignoring how this requires the previous program - I remember you don't want me to use mapping. The only other ways to record her movement are:
-- DriveEncoders. Requires calculus (rate of movement, duration since last update).
-- IMU. Unreliable measurements and intensive data-gathering. Doesn't record absolute position, so calculus required.
-- logging exact movement instructions. Completely inaccurate, as intended and actual movement vary drastically.
-
-This would be damn near impossible with any of these methods. Using mapping would at least make a solution plausible. A possible procedure would be:
-
-- get map of known area
-- find position in map
-- move (either programmatic or from controller)
-- at set interval, get current pose
-- save pose to file with timestamp
-- on movement completion, stop getting data
-- load map of area
-- for each timestamped entry, plot position
-
-Alternatively, there is a built-in tracking functionality. It seems designed to work with some path-following and drive-to-location commands. Setting a path will return a list of waypoints Misty will hit. I'll need to confer with Julia to get more info about how this might work.
 '''
 
 
