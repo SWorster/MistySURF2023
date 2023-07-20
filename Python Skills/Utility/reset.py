@@ -22,6 +22,10 @@ misty.SetDisplaySettings(True)  # reset display
 misty.ChangeLED(0, 0, 0)  # LED off
 
 # Cancels and stops every process or skill
+misty.DisableAudioService()
+misty.DisableAvStreamingService()
+misty.DisableCameraService()
+misty.DisableSlamService()
 misty.CancelSkill()
 misty.CancelFaceTraining()
 misty.StopArTagDetector()
@@ -44,3 +48,9 @@ misty.StopSpeakingAzure()
 misty.StopRecordingAudio()
 misty.StopTracking()
 misty.StopWifiHotspot()
+
+# re-enables these
+misty.EnableAudioService()
+misty.EnableAvStreamingService()
+misty.EnableCameraService()
+misty.EnableSlamService()

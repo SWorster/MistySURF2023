@@ -12,12 +12,18 @@ This must be used in conjunction with Misty Studio's mapping interface. Here's h
 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
+import time
 
 misty = Robot("131.229.41.135")  # robot with your IP
 ss_debounce = 1000  # debounce in milliseconds
+first_time = True
 
 
 def _SelfState(data):
+    if first_time:
+        print("waiting on valid message: ", end="", flush=True)
+        first_time = False
+
     try:
         # * behold: the JSON Matryoshka Doll!
         m = data["message"]  # message field in data
@@ -60,12 +66,20 @@ def _SelfState(data):
     except Exception as e:
         # NoneType exception is thrown when invalid message sent
         if str(e) == "'NoneType' object is not subscriptable":
-            print(".", end="")  # print waiting sign
+            print(".", end="", flush=True)  # print waiting sign
         else:
             print(e)
 
 
 if __name__ == "__main__":
+    print("enabling slam")
+    misty.EnableSlamService()
+    enabled = False
+    while not enabled:
+        enabled = misty.SlamServiceEnabled().json()["result"]
+        time.sleep(.5)
+
+    print("slam enabled\nregistering for self state")
 
     # register for self state
     misty.RegisterEvent("SelfState", Events.SelfState,
