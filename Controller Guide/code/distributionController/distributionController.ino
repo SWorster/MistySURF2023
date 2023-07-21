@@ -8,7 +8,6 @@ Using Serial1 means that it would output to the serial from the pins on the boar
 // Joystick pins, can be adjusted according to physical wiring
 #define VRX_PIN A1  // Arduino pin connected to VRX pin
 #define VRY_PIN A0  // Arduino pin connected to VRY pin
-#define SW_PIN 7    // Arduino pin connected to SW pin
 
 // Digital pin in the board that the buttons are connected to via jumper cables, can be adjusted as needed
 #define TREAD_BTN 6
@@ -39,6 +38,8 @@ int lastGreenState = LOW;
 
 int stopState;
 int lastRedState = LOW;
+
+int exitCounter = 0;
 
 // time since each button was pressed
 unsigned long lastTreadTime = 0;
@@ -125,6 +126,11 @@ void loop() {
   // Serial.print(" ");
   // Serial.println(mode);
 
+  if (exitCounter >= 4){
+    exitCounter = 0;
+    mode = 1;
+  }
+
   // Serial1 is for Nano with Bluetooth only
   Serial1.print(xValue);
   Serial1.print(" ");
@@ -132,4 +138,5 @@ void loop() {
   Serial1.print(" ");
   Serial1.println(mode);
   delay(timeDelay);
+  if (mode == 4) exitCounter++;
 }
