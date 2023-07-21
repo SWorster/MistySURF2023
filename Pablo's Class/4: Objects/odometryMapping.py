@@ -11,15 +11,13 @@ plan for this program:
 -finish tracking and get new position)
 -make plot
 
-Note: we record two "middle" values that represent the middle of the left turn. One is the calculated/intended middle, and the other is where Misty actually ends up due to processing/communication lag. I decided to use DriveHeading to have Misty return to the calculated heading as she drives forward, instead of going straight forward from the inaccurate middle. We're cutting so many corners anyway that this isn't a huge deal, but I wanted to record it.
+Note: when Misty drives forward, she goes towards the calculated middle. This might differ slightly from where she actually ends up after the left turn due to processing/communication lag. I decided to use DriveHeading to have Misty return to the calculated heading as she drives forward, instead of going straight forward from the inaccurate middle. We're cutting so many corners anyway that this isn't a huge deal, but I wanted to record it. It's easy to change, if desired.
 
 I'm assuming that the l-r center of Misty's vision is 150, because the left seems to be about 0 and the right about 300. I've set the window for detection super high, so anything within 50-250 should register. This gives Misty plenty of time to see objects, as long as the turn speed isn't set too high.
 
 Speaking of turn speed: slower is better. Going too fast shakes Misty's head, which messes with OD and SLAM.
 
-TODO: graph axes vs pixel locations. might be more accurate to graph Misty at the center of the cell in the occupancy grid, as opposed to the cell's corner furthest from the origin. counterpoint: i'm tired of this program and no one can tell anyways.
-
-TODO: IMU yaw vs occupancy grid?
+Note: this program applies a manual offset to the yaw values. This is because the yaw is zeroed upon startup and does not correspond to the occupancy grid. This has to be eyeballed, because there is (as of writing this) no way to get yaw relative to occupancy grid.
 '''
 
 
@@ -34,10 +32,14 @@ import math
 import os
 
 misty = Robot("131.229.41.135")  # robot with your IP
+path = "/Users/skyeworster/Desktop/pic"  # where to save finished graph
+show = False  # whether to display graph upon completion
+
 map_name = "polish dancing cow"  # name of map to plot on top of
 img_name = "polish_dancing_cow.png"  # name to save image as
 dpi = 800  # dpi to save image with
 
+offset = 190  # manual offset for yaw values
 obj1 = "book"  # object to the left
 obj2 = "laptop"  # object to the right
 
@@ -48,16 +50,16 @@ ang_vel = 15  # searching turn angular velocity
 imu_debounce = 10  # imu callback debounce, in ms
 OD_debounce = 1000  # object detection debounce in ms
 min_confidence = .2  # minimum confidence required to send report
+
+# ? Investigate these values further
 center = 150  # measurement of center in Misty's view (units unknown)
 tol = 100  # tolerance for object detection (units unknown)
-
 
 # ! Do not change anything below this comment!
 # values to map later
 start_yaw = None  # initial yaw
 yaw1 = None  # yaw of first object center
 yaw2 = None  # yaw of second object center
-middle = None  # actual yaw at middle (wherever Misty ended up)
 calc_middle = None  # calculated yaw of middle of two objects
 start_x = None  # starting x position
 start_y = None  # starting y position
@@ -68,8 +70,6 @@ final_y = None  # ending y position
 yaw = None  # current yaw from IMU
 avg = 0  # center of current target object
 bumped = False  # whether Misty has been bumped
-first_dist = None  # degrees of first turn (right)
-second_dist = None  # degrees of second turn (left)
 
 # SLAM and tracking
 current_x = None  # current x location from SelfState
@@ -89,15 +89,16 @@ def _SelfState(data):
     if data["message"]["occupancyGridCell"]["x"] == 0:
         print(".", end="", flush=True)  # show we're waiting on this
     else:
-        pass  # ? should the following line be up here?
+        pass
     current_x, current_y = data["message"]["occupancyGridCell"].values()
 
 
 def _SlamStatus(data):
+    # get whether Misty is currently tracking and SLAM is ready
+    global is_tracking, slam_reset
     print(data["message"]["slamStatus"]["runMode"], end="      ")
     print(data["message"]["slamStatus"]["statusList"])
-    'get whether Misty is currently tracking'
-    global is_tracking, slam_reset
+
     if data["message"]["slamStatus"]["runMode"] == "Tracking":
         is_tracking = True
     else:
@@ -118,41 +119,39 @@ def localize():
         misty.StopObjectDetector()  # stop detecting objects
         misty.StopTracking()  # stop tracking
         misty.UnregisterAllEvents()  # unregister from everything
-        
-        # start slam, make sure it's running
-        misty.EnableSlamService() # start SLAM
-        print(misty.SlamServiceEnabled().json())
-        
+        misty.EnableSlamService()  # start SLAM
+        time.sleep(.5)  # give time to execute commands
+        print(misty.SlamServiceEnabled().json())  # verify that SLAM is enabled
+
         # register for bump sensor
         misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                             keep_alive=True, callback_function=_BumpSensor)
 
         # get the desired map from Misty, or use current map
-        # map list with keys/names
         map_list = misty.GetSlamMaps().json()["result"]
         key = None
-        for m in map_list:
+        for m in map_list:  # find corresponding key
             if m["name"] == map_name:
                 key = m["key"]
-        if key != None:
+        if key != None:  # if key found
             misty.SetCurrentSlamMap(key)  # set current map
             print("Using map", map_name)
-        else:
+        else:  # key not found, just use current
             print("Map not found, using current map")
 
-        # register for slam status event to get tracking data
+        # register for SLAM status event to get tracking data
         misty.RegisterEvent("SlamStatus", Events.SlamStatus,
                             keep_alive=True, callback_function=_SlamStatus)
 
-        misty.ResetSlam()  # reset slam
+        misty.ResetSlam()  # reset SLAM
 
-        print("\nresetting slam")
+        print("\nResetting SLAM")
         misty.ChangeLED(255, 100, 0)  # LED orange
 
         while not slam_reset and not bumped:
-            pass  # wait for slam to reset
+            pass  # wait for SLAM to reset
 
-        print("\nlocalizing")
+        print("\nLocalizing")
         misty.ChangeLED(0, 255, 255)  # LED cyan
         misty.StartTracking()  # start tracking current location in map
 
@@ -161,29 +160,29 @@ def localize():
                             keep_alive=True, callback_function=_SelfState)
 
         while not is_tracking and not bumped:
-            pass  # wait until location found
+            pass  # wait until location found or bumped
 
         if bumped:
             _BumpSensor(1)
-        else:
+        else:  # while loop ended from tracking, not bump
             misty.ChangeLED(255, 200, 0)  # LED yellow
-            print("waiting on non-0")
+            print("Waiting on non-0 location values")
 
-            while start_x == 0 and not bumped: #! was start_x, for some reason. test that too?
-                pass  # wait until we get numerical data that isn't 0
-            
+            while start_x == 0 and not bumped:  # ! decide whether this is start_x or current_x
+                pass  # wait until we get location data that isn't 0
+
             if bumped:
                 _BumpSensor(1)
             else:
                 start_x = current_x  # record starting coordinates
                 start_y = current_y
-                print("location:", start_x, start_y)
+                print("Location:", start_x, start_y)
 
                 # unregister from events. tracking will stay on, we just won't get data.
                 misty.UnregisterEvent("SlamStatus")
                 misty.UnregisterEvent("SelfState")
 
-                print("\nsearching")
+                print("\nSearching")
                 searching()
 
     except Exception as e:
@@ -194,8 +193,6 @@ def localize():
 PHASE 2: DRIVING
 '''
 
-# CALLBACKS
-
 
 def _BumpSensor(data):
     # runs when program ends or Misty is bumped
@@ -204,13 +201,6 @@ def _BumpSensor(data):
     if not bumped:  # prevents running again on un-bump
         print("Bumped!")
         bumped = True  # stops while loops
-        '''
-        set yaws to 0, stops driveForward error. no idea if this works.
-        might also be able to stop it by putting driveForward in a "while not bumped" that ends by changing it to bumped. idk, just spit-balling.
-        another error is that making these 0 completely messes with the graph output part. so I'll get back to this later.
-        yaw1 = 0
-        yaw2 = 0
-        '''
         misty.Stop()  # stop moving
         misty.StopObjectDetector()  # stop detecting objects
         misty.StopTracking()  # stop tracking
@@ -220,7 +210,7 @@ def _BumpSensor(data):
         print("end of program")
 
 
-def _yaw(data):
+def _IMU(data):
     global yaw
     yaw = data["message"]["yaw"] % 360  # get yaw, convert to range 0-360
 
@@ -229,22 +219,16 @@ def _yaw(data):
 
 def _ObjectDetection(data):
     global avg
-
     object = data["message"]["description"]  # get object name
     print(object)  # print what Misty sees
+    left = data["message"]["imageLocationLeft"]
+    right = data["message"]["imageLocationRight"]
 
     if yaw1 == None and object == obj1:  # haven't seen obj1 yet
-        left = data["message"]["imageLocationLeft"]
-        right = data["message"]["imageLocationRight"]
+        avg = (right+left)/2
+    elif yaw1 != None and object == obj2:  # saw obj1, looking for obj2
         avg = (right+left)/2
 
-    elif yaw1 != None and object == obj2:
-        left = data["message"]["imageLocationLeft"]
-        right = data["message"]["imageLocationRight"]
-        avg = (right+left)/2
-
-
-# BEHAVIOR
 
 def searching():
     global yaw1, yaw2, avg, start_yaw
@@ -259,7 +243,7 @@ def searching():
 
         # register for IMU
         misty.RegisterEvent("IMU", Events.IMU, debounce=imu_debounce,
-                            keep_alive=True, callback_function=_yaw)
+                            keep_alive=True, callback_function=_IMU)
 
         time.sleep(1)  # give time to register events
 
@@ -273,11 +257,10 @@ def searching():
 
         if bumped:  # if bumped
             _BumpSensor(1)
-
         else:  # if target seen
             misty.ChangeLED(255, 200, 0)  # LED yellow
             yaw1 = yaw  # record yaw1
-            print(yaw1)
+            print(f"{obj1} seen at {yaw1}")
             avg = 0  # reset avg
 
             while not (center-tol < avg < center+tol) and not bumped:
@@ -285,11 +268,10 @@ def searching():
 
             if bumped:  # Misty was bumped
                 _BumpSensor(1)
-
             else:  # if target seen
                 misty.Stop()  # stop moving
                 yaw2 = yaw  # record yaw2
-                print(yaw2)
+                print(f"{obj2} seen at {yaw2}")
                 misty.ChangeLED(255, 0, 255)  # LED purple
                 driveForward()  # call drive forward function
 
@@ -298,49 +280,27 @@ def searching():
 
 
 def driveForward():
-    global calc_middle, first_dist, second_dist, middle
-
-    # calculate total turn distance (degrees)
-    if start_yaw < yaw2:  # start_yaw -- 0/360 -- yaw2
-        first_dist = 360 - (yaw2-start_yaw)
-    else:  # 0 -- start_yaw -- yaw2 -- 360
-        first_dist = yaw2-start_yaw
+    global calc_middle, middle
 
     try:
         misty.StopObjectDetector()  # stop detection
         misty.UnregisterEvent("ObjectDetection")  # unregister detection
 
-        # if start_y and y2 in "normal" range
-        # 360 > start_y > y2 > 0
-        if yaw1 > yaw2:
-            calc_middle = (yaw1+yaw2)/2
-
-        #  start_y  -- 0/360 -- y2
-        else:
-            # average, then flip across circle, then convert to range 0-360
-            calc_middle = (180 - (yaw1+yaw2)/2) % 360
+        calc_middle = (yaw1+yaw2)/2  # get average of yaws
+        if yaw1 < yaw2:  # if straddling 0-360 line, flip across circle
+            calc_middle = (180 - calc_middle) % 360
 
         misty.Drive(0, ang_vel)  # turn left
 
-        if yaw > calc_middle:  # if 0-360 gap between current and next heading
-            # yaw is decreasing left, either to 0 or to middle
+        if yaw > calc_middle:  # if 0-360 line between current and next heading
             while ((yaw < yaw2) or (yaw > calc_middle)) and not bumped:
-                pass
+                pass  # yaw is decreasing left, either to 0 or to middle
         else:  # 0 < yaw < calc_middle < 360
-            # turn until calc_middle reached, or bumped
             while (yaw < calc_middle) and not bumped:
-                pass
-        
+                pass  # turn until calc_middle reached, or bumped
+
         misty.Stop()  # stop moving
         misty.ChangeLED(0, 255, 0)  # LED green
-
-        middle = yaw  # record actual yaw of turn
-
-        # calculate total turn distance (degrees)
-        if yaw > yaw2:
-            second_dist = yaw-yaw2
-        else:  # if straddling 0-360 gap, yaw2 > yaw
-            second_dist = yaw2-yaw
 
         if bumped:  # Misty was bumped
             _BumpSensor(1)
@@ -352,12 +312,10 @@ def driveForward():
                                False)  # drive towards heading
 
             misty.ChangeLED(255, 255, 255)  # LED white
-
             time.sleep(d_time+.5)  # wait until drive done
 
-            misty.Stop()  # stop moving
+            misty.Stop()  # just in case DriveHeading acts weird
             misty.StopObjectDetector()  # stop detecting objects
-            misty.UnregisterAllEvents()  # unregister everything
             misty.UpdateHazardSettings(revertToDefault=True)  # reset TOFs
 
             relocalize()  # go to relocalize function
@@ -379,9 +337,9 @@ def relocalize():
         current_x = None
         current_y = None
 
-        # register for slam status event to get tracking data
-        misty.RegisterEvent("SlamStatus", Events.SlamStatus,
-                            keep_alive=True, callback_function=_SlamStatus)
+        # # register for SLAM status event to get tracking data
+        # misty.RegisterEvent("SlamStatus", Events.SlamStatus,
+        #                     keep_alive=True, callback_function=_SlamStatus)
 
         # register for self state events to get position
         misty.RegisterEvent("SelfState", Events.SelfState,
@@ -391,7 +349,7 @@ def relocalize():
 
         while (current_x == None or current_y == None) and not bumped:
             pass  # wait until location found
-        
+
         if bumped:
             _BumpSensor(1)
         else:
@@ -413,80 +371,83 @@ def output():
         for row in range(arr.shape[0]):
             for col in range(arr.shape[1]):
                 if arr[row][col] == 1:  # open = 1
-                    arr[row][col] = 255
+                    arr[row][col] = 255  # white
                 elif arr[row][col] == 2:  # occupied = 2
-                    arr[row][col] = 0
+                    arr[row][col] = 0  # black
                 elif arr[row][col] == 3:  # obscured = 3
-                    arr[row][col] = 200
+                    arr[row][col] = 200  # dark grey
                 else:  # unknown = 0
-                    arr[row][col] = 100
+                    arr[row][col] = 100  # light grey
         arr = arr.astype(np.uint8)  # convert to unsigned 8bit integer
         data = im.fromarray(arr)  # create image from array
         data = data.rotate(90)  # rotate to match axes
-        data.save(img_name, format="PNG")
 
-        img = plt.imread(img_name)  # open image in matplotlib
         fig, ax = plt.subplots()  # create figure
-        ax.imshow(img, extent=[0, data.size[0], 0,
-                  data.size[1]], cmap='gray')  # display image as plot background
+
+        try:
+            data.save(img_name, format="PNG")  # try saving image
+            img = plt.imread(img_name)  # open image in matplotlib
+            ax.imshow(img, extent=[0, data.size[0], 0,
+                                   data.size[1]], cmap='gray')  # display image as plot background
+        except Exception as e:
+            print("Could not save, read, or show image:", e)
 
         ax.set_xlabel("x axis")
         ax.set_ylabel("y axis")
+        ax.set_title("Graphing Test")
 
-        # metersPerCell is the area in m^2 covered by each cell. cell length is therefore sqrt(mPC). converting from cell to meters is c_d * scale, converting from meters to cell is m_d / scale
         mpc = misty.GetMap().json()["result"]["metersPerCell"]
-        scale = math.sqrt(mpc)
-        print("mpc:", mpc, "scale:", scale)
-
-        # ! CHANGE THIS BACK TO d_cell = d_meter/scale, i think?????? ASK PABLO
         d_cell = d_meter/mpc  # distance driven in cells, from meters
 
-        # ? Is map oriented with initial yaw = 0? i'm not changing anything until i know for sure
+        def rad(deg):  # converts to radians, with offset
+            return (offset+deg)*math.pi/180
 
         # calculate and plot start_yaw
-        x0 = start_x + d_cell * math.cos(start_yaw)
-        y0 = start_y + d_cell * math.sin(start_yaw)
+        x0 = start_x + d_cell * math.cos(rad(start_yaw))
+        y0 = start_y + d_cell * math.sin(rad(start_yaw))
         plt.plot([start_x, x0], [start_y, y0], 'k.-', label="start yaw")
 
         # calculate and plot driving path
-        end_x = start_x + d_cell * math.cos(calc_middle)
-        end_y = start_y + d_cell * math.sin(calc_middle)
-        plt.plot([start_y, end_y], [start_x, end_x], 'r.-', label="movement")
+        end_x = start_x + d_cell * math.cos(rad(calc_middle))
+        end_y = start_y + d_cell * math.sin(rad(calc_middle))
+        plt.plot([start_x, end_x], [start_y, end_y],
+                 'r.-', label="odometry end")
 
         # calculate and plot first object angle
-        x1 = start_x + d_cell * math.cos(yaw1)
-        y1 = start_y + d_cell * math.sin(yaw1)
-        plt.plot([start_y, y1], [start_x, x1], 'g.-', label=obj1)
+        x1 = start_x + d_cell * math.cos(rad(yaw1))
+        y1 = start_y + d_cell * math.sin(rad(yaw1))
+        plt.plot([start_x, x1], [start_y, y1],  'b.-', label=obj1)
 
         # calculate and plot second object angle
-        x2 = start_x + d_cell * math.cos(yaw2)
-        y2 = start_y + d_cell * math.sin(yaw2)
-        plt.plot([start_y, y2], [start_x, x2], 'b.-', label=obj2)
+        x2 = start_x + d_cell * math.cos(rad(yaw2))
+        y2 = start_y + d_cell * math.sin(rad(yaw2))
+        plt.plot([start_x, x2], [start_y, y2],  'g.-', label=obj2)
 
         # plot actual position
-        plt.plot([start_y, final_y], [start_x, final_x],
-                 'y.-', label="real end (SLAM)")
+        plt.plot([start_x, final_x], [start_y, final_y],
+                 'y.-', label="SLAM end")
 
-        text_str = '\n'.join(((f"start SLAM: {start_x} {start_y}, yaw : {start_yaw}"),
+        plt.legend(loc="lower right", fontsize=5)  # create legend
+
+        # movement data in string
+        text_str = '\n'.join(((f"start SLAM: {start_x} {start_y}, yaw : {int(start_yaw)}"),
                               (f"end SLAM: {final_x} {final_y}"),
-                              (f"end odometry: {end_x} {end_y}"),
-                              (f"distance: {d_meter} meters = {d_cell} cells"),
-                              (f"{obj1}: yaw {yaw1}, dot position {x1} {y1}"),
-                              (f"{obj2}: yaw {yaw2}, dot position {x2} {y2}"),
-                              (f"middle yaw: {calc_middle}")))
+                              (f"{obj1}: yaw {int(yaw1)}, dot position {int(x1)} {int(y1)}"),
+                              (f"{obj2}: yaw {int(yaw2)}, dot position {int(x2)} {int(y2)}"),
+                              (f"end yaw: {int(calc_middle)}, dot position {int(end_x)} {int(end_y)}"),
+                              (f"distance: {d_meter} meters = {d_cell} cells")))
+        print(text_str)  # print movement data to console
 
-        print(text_str)
-
+        # create text box on graph with movement data
         props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
         ax.text(0.02, 0.02, text_str, transform=ax.transAxes, fontsize=5,
-                verticalalignment='bottom', bbox=props)  # text box properties
+                verticalalignment='bottom', bbox=props)
 
-        plt.legend(loc="lower right", fontsize=5)
+        plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)   # save image
 
-        os.chdir("/Users/skyeworster/Desktop/pic")  # ! remove later
-        plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)
-
-        # plt.show()  # show plot
+        if show:
+            print("displaying plot in window")
+            plt.show()  # shows plot
         print("program complete")
 
     except Exception as e:
@@ -501,7 +462,7 @@ PHASE 4: PANIC BUTTON
 def panic(location, e):
     # ends program not-so-gracefully when an error is detected
     print(f".ERROR IN {location}: {e}")
-    
+
     misty.Stop()  # stop moving
     misty.StopObjectDetector()  # stop detecting objects
     misty.StopTracking()  # stop tracking
@@ -517,4 +478,6 @@ MAIN
 '''
 
 if __name__ == "__main__":
+    # change directory (saves graph and background image in same place)
+    os.chdir(path)
     localize()
