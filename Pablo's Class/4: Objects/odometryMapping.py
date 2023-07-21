@@ -3,21 +3,11 @@ Skye Weaver Worster, with invaluable assistance from Julia Yu
 
 Pablo's Instructions: Have the sequence of motions from the "Obj Interaction" Activity printed out and a graphical representation of the path visualized (forward 30cm; left 45 degrees; forward 55cm; right 15 degrees; etc). basically, run previous activity and record movement/position data, then display on top of provided map
 
-plan for this program:
--set desired map
--get Misty to localize in map
--start tracking
--do object searching behavior
--finish tracking and get new position)
--make plot
-
 Note: when Misty drives forward, she goes towards the calculated middle. This might differ slightly from where she actually ends up after the left turn due to processing/communication lag. I decided to use DriveHeading to have Misty return to the calculated heading as she drives forward, instead of going straight forward from the inaccurate middle. We're cutting so many corners anyway that this isn't a huge deal, but I wanted to record it. It's easy to change, if desired.
 
 I'm assuming that the l-r center of Misty's vision is 150, because the left seems to be about 0 and the right about 300. I've set the window for detection super high, so anything within 50-250 should register. This gives Misty plenty of time to see objects, as long as the turn speed isn't set too high.
 
-Speaking of turn speed: slower is better. Going too fast shakes Misty's head, which messes with OD and SLAM.
-
-Note: this program applies a manual offset to the yaw values. This is because the yaw is zeroed upon startup and does not correspond to the occupancy grid. This has to be eyeballed, because there is (as of writing this) no way to get yaw relative to occupancy grid.
+This program applies a manual offset to the yaw values. This is because the yaw is zeroed upon startup and does not correspond to the occupancy grid. This has to be eyeballed, because there is (as of writing this) no way to get yaw relative to occupancy grid.
 '''
 
 
@@ -45,7 +35,7 @@ obj2 = "laptop"  # object to the right
 
 d_meter = 1  # thru driving distance, in meters
 d_time = 10  # thru driving time, in seconds
-ang_vel = 15  # searching turn angular velocity
+ang_vel = 15  # searching turn angular velocity. low speed to prevent head shake
 
 imu_debounce = 10  # imu callback debounce, in ms
 OD_debounce = 1000  # object detection debounce in ms
