@@ -7,8 +7,8 @@ import cv2
 import serial
 
 'Place the following information into the 2 constants below'
-MISTY_IP = "<Misty's IP>"
-ARDUINO_PORT = "<Arduino's COM>"
+MISTY_IP = "<Misty IP>"
+ARDUINO_PORT = "<Arduino COM>"
 
 'The 4 constants below are thresholds for the joystick position to move in different directions'
 NORTH = 341 # North and South are in Y
@@ -32,6 +32,7 @@ misty = Robot(MISTY_IP) # create a Misty instance using its IP address (which va
 
 def _SlamStats(data): # used when following a path; determines when the tracking status is active
     global tracking, slamReset
+    print(data["message"]["slamStatus"])
     if "Ready" in data["message"]["slamStatus"]["statusList"]: # finds when slam is ready to start; used to see when it should proceed after reset
         slamReset = True
     else:
@@ -47,6 +48,7 @@ def _SlamStats(data): # used when following a path; determines when the tracking
 def _GridLoc(data): # updates the current location of Misty; given by SelfState
     global current_x, current_y
     current_x, current_y = data["message"]["occupancyGridCell"].values()
+    print(current_x, current_y)
 
 def treads(coords): # Controls the treads for overall mobility (from the controller file)
     split = coords.split() # data format: [x, y, mode]
@@ -152,6 +154,8 @@ def follow_path(): # follows a user-specified path via tracking
 
     misty.StartTracking()
 
+    misty.RegisterEvent(event_name = "location", event_type = Events.SelfState, callback_function = _GridLoc, keep_alive = True)
+
     while not tracking: # catch to hold it here while not localized
         try:
             line = ser.readline() # get next line of the serial monitor (its in bytes)
@@ -166,11 +170,9 @@ def follow_path(): # follows a user-specified path via tracking
                     break
     ser.close() # close the serial connection
 
-    # SelfState won't pick up Misty's current location unless it is called after tracking has been started and pose has been achieved
-    misty.RegisterEvent(event_name = "location", event_type = Events.SelfState, callback_function = _GridLoc, keep_alive = True)
     misty.FollowPath(path, .3)
 
-    while current_x != x_path_coords[-1] and current_y != y_path_coords[-1]: # wait until Misty gets to the last location in the string
+    while not (x_path_coords[-1] - 5 <= current_x <= x_path_coords[-1] + 5) and not (y_path_coords[-1] - 5 <= current_y <= y_path_coords[-1] + 5): # wait until Misty gets to the last location in the string
         pass
 
     misty.StopTracking()

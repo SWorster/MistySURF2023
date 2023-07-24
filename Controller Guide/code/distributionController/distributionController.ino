@@ -5,6 +5,11 @@ This is because of there being 2 Serial ports for the Nano, using Serial just ou
 Using Serial1 means that it would output to the serial from the pins on the board corresponding to the HC-05
 */
 
+// #if conditional reference links, feel free to add boards as you see fit depending on the serial ports on the board you're using
+// https://forum.arduino.cc/t/ifdef-to-select-pins-based-on-targetted-arduino-board/442861/6
+// https://www.arduino.cc/reference/en/language/functions/communication/serial/
+// https://www.deviceplus.com/arduino/arduino-preprocessor-directives-tutorial/#Conditional
+
 // Joystick pins, can be adjusted according to physical wiring
 #define VRX_PIN A1  // Arduino pin connected to VRX pin
 #define VRY_PIN A0  // Arduino pin connected to VRY pin
@@ -50,10 +55,15 @@ unsigned long lastStopTime = 0;
 unsigned long debounceDelay = 150;  // the debounce time; increase if the output flickers
 
 void setup() {
-  // Serial.begin(9600);  // start the serial monitor at a baudrate of 9600 (baudrate it the number of bits a second it reads in)
-  Serial1.begin(9600);  // Nano Bluetooth capability uses this
-  // while (!Serial);  // will hold the program here while the serial monitor is not initialized (use with Arduino Uno or Arduino Nano w/ no Bluetooth)
-  while (!Serial1);  // will hold the program here while the serial monitor is not initialized (use with Arduino Nano + Bluetooth)
+  #if defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_AVR_NANO) // board used is Nano/Nano Every with the bluetooth module. if you want to use it wired, change the Serial stuff to match the code for the Uno
+    Serial1.begin(9600);  // Nano Bluetooth capability uses this
+    while (!Serial1);  // will hold the program here while the serial monitor is not initialized (use with Arduino Nano + Bluetooth)
+  #elif defined(ARDUINO_AVR_UNO) // board used is the Uno, can be without the bluetooth module or with, either way
+    Serial.begin(9600);  // start the serial monitor at a baudrate of 9600 (baudrate it the number of bits a second it reads in)
+    while (!Serial);  // will hold the program here while the serial monitor is not initialized (use with Arduino Uno or Arduino Nano w/ no Bluetooth)
+  #else
+    #error "What the hell are you using???"
+  #endif
 
   // identifies everything as an input (button input something to board -> do something)
   pinMode(TREAD_BTN, INPUT);
@@ -118,25 +128,31 @@ void loop() {
   lastGreenState = greenState;
   lastRedState = redState;
 
-  // print to serial monitor to port data to python through pyserial
-  // Serial is for Arduino Uno, Bluetooth or wired, and Nano, wired only
-  // Serial.print(xValue);
-  // Serial.print(" ");
-  // Serial.print(yValue);
-  // Serial.print(" ");
-  // Serial.println(mode);
-
-  if (exitCounter >= 4){
+  if (exitCounter >= 4) { // will cause the mode to reset back to 1 after the exit button is pressed; added due to bluetooth caveats
     exitCounter = 0;
     mode = 1;
   }
 
-  // Serial1 is for Nano with Bluetooth only
-  Serial1.print(xValue);
-  Serial1.print(" ");
-  Serial1.print(yValue);
-  Serial1.print(" ");
-  Serial1.println(mode);
+  // print to serial monitor to port data to python through pyserial, dependent on the serial opened
+  #if defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_AVR_NANO)
+    // Serial1 is for Nano with Bluetooth only
+    Serial1.print(xValue);
+    Serial1.print(" ");
+    Serial1.print(yValue);
+    Serial1.print(" ");
+    Serial1.println(mode);
+  #elif defined(ARDUINO_AVR_UNO)
+    // Serial is for Arduino Uno, Bluetooth or wired, and Nano, wired only
+    Serial.print(xValue);
+    Serial.print(" ");
+    Serial.print(yValue);
+    Serial.print(" ");
+    Serial.println(mode);
+  #else
+    #error "What the hell are you using???"
+  #endif
+
   delay(timeDelay);
+
   if (mode == 4) exitCounter++;
 }
