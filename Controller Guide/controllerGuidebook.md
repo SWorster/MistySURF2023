@@ -6,17 +6,13 @@
 
 ### [Arduino Uno Version](https://www.circuito.io/app?components=97,97,97,97,512,11021,611984,2631981)
 
-<img src = "imgs/wiring1_v1.png" width = "60%" height = "70%">
-
-![Arduino Uno Layout V2](imgs/wiring1_v2.png)
+![Arduino Uno Layout](imgs/uno_wiring.png)
 
 ### [Arduino Nano / Nano Every Version](https://www.circuito.io/app?components=97,97,97,97,514,11022,611984,2631981)
 
 ##### Note: the board in the picture is a Nano, but Nano Every has the same pin ordering, size, and better specs
 
-![Arduino Nano Layout V1](imgs/wiring2_v1.png)
-
-![Arduino Nano Layout V2](imgs/wiring2_v2.png)
+![Arduino Nano Layout](imgs/nano_wiring.png)
 
 # Uploading the Arduino code to the board
 * Starting off, let's assume you’re using the IDE that is downloadable [here](https://www.arduino.cc/en/software). It’s a similar process with the Web Editor and the older Arduino uploader if you decide to go with those routes, so you can follow along regardless.
@@ -99,6 +95,8 @@ int redState = 0;
 int mode = 1;
 const int timeDelay = 150;
 
+int exitCounter = 0;
+
 int treadState;
 int lastYellowState = LOW;
 int armState;
@@ -116,7 +114,7 @@ unsigned long lastStopTime = 0;
 unsigned long debounceDelay = 150;
 ```
 
-These are global variables that are meant to keep track of certain values that would be important for us in this program. `xValue` and `yValue` are used for the joystick, while the different colored `__States` are used for the buttons. `Mode` is used for tracking which commands to send to Misty, and `timeDelay` is a constant that is user changeable in order to create a buffer between each line outputted in the Serial Monitor.
+These are global variables that are meant to keep track of certain values that would be important for us in this program. `xValue` and `yValue` are used for the joystick, while the different colored `__States` are used for the buttons. `Mode` is used for tracking which commands to send to Misty, and `timeDelay` is a constant that is user changeable in order to create a buffer between each line outputted in the Serial Monitor. `exitCounter` is used in order to provide a reset in the data sent over serial when using Bluetooth.
 
 The following variables are adapted from the button debounce example code that can be found in the Arduino Examples folder. The purpose of these are to filter out any electrical interference that the buttons may create when not actually pressed and to create a threshold amount of time the button has to be pressed in order to recognize that the user has indicated a mode change.
 
@@ -124,47 +122,49 @@ The following variables are adapted from the button debounce example code that c
 
 ```cpp
 void setup() {
+  #if defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_AVR_NANO)
+    Serial1.begin(9600);
+    while (!Serial1);
+  #elif defined(ARDUINO_AVR_UNO)
     Serial.begin(9600);
     while (!Serial);
-    pinMode(TREAD_BTN, INPUT);
-    pinMode(ARM_BTN, INPUT);
-    pinMode(HEAD_BTN, INPUT);
-    pinMode(EXIT_BTN, INPUT);
+  #else
+    #error "What are you using?"
+  #endif
+
+  pinMode(TREAD_BTN, INPUT);
+  pinMode(ARM_BTN, INPUT);
+  pinMode(HEAD_BTN, INPUT);
+  pinMode(EXIT_BTN, INPUT);
 }
 ```
 
-The first thing that comes after constant declaration is the [setup loop](https://www.arduino.cc/reference/en/language/structure/sketch/setup/). It runs only once before the program moves on. First, it starts communication with the Serial Monitor using `Serial.begin()` and waits until that is complete through the for loop. Then it sets the `pinMode` for the buttons to be inputs, which is required in order for the program to know what the values coming in from those pins are.
+The first thing that comes after constant declaration is the [setup loop](https://www.arduino.cc/reference/en/language/structure/sketch/setup/). It runs only once before the program moves on. Before the program starts to run, it checks the board that the code is being uploaded to. In doing so, it determines which code to use: if the board is of the Nano variant, it uses the other [UART channel](https://docs.arduino.cc/tutorials/nano-every/uart), if it is instead an Uno, it uses the only port that it has available. If it's neither, it will result in an error. Then it sets the `pinMode` for the buttons to be inputs, which is required in order for the program to know what the values coming in from those pins are.
 
 *Forever Loop*
 
 ```cpp
 void loop() {
-  // read analog X and Y analog values (analog meaning it can evaluate to many different values)
   xValue = analogRead(VRX_PIN);
   yValue = analogRead(VRY_PIN);
 
-  // check for the current status of the buttons (digital because that means it can only be 2 values: high or low)
   yellowState = digitalRead(TREAD_BTN);
   blueState = digitalRead(ARM_BTN);
   greenState = digitalRead(HEAD_BTN);
   redState = digitalRead(EXIT_BTN);
 
-  // update the time since the buttons were pressed if the state hasn't changed
   if (yellowState != lastYellowState) lastTreadTime = millis();
   if (blueState != lastBlueState) lastArmTime = millis();
   if (greenState != lastGreenState) lastHeadTime = millis();
   if (redState != lastRedState) lastStopTime = millis();
 
-  // debounce for the buttons
-  // treads
-  if ((millis() - lastTreadTime) > debounceDelay) { // if the debounce threshold has been exceded
-    if (yellowState != treadState) { // if the button state changed
+  if ((millis() - lastTreadTime) > debounceDelay) {
+    if (yellowState != treadState) {
       treadState = yellowState;
-      if (treadState == HIGH) mode = 1; // if the button is pressed, change the mode
+      if (treadState == HIGH) mode = 1;
     }
   }
 
-  // arms
   if ((millis() - lastArmTime) > debounceDelay) {
     if (blueState != armState) {
       armState = blueState;
@@ -172,7 +172,6 @@ void loop() {
     }
   }
 
-  // head
   if ((millis() - lastHeadTime) > debounceDelay) {
     if (greenState != headState) {
       headState = greenState;
@@ -180,7 +179,6 @@ void loop() {
     }
   }
 
-  // stop
   if ((millis() - lastStopTime) > debounceDelay) {
     if (redState != stopState) {
       stopState = redState;
@@ -188,19 +186,35 @@ void loop() {
     }
   }
 
-  // save the readings from this loop iteration for the next
   lastYellowState = yellowState;
   lastBlueState = blueState;
   lastGreenState = greenState;
   lastRedState = redState;
 
-  // print to serial monitor to port data to python through pyserial
-  Serial.print(xValue);
-  Serial.print(" ");
-  Serial.print(yValue);
-  Serial.print(" ");
-  Serial.println(mode);
+  if (exitCounter >= 4) {
+    exitCounter = 0;
+    mode = 1;
+  }
+
+  #if defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_AVR_NANO)
+    Serial1.print(xValue);
+    Serial1.print(" ");
+    Serial1.print(yValue);
+    Serial1.print(" ");
+    Serial1.println(mode);
+  #elif defined(ARDUINO_AVR_UNO)
+    Serial.print(xValue);
+    Serial.print(" ");
+    Serial.print(yValue);
+    Serial.print(" ");
+    Serial.println(mode);
+  #else
+    #error "What are you using?"
+  #endif
+
   delay(timeDelay);
+
+  if (mode == 4) exitCounter++;
 }
 ```
 
@@ -208,7 +222,13 @@ The loop runs the code in it over and over forever, and is where all the action 
 
 The first 4 if statements are used to update the amount of time its been since the buttons have been pressed by checking if their values don't match what the previous button readings were. Then the next 4 are to check if the button has been pressed by checking the amount of time against a delay. If the value read in doesn't match the previous value, they swap, and then check if the buttons were pressed by comparing them to `HIGH`. This changes the mode accordingly. Then it saves the states from the current iteration to use in the next.
 
-`Serial.print()` and `Serial.println()` are the Serial Monitor print statements of Arduino. The purpose of having these here is to interface with the pySerial library in the Python program. It takes information from the Serial Monitor and allows us to use it for other purposes.
+The next part of the code is for resetting the output to the serial monitor under Bluetooth. Once the exit command has been printed 4 times, the mode will reset back to 1 and the counter back to 0. The reason for this is because while not using the Bluetooth module, the program will end once the mode is 4 and the serial output will be restarted. With Bluetooth this is not the case and it will keep sending data regardless if there is a program to read the data or not.
+
+`Serial.print()` and `Serial.println()` are the Serial Monitor print statements of Arduino. The purpose of having these here is to interface with the pySerial library in the Python program. It takes information from the Serial Monitor and allows us to use it for other purposes. Depending on the board being used, the output will either be to `Serial` or to `Serial1`, which is different depending on whether or not you are using a Nano with Bluetooth, a Nano on its own, or an Uno.
+
+The delay will prevent the data from being sent too fast to the point of overloading Misty with commands via the Python program.
+
+The final if statement is there to increment the exit counter in order for the reset to occur.
 
 # Python Line-by-Line Code Walkthrough
 
