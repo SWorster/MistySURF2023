@@ -1,3 +1,10 @@
+"""
+This program lets the user interact with the differnt commands that Misty can run that utilize her mapping capability (minus the creation of them).
+It is recommended to first set the current map and then attempt to have her follow a path, as sometimes it can be somewhat buggy.
+Note that all SLAM commands are technically in alpha, so try not to be too mad if things don't work.
+If they don't work, please go to Misty Studio to reset her SLAM capabilities.
+"""
+
 # Imports
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
