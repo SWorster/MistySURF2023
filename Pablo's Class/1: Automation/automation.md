@@ -1,6 +1,6 @@
 # Automation: Face Recognition and Tracking
 
-##### By Skye Worster '25J
+##### By Skye Weaver Worster '25J
 
 These two programs, `automationHalts.py` and `automationLoop.py`, demonstrate Misty's facial recognition abilities.
 

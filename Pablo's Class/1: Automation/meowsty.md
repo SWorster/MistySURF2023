@@ -1,5 +1,5 @@
 # Meowsty
-##### By Skye Worster '25J
+##### By Skye Weaver Worster '25J
 
 This program has Misty act like a cat.
 
