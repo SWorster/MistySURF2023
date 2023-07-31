@@ -2,7 +2,7 @@
 
 Content is from [here](https://github.com/MistyCommunity/Python-SDK) with supplements from [here](https://github.com/MistyCommunity/Wrapper-Python), though a bit outdated.
 
-First, ensure Python is [updated](https://www.pythoncentral.io/how-to-update-python/) to at least 3.8. Then type the following commands into the Terminal to install the required dependencies:
+First, ensure Python is [updated](https://www.pythoncentral.io/how-to-update-python/) to at least 3.10. Then type the following commands into the Terminal to install the required dependencies:
 
 ```bash
 pip install requests
