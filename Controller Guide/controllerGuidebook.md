@@ -49,6 +49,7 @@
 <p style="text-align: center;"> <em> Figure 3: Opening and Closing the Serial Monitor (the orange and yellow boxes respectively) </em> </p>
 
 # Run the Python File
+* If you don't have Python, (download it)[https://www.python.org/downloads/] and add it to your PATH
 * Install the following python packages through pip. The second line should install the packages following it, but in case it doesn’t, the others are also listed. Check back in the Misty Walkthrough for more details on what versions specifically to install if this is the case.
   * `pip install pyserial`
   * `pip install Misty-SDK`
