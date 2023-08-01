@@ -1,3 +1,10 @@
+"""
+This program allows the user to create a map of an area Misty is in, please refer to the official documentation for tips on how to orient her.
+https://docs.mistyrobotics.com/misty-ii/misty-studio/mapping/#tips-for-success
+You have 5 minutes to map the area before it automatically terminates.
+Please keep track of the Slam messages to see the current status.
+"""
+
 # Imports
 from datetime import datetime, timedelta
 import serial

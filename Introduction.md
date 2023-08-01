@@ -18,7 +18,7 @@ The version of Misty that we have [charges wirelessly](https://docs.mistyrobotic
 
 ### Internet
 
-The simplest way to connect Misty to WiFi is through the [Misty Studio mobile app](https://docs.mistyrobotics.com/tools-&-apps/mobile/misty-app/#connecting-misty-to-bluetooth-and-wi-fi). Download the app on your mobile device, turn on Bluetooth, and turn on location services for the Misty app. In the app, connect to Misty. The app may take a few minutes to load and connect, so be patient. If it still doesn’t connect, try connecting [via USB](https://docs.mistyrobotics.com/misty-ii/robot/misty-ii/#connecting-to-wi-fi).
+The simplest way to connect Misty to WiFi is through the [Misty Studio mobile app](https://docs.mistyrobotics.com/tools-&-apps/mobile/misty-app/#connecting-misty-to-bluetooth-and-wi-fi). Download [the app](https://apps.apple.com/us/app/misty-app/id1296946424) on your mobile device, turn on Bluetooth, and turn on location services for the Misty app. In the app, connect to Misty. The app may take a few minutes to load and connect, so be patient. If it still doesn’t connect, try connecting [via USB](https://docs.mistyrobotics.com/misty-ii/robot/misty-ii/#connecting-to-wi-fi).
 
 Once the mobile app is connected to Misty, the [IP address](https://docs.mistyrobotics.com/tools-&-apps/mobile/misty-app/#getting-information-about-misty) will be shown on the next screen along with the battery percentage. The app also lets the user [drive Misty](https://docs.mistyrobotics.com/tools-&-apps/mobile/misty-app/#driving-misty-with-the-misty-app).
 

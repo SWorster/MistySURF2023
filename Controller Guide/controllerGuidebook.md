@@ -49,6 +49,8 @@
 <p style="text-align: center;"> <em> Figure 3: Opening and Closing the Serial Monitor (the orange and yellow boxes respectively) </em> </p>
 
 # Run the Python File
+* If you don't have Python, [download at least 3.10](https://www.python.org/downloads/) and add it to your PATH. If you do have Python already, please update to 3.10 or later.
+
 * Install the following python packages through pip. The second line should install the packages following it, but in case it doesn’t, the others are also listed. Check back in the Misty Walkthrough for more details on what versions specifically to install if this is the case.
   * `pip install pyserial`
   * `pip install Misty-SDK`
@@ -56,9 +58,10 @@
   * `pip install websocket-client`
   * `pip install yapf`
 
-* Please note: There are 2 different files for the controller in Python because one uses syntax only introduced in Python 3.10, being the switch case adjacent match. The logic in the file that uses 3.9 is fundamentally the same, so feel free to use whichever version your machine has. This guide goes over the code from the 3.9 file.
+* Specifically: `requests` should be at least 2.25.1, `websocket-client` should be at most 0.57.0, and `yapf` should be at least 0.30.0.
+* Please make sure that you are using Python 3.10 or later, as it has some syntax that was introduced during that version. If you really want to use something earlier, make sure you change the code in the callback functions `_TOFProcessor()` and `_BumpSensor()`
 
-* When trying to run the controller file, you will need to change the IP address (line 5) to match it in the program to the one that your Misty uses. You also need to change the COM address (line 82) to match it to the one that the Arduino uses.
+* When trying to run the controller file, you will need to change the IP address (line 8) to match it in the program to the one that your Misty uses. You also need to change the COM address (line 9) to match it to the one that the Arduino uses, or if intending to use the Bluetooth module, whatever port it is connected to on your computer.
 
 * Run the file in Terminal / Command Prompt using `python <name-of-file.py>` while in the same directory and with the Arduino still plugged into your computer.
 
@@ -244,10 +247,11 @@ from mistyPy.Events import Events
 These are the libraries that the code needs. See the above section on how to install them.
 
 ```python
-misty = Robot("<insert Misty IP>")
+MISTY_IP = "<insert Misty IP>"
+ARDUINO_PORT = "<insert Arduino COM>"
 ```
 
-This line creates an instance of Misty using `mistyPy.Robot`, and needs to have the IP address as input. Refer to the overall documentation for help with getting Misty’s IP address.
+These lines are constants which contain the IP address Misty uses and the COM / port that the Arduino (or the Bluetooth module) uses when connected to your computer.
 
 ```python
 moveForwardToF = True
@@ -260,11 +264,15 @@ NORTH = 341
 SOUTH = 682
 LEFT = 341
 RIGHT = 682
+
+misty = Robot(MISTY_IP) # create a Misty instance using its IP address (which varies from robot to robot)
 ```
 
 From top to bottom, the first 2 global variables are used to allow Misty to move forwards or backwards, determined by data obtained from the time-of-flight sensors in the front and back. The next 3 globals, like the previous 2, determine whether or not Misty can move depending on whether or not the bumper sensors on the base are pressed.
 
 The 4 constants named for the directions that the joystick can be held are used as thresholds for each movement option that exists. These can be changed if the user finds that the joystick returns different values.
+
+The last thing is a Misty instance which uses the given IP address to establish a connection to the robot.
 
 *Time-of-Flight Sensor Callback*
 
@@ -275,22 +283,24 @@ def _TOFProcessor(data):
     sensor = data["message"]["sensorId"]
     valid = data["message"]["status"]
     if distance < .25 and valid == 0:
-        if sensor == "toffc":
-            moveForwardToF = False
-            misty.Stop()
-        elif sensor == "tofr":
-            moveBackwardToF = False
-            misty.Stop()
+        match sensor:
+            case "toffc":
+                moveForwardToF = False
+                misty.Stop()
+            case "tofr":
+                moveBackwardToF = False
+                misty.Stop()
     elif valid == 0 and distance > .25:
-        if sensor == "toffc":
-            moveForwardToF = True
-        elif sensor == "tofr":
-            moveBackwardToF = True
+        match sensor:
+            case "toffc":
+                moveForwardToF = True
+            case "tofr":
+                moveBackwardToF = True
 ```
 
-A time-of-flight sensor (or ToF) is used to establish the distance an object lies from the sensor by sending out a laser and calculating the distance by using the time it takes to hit the object and the speed of light.
+A time-of-flight sensor (or ToF) is used to calculate the distance an object lies from the sensor by sending out a laser and calculating the distance by using the time it takes to hit the object and the speed of light.
 
-This function is used when the event set up in main is triggered. It works by checking to see if the center sensor or rear sensor have been triggered (seeing something at a a distance of .25 meters) and it is a valid measurement. If it is, it stops Misty's movement and prevents it from moving any closer. Once Misty moves out of range, she can move in the original direction she was heading.
+This function is used when the event set up in main is triggered. It works by checking to see if the front center sensor or rear sensor have been triggered (seeing something at a a distance of .25 meters) and it is a valid measurement. If it is, it stops Misty's movement and prevents it from moving any closer. Once Misty moves out of range, she can move in the original direction she was heading.
 
 A caveat with this function is that Misty has to move out of the way, not the object she detected. This will be further explored later to see if we can adjust the code such that it doesn't need to be this way.
 
@@ -303,31 +313,34 @@ def _BumpSensor(data):
         touched = data["message"]["isContacted"]
         partTouched = data["message"]["sensorId"]
         if touched:
-            if partTouched == "bfr":
-                misty.ChangeLED(255, 0, 0)
-                bumperTouched[1] = True
-                misty.Stop()
-            elif partTouched == "bfl":
-                misty.ChangeLED(0, 255, 0)
-                bumperTouched[0] = True
-                misty.Stop()
-            elif partTouched == "brl":
-                misty.ChangeLED(0, 0, 255)
-                bumperTouched[2] = True
-                misty.Stop()
-            elif partTouched == "brr":
-                misty.ChangeLED(69, 69, 69)
-                bumperTouched[3] = True
-                misty.Stop()
+            misty.PlayAudio("A_VineBoom.mp3", 5)
+            match partTouched:
+                case "bfr": # front right
+                    bumperTouched[1] = True
+                    misty.ChangeLED(255, 0, 0)
+                    misty.Stop()
+                case "bfl": # front left
+                    bumperTouched[0] = True
+                    misty.ChangeLED(0, 255, 0)
+                    misty.Stop()
+                case "brl": # back left
+                    bumperTouched[2] = True
+                    misty.ChangeLED(0, 0, 255)
+                    misty.Stop()
+                case "brr": # back right
+                    bumperTouched[3] = True
+                    misty.ChangeLED(69, 69, 69)
+                    misty.Stop()
         else:
-            if partTouched == "bfr":
-                bumperTouched[1] = False
-            if partTouched == "bfl":
-                bumperTouched[0] = False
-            if partTouched == "brl":
-                bumperTouched[2] = False
-            if partTouched == "brr":
-                bumperTouched[3] = False
+            match partTouched:
+                case "bfr":
+                    bumperTouched[1] = False
+                case "bfl":
+                    bumperTouched[0] = False
+                case "brl":
+                    bumperTouched[2] = False
+                case "brr":
+                    bumperTouched[3] = False
         if bumperTouched[0] == False and bumperTouched[1] == False:
             contactFrontBumper = False
         else:
@@ -340,7 +353,7 @@ def _BumpSensor(data):
         print("EXCEPTION:", e)
 ```
 
-There are 4 bumper sensors on the robot's base, which is what this function uses. When any of the 4 bumper sensors are pressed, the LED on Misty's chest changes color and her movement will stop. The color depends on the last sensor pressed, meaning that one can be pressed and then another which is recognized and the color shown will be of the most recent sensor. After the sensors are no longer in contact with anything, Misty will be able to move again.
+There are 4 bumper sensors on the robot's base, which is what this function uses. When any of the 4 bumper sensors are pressed, the LED on Misty's chest changes color, she will make a noise, and her movement will stop. The color depends on the last sensor pressed, meaning that one can be pressed and then another which is recognized and the color shown will be of the most recent sensor. After the sensors are no longer in contact with anything, Misty will be able to move again.
 
 *Treads Control*
 
@@ -349,21 +362,21 @@ def treads(coords):
     split = coords.split()
     x = int(split[0])
     y = int(split[1])
-    if y < NORTH and x > LEFT and x < RIGHT and (not contactFrontBumper) and moveForwardToF:
+    if y < NORTH and x > LEFT and x < RIGHT and (not contactFrontBumper) and moveForwardToF: # move forward (hold up on joystick)
         misty.Drive(linearVelocity = 20, angularVelocity = 0)
-    elif y > SOUTH and x > LEFT and x < RIGHT and (not contactBackBumper) and moveBackwardToF:
+    elif y > SOUTH and x > LEFT and x < RIGHT and (not contactBackBumper) and moveBackwardToF: # move backward (hold down on joystick)
         misty.Drive(linearVelocity = -20, angularVelocity = 0)
-    elif x < LEFT and y > NORTH and y < SOUTH:
-        misty.Drive(linearVelocity = 0, angularVelocity = 50)
-    elif x > RIGHT and y > NORTH and y < SOUTH:
-        misty.Drive(linearVelocity = 0, angularVelocity = -50)
-    elif x < LEFT and y < NORTH and (not contactFrontBumper) and moveForwardToF:
+    elif x < LEFT and y > NORTH and y < SOUTH: # turn left (hold left on joystick)
+        misty.Drive(linearVelocity = 0, angularVelocity = 20)
+    elif x > RIGHT and y > NORTH and y < SOUTH: # turn right (hold right on joystick)
+        misty.Drive(linearVelocity = 0, angularVelocity = -20)
+    elif x < LEFT and y < NORTH and (not contactFrontBumper) and moveForwardToF: # forward + left (hold upper left on joystick)
         misty.Drive(linearVelocity = 20, angularVelocity = 20)
-    elif x > RIGHT and y < NORTH and (not contactFrontBumper) and moveForwardToF:
+    elif x > RIGHT and y < NORTH and (not contactFrontBumper) and moveForwardToF: # forward + right (hold upper right on joystick)
         misty.Drive(linearVelocity = 20, angularVelocity = -20)
-    elif x < LEFT and y > SOUTH and (not contactBackBumper) and moveBackwardToF:
+    elif x < LEFT and y > SOUTH and (not contactBackBumper) and moveBackwardToF: # backward + left (hold lower left on joystick)
         misty.Drive(linearVelocity = -20, angularVelocity = 20)
-    elif x > RIGHT and y > SOUTH and (not contactBackBumper) and moveBackwardToF:
+    elif x > RIGHT and y > SOUTH and (not contactBackBumper) and moveBackwardToF: # backward + right (hold lower right on joystick)
         misty.Drive(linearVelocity = -20, angularVelocity = -20)
     else:
         misty.Stop()
@@ -483,18 +496,15 @@ The purpose of having this function is to disable the hazard system's time-of-fl
 ```python
 if __name__ == "__main__":
     init()
-    ser = serial.Serial("<insert Arduino COM>", 9600, timeout = 1)
-    time.sleep(1)
-    
+    ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+    time.sleep(1) # stop for a second
+
     'set up the event listeners for the bumpers and ToF respectively'
     misty.RegisterEvent(event_name = "stop", event_type = Events.BumpSensor, callback_function = _BumpSensor, keep_alive = True)
     misty.RegisterEvent(event_name = "tof", event_type = Events.TimeOfFlight, callback_function = _TOFProcessor, keep_alive = True, debounce = 150)
 
     while True:
-        try:
-            line = ser.readline() # get next line of the serial monitor (its in bytes)
-        except:
-            print("Serial reading issue, please wait.")
+        line = ser.readline() # get next line of the serial monitor (its in bytes)
         if line:
             string = line.decode() # convert the bytes to a string
             if " " in string:
@@ -502,18 +512,17 @@ if __name__ == "__main__":
                 mode(strip)
                 if int(strip.split()[2]) == 4: # break out of infinite while if specific button pressed
                     misty.UnregisterAllEvents()
+                    misty.StopAudio()
                     break
     ser.close() # close the serial connection
 ```
 
-First, some global variables (which is part of the 2 callback functions still under edit). These keep track of which of Misty's bumper sensors have been triggered and if the robot is allowed to move respectively.
-
-The next thing called is `init()`, which was discussed above. This is important since it resets the head position and disables the sensors on the bottom which changed the movement the robot could take.
+The first thing called is `init()`, which was discussed above. This is important since it resets the head position and disables the sensors on the bottom which hindered the movement the robot could take. This may not be needed on other Misty units, but on this one, it is.
 
 Using [`serial.Serial()`](https://pythonhosted.org/pyserial/pyserial_api.html) we are able to open communications between the COM port on a computer and this Python script.
 
 [`misty.RegisterEvent()`](https://docs.mistyrobotics.com/misty-ii/dotnet-sdk/dotnet-skill-architecture/#registering-amp-unregistering-events) creates a listener to check if a certain peripheral has been triggered. The 2 instances here create listeners for the bumpers and the TOF sensors. Other types of events can be found [here](https://docs.mistyrobotics.com/misty-ii/robot/sensor-data/). Afterwards, the LED on Misty's chest will change color.
 
-[`Ser.readline()`](https://pyserial.readthedocs.io/en/latest/shortintro.html?highlight=readline#readline) lets us get a single line of data from the Serial Monitor in a byte object. If this results in anything, it goes ahead and decodes it from being in bytes to being a string in Python we can manipulate. We then check to make sure that there is a space in the string, as it would not be a valid piece of data otherwise. If there is, the string will be stripped of the newline character that comes at the end of it, and the result will be passed into `mode()`.
+[`ser.readline()`](https://pyserial.readthedocs.io/en/latest/shortintro.html?highlight=readline#readline) lets us get a single line of data from the Serial Monitor in a byte object. If this results in anything, it goes ahead and decodes it from being in bytes to being a string in Python we can manipulate. We then check to make sure that there is a space in the string, as it would not be a valid piece of data otherwise. If there is, the string will be stripped of the newline character that comes at the end of it, and the result will be passed into `mode()`.
 
 After `mode()` evaluates, if the mode is equal to 4, that means that the user pressed the button corresponding to 4 and the code will break out of the infinite `while`  that was made and then will close the communication between the Serial Monitor and the Python script and terminate the program.
