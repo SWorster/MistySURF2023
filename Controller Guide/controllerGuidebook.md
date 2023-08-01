@@ -50,6 +50,12 @@
 
 <p style="text-align: center;"> <em> Figure 3: Opening and Closing the Serial Monitor (the orange and yellow boxes respectively) </em> </p>
 
+# Connecting the Bluetooth Module to Your Computer
+
+For Windows users, you will need to first connect to it via your Bluetooth settings. The password should be either 1234 or 0000 if it is at its defaults. Then, go to Control Panel and click *View devices and printers*. Scroll down to select the module and click the *Hardware* tab. Note down the *Standard Serial over Bluetooth* COM port, which will be used in the Python program.
+
+For Mac and Linux users, you should also start by connecting to the module in your Bluetooth settings, password referenced above. Then open a Terminal window and type `ls /dev/tty.*` and press enter. You should see something like `/dev/tty.HC-05` listed. Use this in the Python program in place of the COM port used in Windows.
+
 # Run the Python File
 * If you don't have Python, [download at least 3.10](https://www.python.org/downloads/) and add it to your PATH. If you do have Python already, please update to 3.10 or later.
 
