@@ -18,6 +18,11 @@ Pip may throw an error about dependency conflicts. To resolve this issue:
 ```bash
 pip uninstall other-dependency
 ```
+
+Ensure that you are running Python 3.10 by default in your workspace. To change this on VS Code, go to View -> Command Pallete and type "Python: Select Interpreter". Choose version 3.10 from the list.
+
+If your pip installs to a previous Python version, use the command `python3.10 -m pip install <package>`.
+
 ### Tutorial #1: Changing LED
 
 The full program for the following tutorial can be found [here](https://github.com/SWorster/MistySURF2023/blob/0ff3fb9d27d6f82c197689427d18adab826a54fc/Python%20Tutorials/tutorial1.py).
