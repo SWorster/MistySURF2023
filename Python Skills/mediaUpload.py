@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 This code assumes that you've cloned the GitHub repo to your computer. Replace the path variable with the path to your clone's "Misty Photos" directory.
 

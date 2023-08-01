@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 Gets current SelfState data. Compares data from "location", "pose", and "homogeneousCoordinates". If different, prints differences. If identical (which they usually are), only prints one.
 

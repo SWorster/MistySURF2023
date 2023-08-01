@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 Ensures Misty has the same photos and audio as the GitHub repository, and deletes extraneous photos and audio.
 

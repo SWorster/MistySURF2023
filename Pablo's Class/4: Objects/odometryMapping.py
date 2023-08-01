@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster, with invaluable assistance from Julia Yu
+Skye Weaver Worster '25J, with invaluable assistance from Julia Yu '24
 
 Pablo's Instructions: Have the sequence of motions from the "Obj Interaction" Activity printed out and a graphical representation of the path visualized (forward 30cm; left 45 degrees; forward 55cm; right 15 degrees; etc). basically, run previous activity and record movement/position data, then display on top of provided map
 

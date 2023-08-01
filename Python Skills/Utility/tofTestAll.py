@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 Useful test of Misty's TOF sensors. Gets data from all TOF sensors, printing to console if within default tolerances.
 
@@ -46,22 +46,22 @@ def _Back(data):
 def _DRight(data):
     # if drop-off detected and distance is valid, print
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
-        print("DOWNRIGHT: ", data["message"]["distanceInMeters"])
+        print("DOWN RIGHT: ", data["message"]["distanceInMeters"])
 
 
 def _DLeft(data):
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
-        print("DOWNLEFT: ", data["message"]["distanceInMeters"])
+        print("DOWN LEFT: ", data["message"]["distanceInMeters"])
 
 
 def _BL(data):
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
-        print("BACKLEFT: ", data["message"]["distanceInMeters"])
+        print("BACK LEFT: ", data["message"]["distanceInMeters"])
 
 
 def _BR(data):
     if data["message"]["distanceInMeters"] >= edge and data["message"]["status"] == 0:
-        print("BACKRIGHT: ", data["message"]["distanceInMeters"])
+        print("BACK RIGHT: ", data["message"]["distanceInMeters"])
 
 
 if __name__ == "__main__":

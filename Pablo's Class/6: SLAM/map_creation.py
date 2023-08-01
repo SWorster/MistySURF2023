@@ -1,4 +1,6 @@
 """
+Julia Yu '24
+
 This program allows the user to create a map of an area Misty is in, please refer to the official documentation for tips on how to orient her.
 https://docs.mistyrobotics.com/misty-ii/misty-studio/mapping/#tips-for-success
 You have 5 minutes to map the area before it automatically terminates.
@@ -89,7 +91,7 @@ def init(): # Resets Misty's head position and LED color. Disables the hazard To
 
 if __name__ == "__main__":
     init()
-    ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+    ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the Arduino is connected to to get serial data from it
     misty.RegisterEvent(event_name = "stats", event_type = Events.SlamStatus, callback_function = _SlamData, keep_alive = True) # create an event listener for Misty's slam status
     misty.StartMapping() # starts the mapping process
     while True:

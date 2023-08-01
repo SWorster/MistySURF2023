@@ -1,8 +1,10 @@
 # Python Programming
 
+##### Skye Weaver Worster '25J
+
 Content is from [here](https://github.com/MistyCommunity/Python-SDK) with supplements from [here](https://github.com/MistyCommunity/Wrapper-Python), though a bit outdated.
 
-First, ensure Python is [updated](https://www.pythoncentral.io/how-to-update-python/) to at least 3.11 (however, this tutorial should work for 3.9 to 3.11). Add it as an interpreter in VS Code by going to View -> Command Pallete and typing "Python: Select Interpreter". If 3.11 is not already an option, click "Enter Interpreter Path" and navigate to the location of your 3.11 IDLE.
+First, ensure Python is [updated](https://www.pythoncentral.io/how-to-update-python/) to at least 3.11 (however, this tutorial should work for 3.9 to 3.11). Add it as an interpreter in VS Code by going to View -> Command Palette and typing "Python: Select Interpreter". If 3.11 is not already an option, click "Enter Interpreter Path" and navigate to the location of your 3.11 IDLE.
 
 Now we need to install packages for 3.11. In a _new_ VS Code terminal, type `pip -V` to view the version of your pip.
 
@@ -19,7 +21,7 @@ pip install numpy
 
 #### Troubleshooting
 
-If the terminal isn't using the right version of pip, create a new terminal. If that doesn't fix it, use the Command Pallete again and type "Python: Create Environment". Choose "Venv", then select 3.11 as the interpreter. This should force pip to be the right version; confirm this by running `pip -V` in a new terminal again. If you want to continue using a virtual environment, use `python3 -m pip install <name>` to install dependencies. If you'd rather use the global libraries, type "Python: Select Interpreter" in the Command Pallete and continue in a new terminal.
+If the terminal isn't using the right version of pip, create a new terminal. If that doesn't fix it, use the Command Palette again and type "Python: Create Environment". Choose "Venv", then select 3.11 as the interpreter. This should force pip to be the right version; confirm this by running `pip -V` in a new terminal again. If you want to continue using a virtual environment, use `python3 -m pip install <name>` to install dependencies. If you'd rather use the global libraries, type "Python: Select Interpreter" in the Command Palette and continue in a new terminal.
 
 Pip may throw an error about dependency conflicts. To resolve this issue: `pip uninstall <other-dependency-name>`.
 

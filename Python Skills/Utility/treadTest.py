@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 Takes driving parameters, moves Misty, and creates a graph of her tread movement. All globals can be edited to change Misty's behavior, graph properties, etc.
 

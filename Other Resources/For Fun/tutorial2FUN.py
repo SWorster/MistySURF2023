@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 This was done entirely for fun, so I'm not updating/documenting it at all. Use at your own risk.
 '''
@@ -24,7 +24,7 @@ stopped = 0.001  # speed at which is_driving is False
 
 
 def tof_callback(data):  # callback for TOF
-    global is_driving, limit
+    global is_driving
     try:
         distance = data["message"]["distanceInMeters"]
         if (distance < limit and is_driving):  # if driving into obstacle

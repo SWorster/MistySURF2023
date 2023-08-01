@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 Sensing Modalities (DEPRECATED). This became the files in the "Activity 3" folder. I'm just keeping this around as a reference, and I'm not updating/documenting it any further.
 

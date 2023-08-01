@@ -1,5 +1,7 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
+
+DEPRECATED: no longer using "A_name" system to sort audio.
 
 This code deletes all images that aren't system assets or ones we've specified we want to keep. If you want to keep some images, rename them with the first letter "A" (example: "A_importantImage.jpg"). This isn't a standard convention or anything; I just made it up on the spot and it works. ¯\_(ツ)_/¯
 '''

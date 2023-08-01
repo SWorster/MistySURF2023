@@ -1,6 +1,6 @@
 # Introduction to Misty
 
-#### Julia Yu and Skye Worster
+#### Julia Yu '24 and Skye Weaver Worster '25J
 
 ## Setup
 

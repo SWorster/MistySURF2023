@@ -1,5 +1,7 @@
 """
-This program lets the user interact with the differnt commands that Misty can run that utilize her mapping capability (minus the creation of them).
+Julia Yu '24
+
+This program lets the user interact with the different commands that Misty can run that utilize her mapping capability (minus the creation of them).
 It is recommended to first set the current map and then attempt to have her follow a path, as sometimes it can be somewhat buggy.
 Note that all SLAM commands are technically in alpha, so try not to be too mad if things don't work.
 If they don't work, please go to Misty Studio to reset her SLAM capabilities.
@@ -133,10 +135,10 @@ def click_event(event, x, y, flags, params): # code restructured from https://ww
     global x_path_coords, y_path_coords
     height = img.shape[0]
     width = img.shape[1]
-    if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_RBUTTONDOWN:
+    if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_LBUTTONDOWN:
         print(height - y, " ", width - x)
         x_path_coords.append(height - y) # note: the appended coords should in theory be correct since the maps tend to be squares
-        y_path_coords.append(width - x) # so that means the height/width can possibly be interchangable?
+        y_path_coords.append(width - x) # so that means the height/width can possibly be interchangeable?
         font = cv2.FONT_HERSHEY_SIMPLEX
         cv2.putText(img, str(height - y) + "," + str(width - x), (x, y), font, .4, (255, 0, 0), 2)
         cv2.imshow("image", img)
@@ -144,7 +146,7 @@ def click_event(event, x, y, flags, params): # code restructured from https://ww
 def follow_path(): # follows a user-specified path via tracking
     if len(x_path_coords) > 0: # checks to see that there is a path already stored for Misty to follow
         misty.RegisterEvent(event_name = "stats", event_type = Events.SlamStatus, callback_function = _SlamStats, keep_alive = True)
-        ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+        ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the Arduino is connected to to get serial data from it
         misty.ResetSlam()
     else:
         print("Please create a path first!")
@@ -208,7 +210,7 @@ def init():
 
 if __name__ == "__main__":
     init()
-    print("Welcome to the programized map controller.\nYou have the following options:")
+    print("Welcome to the programmatic map controller.\nYou have the following options:")
     print_instructions()
     choice = "0"
     while choice != "11":
@@ -238,7 +240,7 @@ if __name__ == "__main__":
                     img = cv2.imread(map_to_path, 1)
                     cv2.imshow('image', img)
                 except:
-                    print("Exception occured, check the file name and directory")
+                    print("Exception occurred, check the file name and directory")
                 else:
                     print("Use the cursor to indicate the places you want Misty to go.\nOnce done, press any key to exit.")
                     cv2.setMouseCallback('image', click_event)

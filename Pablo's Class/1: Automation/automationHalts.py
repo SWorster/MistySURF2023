@@ -1,5 +1,5 @@
 '''
-Skye Weaver Worster
+Skye Weaver Worster '25J
 
 Misty looks around, trying to find the target's face. If she finds it, she starts following the target with her head. If not, she is sad and the program ends. Target has to be known, and their name must be provided. To end program, hit bump sensor.
 '''
@@ -140,7 +140,7 @@ def _FaceRecognition(data):  # searches for target
         face = data["message"]["label"]  # face from data
         print(face)
 
-        # if known: stop, unregister and reregister to start second phase
+        # if known: stop, unregister and re-register to start second phase
         if face == person:
             global seen
             seen = True  # stops while loops
