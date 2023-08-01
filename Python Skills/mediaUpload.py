@@ -1,7 +1,7 @@
 '''
 Skye Weaver Worster
 
-This code assumes that you've cloned the github repo to your computer. Replace the path variable with the path to your clone's "Misty Photos" directory.
+This code assumes that you've cloned the GitHub repo to your computer. Replace the path variable with the path to your clone's "Misty Photos" directory.
 
 For a version that also deletes extraneous images and audio, see mediaSync.py.
 '''
@@ -15,9 +15,9 @@ your_path = "/Users/skyeworster"  # ! replace "skyeworster" with your path
 misty = Robot("131.229.41.135")  # Misty robot with your IP
 
 
-# get github images
+# get GitHub images
 img_path = f"{your_path}/MistySURF2023/Other Resources/Misty Photos"
-gh_images = os.listdir(img_path)  # list of images in github repo
+gh_images = os.listdir(img_path)  # list of images in GitHub repo
 gh_images.sort(key=str.lower)  # sort alphabetically (not case-sensitive)
 
 
@@ -28,8 +28,8 @@ for x in misty_images:
     if x["systemAsset"] == False:  # if not a system asset
         short_img.append(x["name"])  # add name to short list
 
-for x in gh_images:  # look at all github images
-    if x not in short_img:  # if image in github but not Misty
+for x in gh_images:  # look at all GitHub images
+    if x not in short_img:  # if image in GitHub but not Misty
         print(f"{x} is not on Misty... ", end="")  # print to console
         try:
             with open(f"{img_path}/{x}", "rb") as img:  # open image for reading
@@ -43,9 +43,9 @@ for x in gh_images:  # look at all github images
             print(f"Could not save {x}: {e}")
 
 
-# get github audio
+# get GitHub audio
 sound_path = f"{your_path}/MistySURF2023/Other Resources/Misty Sounds"
-gh_sounds = os.listdir(sound_path)  # list of sounds in github repo
+gh_sounds = os.listdir(sound_path)  # list of sounds in GitHub repo
 gh_sounds.sort(key=str.lower)  # sort alphabetically (not case-sensitive)
 
 
@@ -57,8 +57,8 @@ for x in misty_sounds:
         short_sounds.append(x["name"])  # add name to short list
 
 
-for x in gh_sounds:  # look at all github clips
-    if x not in short_sounds:  # if clip in github but not Misty
+for x in gh_sounds:  # look at all GitHub clips
+    if x not in short_sounds:  # if clip in GitHub but not Misty
         print(f"{x} is not on Misty... ", end="")  # print to console
         try:
             with open(f"{sound_path}/{x}", "rb") as au:  # open clip for reading
