@@ -40,8 +40,6 @@ def _BumpSensor(data):
 misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
 # register for bump sensor
-misty.RegisterEvent(
-    "BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor
-)
+misty.RegisterEvent("BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor)
 
 misty.Drive(lin_vel, ang_vel)  # drive until stopped

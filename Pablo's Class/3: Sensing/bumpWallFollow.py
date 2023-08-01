@@ -102,17 +102,9 @@ def _BumpSensor(data):
 misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
 # register for bump sensor
-misty.RegisterEvent(
-    "BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor
-)
+misty.RegisterEvent("BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor)
 
 # subscribe to DriveEncoders
-misty.RegisterEvent(
-    "DriveEncoders",
-    Events.DriveEncoders,
-    keep_alive=True,
-    debounce=DE_debounce,
-    callback_function=_DriveEncoders,
-)
+misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
 
 misty.Drive(lin_vel, 0)  # drive forward slowly
