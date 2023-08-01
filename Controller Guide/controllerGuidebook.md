@@ -12,6 +12,8 @@
 
 ##### Note: the board in the picture is a Nano, but Nano Every has the same pin ordering, size, and better specs
 
+##### Also, the code does not match either diagram, either wire the controller according to the diagram and change the code, or, wire the controller according to the code.
+
 ![Arduino Nano Layout](imgs/nano_wiring.png)
 
 # Uploading the Arduino code to the board
