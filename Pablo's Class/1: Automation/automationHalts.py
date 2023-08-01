@@ -59,15 +59,12 @@ hYaw = None  # tracks head yaw
 
 
 def _BumpSensor(data):  # ends program when bumped
-    try:
-        misty.UnregisterAllEvents()  # unregister events
-        global seen
-        seen = True  # stops following, if active
-        misty.ChangeLED(0, 0, 0)  # LED off
-        misty.StopFaceRecognition()  # stop facial recognition
-        print("end of program")  # confirm program has ended
-    except Exception as e:
-        print("\nCOULD NOT END PROGRAM", e, "\n")
+    misty.UnregisterAllEvents()  # unregister events
+    global seen
+    seen = True  # stops following, if active
+    misty.ChangeLED(0, 0, 0)  # LED off
+    misty.StopFaceRecognition()  # stop facial recognition
+    print("end of program")  # confirm program has ended
 
 
 def _HeadPitch(data):  # gets current head pitch, passes to global var
