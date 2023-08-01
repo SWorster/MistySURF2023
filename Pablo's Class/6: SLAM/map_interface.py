@@ -135,7 +135,7 @@ def click_event(event, x, y, flags, params): # code restructured from https://ww
     global x_path_coords, y_path_coords
     height = img.shape[0]
     width = img.shape[1]
-    if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_LBUTTONDOWN:
+    if event == cv2.EVENT_LBUTTONDOWN or event == cv2.EVENT_RBUTTONDOWN:
         print(height - y, " ", width - x)
         x_path_coords.append(height - y) # note: the appended coords should in theory be correct since the maps tend to be squares
         y_path_coords.append(width - x) # so that means the height/width can possibly be interchangeable?
