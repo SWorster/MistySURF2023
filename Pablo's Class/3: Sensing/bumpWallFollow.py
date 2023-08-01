@@ -1,16 +1,16 @@
-'''
+"""
 Skye Weaver Worster '25J
 
 Misty uses her bump sensors to follow a wall. She halts when more than one bumper is pressed.
 
 WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
-'''
+"""
 
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot with your IP
-volume = 2  # volume for audio
+volume = 10  # volume for audio
 DE_debounce = 100  # drive encoders debounce
 
 # driving parameters
@@ -36,9 +36,11 @@ def _DriveEncoders(data):
         if backup:  # if in backup mode (regardless of whether still in contact)
             left_vel = abs(data["message"]["leftVelocity"])
             right_vel = abs(data["message"]["rightVelocity"])
-            vel = left_vel+right_vel  # total velocity
+            vel = left_vel + right_vel  # total velocity
 
-            if vel > min_speed and not driving:  # if moving and haven't flipped driving yet
+            if (
+                vel > min_speed and not driving
+            ):  # if moving and haven't flipped driving yet
                 driving = True  # have started driving
             elif vel < min_speed and not driving:  # if haven't started driving yet
                 pass  # wait for treads to start moving
@@ -65,7 +67,7 @@ def _BumpSensor(data):
         if current != None:  # if multiple bumpers hit, end program
             misty.Stop()  # stop moving
             misty.ChangeLED(0, 0, 0)  # LED off
-            misty.PlayAudio("meow1.mp3", volume=volume)
+            misty.PlayAudio("meow1.mp3", volume)
             misty.UnregisterAllEvents()  # unregister and reset hazards
             misty.UpdateHazardSettings(revertToDefault=True)
 
@@ -86,28 +88,31 @@ def _BumpSensor(data):
                 misty.ChangeLED(255, 160, 0)  # yellow
                 misty.DriveTime(lin_turn, -ang_vel, d_time)  # go front left
 
-    else:  # if data["message"]["isContacted"] == False:  # if sensor released
+    else:  # if sensor released
         misty.ChangeLED(0, 0, 0)  # LED off
 
         name = data["message"]["sensorId"]  # get name
         if name == current:
-            # free = True
             current = None
 
     print("current", current)
 
 
-if __name__ == "__main__":
+# ignore TOF sensors
+misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
-    # ignore TOF sensors
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)
+# register for bump sensor
+misty.RegisterEvent(
+    "BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor
+)
 
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                        keep_alive=True, callback_function=_BumpSensor)
+# subscribe to DriveEncoders
+misty.RegisterEvent(
+    "DriveEncoders",
+    Events.DriveEncoders,
+    keep_alive=True,
+    debounce=DE_debounce,
+    callback_function=_DriveEncoders,
+)
 
-    # subscribe to DriveEncoders
-    misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True,
-                        debounce=DE_debounce, callback_function=_DriveEncoders)
-
-    misty.Drive(lin_vel, 0)  # drive forward slowly
+misty.Drive(lin_vel, 0)  # drive forward slowly
