@@ -4,6 +4,8 @@
 
 ## Wiring the Circuit
 
+##### The code does not match either diagram, either wire the controller according to the diagram and change the code, or, wire the controller according to the code.
+
 ### [Arduino Uno Version](https://www.circuito.io/app?components=97,97,97,97,512,11021,611984,2631981)
 
 ![Arduino Uno Layout](imgs/uno_wiring.png)
@@ -11,8 +13,6 @@
 ### [Arduino Nano / Nano Every Version](https://www.circuito.io/app?components=97,97,97,97,514,11022,611984,2631981)
 
 ##### Note: the board in the picture is a Nano, but Nano Every has the same pin ordering, size, and better specs
-
-##### Also, the code does not match either diagram, either wire the controller according to the diagram and change the code, or, wire the controller according to the code.
 
 ![Arduino Nano Layout](imgs/nano_wiring.png)
 
