@@ -2,26 +2,26 @@
 
 Content is from [here](https://github.com/MistyCommunity/Python-SDK) with supplements from [here](https://github.com/MistyCommunity/Wrapper-Python), though a bit outdated.
 
-First, ensure Python is [updated](https://www.pythoncentral.io/how-to-update-python/) to at least 3.10. Then type the following commands into the Terminal to install the required dependencies:
+First, ensure Python is [updated](https://www.pythoncentral.io/how-to-update-python/) to at least 3.11 (however, this tutorial should work for 3.9 to 3.11). Add it as an interpreter in VS Code by going to View -> Command Pallete and typing "Python: Select Interpreter". If 3.11 is not already an option, click "Enter Interpreter Path" and navigate to the location of your 3.11 IDLE.
 
-```bash
-pip install requests
-pip install websocket-client
-pip install yapf
-pip install Misty-SDK
+Now we need to install packages for 3.11. In a _new_ VS Code terminal, type `pip -V` to view the version of your pip.
+
+The command `pip install Misty-SDK` should also install the other required dependencies. `requests` should be at least 2.25.1 and `yapf` should be at least 0.30.0. `websocket-client` should be _at most_ 0.57.0; if a more recent version is installed, run `pip uninstall websocket-client` and `pip install websocket-client==0.57.0`.
+
+Other files we've created in this project use more dependencies, which are listed below:
+
+```
+pip install pyserial
+pip install opencv-python
+pip install Pillow
+pip install numpy
 ```
 
-`requests` should be at least 2.25.1, `websocket-client` should be _at most_ 0.57.0, and `yapf` should be at least 0.30.0.
+#### Troubleshooting
 
-Pip may throw an error about dependency conflicts. To resolve this issue:
+If the terminal isn't using the right version of pip, create a new terminal. If that doesn't fix it, use the Command Pallete again and type "Python: Create Environment". Choose "Venv", then select 3.11 as the interpreter. This should force pip to be the right version; confirm this by running `pip -V` in a new terminal again. If you want to continue using a virtual environment, use `python3 -m pip install <name>` to install dependencies. If you'd rather use the global libraries, type "Python: Select Interpreter" in the Command Pallete and continue in a new terminal.
 
-```bash
-pip uninstall other-dependency
-```
-
-Ensure that you are running Python 3.10 by default in your workspace. To change this on VS Code, go to View -> Command Pallete and type "Python: Select Interpreter". Choose version 3.10 from the list.
-
-If your pip installs to a previous Python version, use the command `python3.10 -m pip install <package>`.
+Pip may throw an error about dependency conflicts. To resolve this issue: `pip uninstall <other-dependency-name>`.
 
 ### Tutorial #1: Changing LED
 
