@@ -11,11 +11,13 @@ from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot with your IP
 volume = 2  # volume for audio
+DE_debounce = 100  # drive encoders debounce
+
+# driving parameters
 lin_vel = 10  # linear velocity for driving forward
 lin_turn = 5  # linear velocity for backing up turn. Don't set this too low!
 ang_vel = 80  # angular velocity for backing up turn
 d_time = 1500  # drive time for backing up turn, in milliseconds
-DE_debounce = 100  # drive encoders debounce
 min_speed = 1  # the minimum speed at which Misty is still considered to be "driving"
 
 # ! Do not change these!

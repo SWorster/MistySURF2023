@@ -14,12 +14,12 @@ misty = Robot("131.229.41.135")  # Misty robot with your IP
 last_place = ""  # last place Misty was touched (starts empty)
 
 # audio volumes
-purr1 = 5
-purr2 = 5
-meow1 = 1
-meow2 = 1
-meow3 = 1
-hiss = 1
+purr1 = 10
+purr2 = 10
+meow1 = 5
+meow2 = 5
+meow3 = 5
+hiss = 5
 
 
 def _BumpSensor(data):  # when bumped, program ends

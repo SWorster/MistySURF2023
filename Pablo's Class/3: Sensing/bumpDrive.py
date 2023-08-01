@@ -30,20 +30,17 @@ def _BumpSensor(data):
             misty.ChangeLED(255, 160, 0)  # yellow
         misty.PlayAudio("meow1.mp3", volume=volume)
 
-        # unregister and reset hazards
-        misty.UnregisterAllEvents()
+        misty.UnregisterAllEvents()  # unregister and reset hazards
         misty.UpdateHazardSettings(revertToDefault=True)
         time.sleep(3)  # wait before turning off LED
         misty.ChangeLED(0, 0, 0)
 
 
-if __name__ == "__main__":
+# ignore TOF sensors
+misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
-    # ignore TOF sensors
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)
+# register for bump sensor
+misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                    keep_alive=True, callback_function=_BumpSensor)
 
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                        keep_alive=True, callback_function=_BumpSensor)
-
-    misty.Drive(lin_vel, ang_vel)  # drive until stopped
+misty.Drive(lin_vel, ang_vel)  # drive until stopped
