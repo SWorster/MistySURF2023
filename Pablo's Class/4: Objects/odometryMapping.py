@@ -74,7 +74,7 @@ PHASE 1: LOCALIZATION
 
 
 def _SelfState(data):
-    'get current location in grid (current map)'
+    #get current location in grid (current map)
     global current_x, current_y
     if data["message"]["occupancyGridCell"]["x"] == 0:
         print(".", end="", flush=True)  # show we're waiting on this
@@ -101,7 +101,7 @@ def _SlamStatus(data):
 
 
 def localize():
-    'get current location before running behavior'
+    #get current location before running behavior
     global start_x, start_y, is_tracking
 
     try:
