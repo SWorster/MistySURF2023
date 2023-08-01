@@ -132,7 +132,7 @@ void setup() {
     Serial.begin(9600);
     while (!Serial);
   #else
-    #error "What are you using?"
+    #error "Board Error"
   #endif
 
   pinMode(TREAD_BTN, INPUT);
@@ -212,7 +212,7 @@ void loop() {
     Serial.print(" ");
     Serial.println(mode);
   #else
-    #error "What are you using?"
+    #error "Board Error"
   #endif
 
   delay(timeDelay);
