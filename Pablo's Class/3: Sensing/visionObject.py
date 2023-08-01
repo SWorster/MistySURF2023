@@ -15,7 +15,7 @@ misty = Robot("131.229.41.135")  # robot object
 min_confidence = .6  # confidence required to send event, from 0 to 1
 OD_debounce = 1000  # object detection debounce, in ms
 volume = 5  # audio volume
-
+louder_volume = 100 # to boost quieter sounds
 
 def _BumpSensor(data):
     misty.StopObjectDetector()  # stop detecting objects
@@ -41,6 +41,10 @@ def _ObjectDetection(data):
         misty.UnregisterEvent("ObjectDetection")
     elif object == "bottle":
         misty.PlayAudio("RickrollShort.mp3", volume)
+        misty.ChangeLED(255, 0, 0)
+        misty.UnregisterEvent("ObjectDetection")
+    elif object == "person":
+        misty.PlayAudio("soothingMusic.mp3", volume)
         misty.ChangeLED(255, 0, 0)
         misty.UnregisterEvent("ObjectDetection")
 
