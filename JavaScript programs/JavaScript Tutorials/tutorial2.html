@@ -1,3 +1,4 @@
+<!--Skye Weaver Worster '25J-->
 <!DOCTYPE html>
 <html>
 
@@ -71,7 +72,7 @@
 
                 // Write an if statement to check if the distance is smaller than 0.2 meters.
                 if (distance < 0.2) {
-                    
+
                     // If the instance is less than 0.2 meters, send a request to endpoint for the Stop command.
                     axios.post("http://" + ip + "/api/drive/stop")
                         .then(function (response) {
@@ -93,10 +94,10 @@
 
             // Use try and catch statements to handle exceptions and unimportant messages
             try {
-                velocity = (data.message.leftVelocity + data.message.rightVelocity) /2;
+                velocity = (data.message.leftVelocity + data.message.rightVelocity) / 2;
 
                 // Track whether Misty has started moving
-                if (velocity > 0.01){
+                if (velocity > 0.01) {
                     is_driving = true;
                 }
 

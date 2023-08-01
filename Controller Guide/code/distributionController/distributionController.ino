@@ -1,14 +1,16 @@
 /*
+Julia Yu '24
+
 Note: if using the HC-05 for the Bluetooth capable controller with the Arduino Nano Every (or Nano, either one),
 you MUST use Serial1.begin() and Serial1.println().
 This is because of there being 2 Serial ports for the Nano, using Serial just outputs it to the COM port that is from the USB.
 Using Serial1 means that it would output to the serial from the pins on the board corresponding to the HC-05
-*/
 
-// #if conditional reference links, feel free to add boards as you see fit depending on the serial ports on the board you're using
-// https://forum.arduino.cc/t/ifdef-to-select-pins-based-on-targetted-arduino-board/442861/6
-// https://www.arduino.cc/reference/en/language/functions/communication/serial/
-// https://www.deviceplus.com/arduino/arduino-preprocessor-directives-tutorial/#Conditional
+if conditional reference links, feel free to add boards as you see fit depending on the serial ports on the board you're using
+https://forum.arduino.cc/t/ifdef-to-select-pins-based-on-targetted-arduino-board/442861/6
+https://www.arduino.cc/reference/en/language/functions/communication/serial/
+https://www.deviceplus.com/arduino/arduino-preprocessor-directives-tutorial/#Conditional
+*/
 
 // Joystick pins, can be adjusted according to physical wiring
 #define VRX_PIN A1  // Arduino pin connected to VRX pin
@@ -55,14 +57,14 @@ unsigned long lastStopTime = 0;
 unsigned long debounceDelay = 150;  // the debounce time; increase if the output flickers
 
 void setup() {
-  #if defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_AVR_NANO) // board used is Nano/Nano Every with the bluetooth module. if you want to use it wired, change the Serial stuff to match the code for the Uno
+  #if defined(ARDUINO_AVR_NANO_EVERY) || defined(ARDUINO_AVR_NANO) // board used is Nano/Nano Every with the Bluetooth module. if you want to use it wired, change the Serial stuff to match the code for the Uno
     Serial1.begin(9600);  // Nano Bluetooth capability uses this
     while (!Serial1);  // will hold the program here while the serial monitor is not initialized (use with Arduino Nano + Bluetooth)
-  #elif defined(ARDUINO_AVR_UNO) // board used is the Uno, can be without the bluetooth module or with, either way
+  #elif defined(ARDUINO_AVR_UNO) // board used is the Uno, can be without the Bluetooth module or with, either way
     Serial.begin(9600);  // start the serial monitor at a baudrate of 9600 (baudrate it the number of bits a second it reads in)
     while (!Serial);  // will hold the program here while the serial monitor is not initialized (use with Arduino Uno or Arduino Nano w/ no Bluetooth)
   #else
-    #error "What the hell are you using???"
+    #error "SETUP FAILED"
   #endif
 
   // identifies everything as an input (button input something to board -> do something)
@@ -91,7 +93,7 @@ void loop() {
 
   // debounce for the buttons (taken and adapted from the example button debounce code from Arduino)
   // treads
-  if ((millis() - lastTreadTime) > debounceDelay) {  // if the debounce threshold has been exceded
+  if ((millis() - lastTreadTime) > debounceDelay) {  // if the debounce threshold has been exceeded
     if (yellowState != treadState) {                 // if the button state changed
       treadState = yellowState;
       if (treadState == HIGH) mode = 1;  // if the button is pressed, change the mode
@@ -128,7 +130,7 @@ void loop() {
   lastGreenState = greenState;
   lastRedState = redState;
 
-  if (exitCounter >= 4) { // will cause the mode to reset back to 1 after the exit button is pressed; added due to bluetooth caveats
+  if (exitCounter >= 4) { // will cause the mode to reset back to 1 after the exit button is pressed; added due to Bluetooth caveats
     exitCounter = 0;
     mode = 1;
   }
@@ -149,7 +151,7 @@ void loop() {
     Serial.print(" ");
     Serial.println(mode);
   #else
-    #error "What the hell are you using???"
+    #error "LOOP ERROR"
   #endif
 
   delay(timeDelay);

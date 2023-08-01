@@ -1,0 +1,17 @@
+{
+    "C_Cpp.default.compilerPath": "/usr/bin/gcc",
+    "cSpell.words": [
+        "ajax",
+        "elif",
+        "imgs",
+        "millis",
+        "println",
+        "pyserial",
+        "readline",
+        "toffc",
+        "tofr",
+        "UART",
+        "Worster",
+        "yapf"
+    ]
+}

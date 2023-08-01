@@ -496,7 +496,7 @@ The purpose of having this function is to disable the hazard system's time-of-fl
 ```python
 if __name__ == "__main__":
     init()
-    ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the arduino is connected to to get serial data from it
+    ser = serial.Serial(ARDUINO_PORT, 9600, timeout = 1) # open connection to the COM port that the Arduino is connected to to get serial data from it
     time.sleep(1) # stop for a second
 
     'set up the event listeners for the bumpers and ToF respectively'

@@ -1,3 +1,5 @@
+// Julia Yu '24
+
 misty.Debug("Color change time!");
 
 _changeColors();

@@ -1,6 +1,6 @@
 # Programming with Web API
 
-##### Skye Weaver Worster
+##### Skye Weaver Worster '25J
 
 Misty’s creators have provided a [tutorial](https://docs.mistyrobotics.com/misty-ii/web-api/tutorials/) page, but it is difficult for a beginner to follow (or anyone, really). I have adapted those instructions below. The following tutorial should be appropriate for students that have completed CSC 210 or 212 and have limited Java or JavaScript experience.
 
