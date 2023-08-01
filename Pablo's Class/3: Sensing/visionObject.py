@@ -44,7 +44,7 @@ def _ObjectDetection(data):
         misty.ChangeLED(255, 0, 0)
         misty.UnregisterEvent("ObjectDetection")
     elif object == "person":
-        misty.PlayAudio("soothingMusic.mp3", volume)
+        misty.PlayAudio("soothingMusic.mp3", louder_volume)
         misty.ChangeLED(255, 0, 0)
         misty.UnregisterEvent("ObjectDetection")
 
