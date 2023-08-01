@@ -64,7 +64,7 @@ void setup() {
     Serial.begin(9600);  // start the serial monitor at a baudrate of 9600 (baudrate it the number of bits a second it reads in)
     while (!Serial);  // will hold the program here while the serial monitor is not initialized (use with Arduino Uno or Arduino Nano w/ no Bluetooth)
   #else
-    #error "SETUP FAILED"
+    #error "Board Error"
   #endif
 
   // identifies everything as an input (button input something to board -> do something)
@@ -151,7 +151,7 @@ void loop() {
     Serial.print(" ");
     Serial.println(mode);
   #else
-    #error "LOOP ERROR"
+    #error "Board Error"
   #endif
 
   delay(timeDelay);
