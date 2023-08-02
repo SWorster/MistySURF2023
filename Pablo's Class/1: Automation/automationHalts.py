@@ -166,7 +166,7 @@ def _FaceRecognition(data):  # searches for target
 def moveRight():  # moves head to the right
     misty.MoveHead(start_pitch, roll, max_right, velocity)  # move to right
 
-    while (hYaw > right_threshold) and not seen:
+    while hYaw > right_threshold and not seen:
         pass  # don't proceed until fully right or target seen
 
     if not seen:  # if target not seen, move left
@@ -176,7 +176,7 @@ def moveRight():  # moves head to the right
 def moveLeft():  # moves head to the left
     misty.MoveHead(start_pitch, roll, max_left, velocity)  # move to left
 
-    while (hYaw < left_threshold) and not seen:
+    while hYaw < left_threshold and not seen:
         pass  # don't proceed until fully left or target seen
 
     if not seen:  # if target not seen, move center
@@ -186,7 +186,7 @@ def moveLeft():  # moves head to the left
 def moveCenter():  # moves head to the center
     misty.MoveHead(start_pitch, roll, center_yaw, velocity)  # move to center
 
-    while (hYaw > center_threshold) and not seen:
+    while hYaw > center_threshold and not seen:
         pass  # don't proceed until fully centered or target seen
 
     if not seen:  # target still not seen

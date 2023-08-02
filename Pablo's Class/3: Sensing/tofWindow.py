@@ -5,9 +5,6 @@ Misty drives forward until she is close to an obstacle. The distance is determin
 
 This is a modified version of Python Tutorial #2.
 
-Pablo's instructions:
-Start Misty at pose0; Have her advance until ToF averages to below a threshold value (in a sliding window of time); then, stop and change light
-
 WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
 '''
 
@@ -18,18 +15,25 @@ from mistyPy.Events import Events
 from mistyPy.EventFilters import EventFilters
 
 misty = Robot("131.229.41.135")  # Robot object with your IP
+
 driving_time = 5  # the time Misty will drive for, in seconds
 driving_speed = 10  # Misty's linear velocity
 driving_angle = 0  # Misty's angular velocity
-volume = 2  # volume of Misty's audio responses
+
 is_driving = False  # whether Misty is currently moving
 threshold = 0.3  # distance in meters that will make Misty stop
 min_speed = 0.1  # the minimum speed at which Misty is still considered to be "driving"
+
 TOF_debounce = 5  # Time of Flight event debounce, in milliseconds
 DE_debounce = 500  # DriveEncoders event debounce, in milliseconds
 window_size = 10  # how many measurements to store
 
-# DO NOT EDIT THESE
+tof_stop = "s_Joy2.wav"  # audio for TOF stop
+time_stop = "s_Joy4.wav"  # audio for time stop
+tof_v = 5  # tof_stop volume
+time_v = 5  # time_stop volume
+
+# ! DO NOT EDIT THESE
 window = []  # empty list to store data over time
 full = False  # tracks whether window is full
 
@@ -54,12 +58,12 @@ def _TimeOfFlight(data):  # callback for time of flight
         print(avg)
 
         # if Misty is too close to an obstacle while driving
-        if (avg < threshold and status == 0 and is_driving):
+        if avg < threshold and status == 0 and is_driving:
 
             # print to console
             print(f"Misty is {avg} meters from an obstacle")
             misty.ChangeLED(255, 0, 0)  # change LED to red
-            misty.PlayAudio("s_Joy2.wav", volume=volume)  # play audio clip
+            misty.PlayAudio(tof_stop, tof_v)  # play audio clip
             misty.Stop()  # stop moving
             is_driving = False  # record that Misty has stopped
             print("Stopped: Obstacle")  # print to console
@@ -73,9 +77,7 @@ def _TimeOfFlight(data):  # callback for time of flight
 
 def _DriveEncoders(data):  # callback for movement
     global is_driving
-
     try:  # try-except block catches malformed/irrelevant responses
-
         left_vel = data["message"]["leftVelocity"]  # left vel from data
         right_vel = data["message"]["rightVelocity"]  # right vel from data
 
@@ -84,7 +86,7 @@ def _DriveEncoders(data):  # callback for movement
 
         if (left_vel+right_vel < min_speed and is_driving):  # if stopped after having moved
             misty.ChangeLED(0, 255, 0)  # change LED to green
-            misty.PlayAudio("s_Joy4.wav", volume=volume)  # play audio clip
+            misty.PlayAudio(time_stop, time_v)  # play audio clip
             print("Stopped: time limit reached")  # print to console
             misty.UnregisterAllEvents()  # unregister from all events (ends program)
             # reset hazard detection
