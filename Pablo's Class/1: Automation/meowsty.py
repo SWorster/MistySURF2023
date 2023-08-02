@@ -1,9 +1,9 @@
 '''
-Julia Yu and Skye Weaver Worster
+Julia Yu '24 and Skye Weaver Worster '25J
 
 Misty is now Meowsty. No FUR-ther explanation provided. (please laugh at the pun)
 
-Audio files are in Other Resources > For Fun > MistyMedia > Misty Sounds > cat. You can also download them by running the mediaSync file.
+The audio files we used are in Other Resources > For Fun > MistyMedia > Misty Sounds > cat. You can also download them by running the mediaSync.py file.
 '''
 
 # import statements
@@ -13,13 +13,19 @@ from mistyPy.Events import Events
 misty = Robot("131.229.41.135")  # Misty robot with your IP
 last_place = ""  # last place Misty was touched (starts empty)
 
-# audio volumes
-purr1 = 10
-purr2 = 10
-meow1 = 5
-meow2 = 5
-meow3 = 5
-hiss = 5
+# audio parameters
+chin = "purr1.mp3"  # audio for chin touch
+chin_v = 10  # volume for chin touch
+left = "meow1.mp3"  # head left audio
+left_v = 5
+right = "meow2.mp3"
+right_v = 5
+back = "meow3.mp3"
+back_v = 5
+front = "purr2.mp3"
+front_v = 10
+scruff = "hiss.mp3"
+scruff_v = 5
 
 
 def _BumpSensor(data):  # when bumped, program ends
@@ -50,29 +56,29 @@ def _CapTouch(message):
 
             # if-else statements on part_touched
             if part_touched == "Chin" and touched:
-                misty.PlayAudio("purr1.mp3", purr1)
+                misty.PlayAudio(chin, chin_v)
                 misty.TransitionLED(0, 0, 0, 255, 100, 255,
                                     "TransitOnce", 2000)
                 print("chin scritches <3")
 
             elif part_touched == "HeadLeft" and touched:
-                misty.PlayAudio("meow1.mp3", meow1)
+                misty.PlayAudio(left, left_v)
                 print("left scritches")
 
             elif part_touched == "HeadRight" and touched:
-                misty.PlayAudio("meow2.mp3", meow2)
+                misty.PlayAudio(right, right_v)
                 print("right scritches")
 
             elif part_touched == "HeadBack" and touched:
-                misty.PlayAudio("meow3.mp3", meow3)
+                misty.PlayAudio(back, back_v)
                 print("back scritches")
 
             elif part_touched == "HeadFront" and touched:
-                misty.PlayAudio("purr2.mp3", purr2)
+                misty.PlayAudio(front, front_v)
                 print("front scritches")
 
             elif part_touched == "Scruff" and touched:
-                misty.PlayAudio("hiss.mp3", hiss)
+                misty.PlayAudio(scruff, scruff_v)
                 print("HISS")
 
         else:  # if a place has already been touched:

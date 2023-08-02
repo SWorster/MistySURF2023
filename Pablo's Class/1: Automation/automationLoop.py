@@ -15,8 +15,11 @@ misty = Robot("131.229.41.135")  # Misty robot with your IP
 person = "test"  # person to look for
 FR_debounce = 500  # facial recognition debounce
 AP_debounce = 100  # actuator position debounce
-volume = 1  # volume for audio clips
 
+# audio parameters
+audio_found = "s_Joy2.wav"  # audio when first found
+audio_seen = "s_Joy4.wav"  # audio when within tolerance
+volume = 10  # volume for audio clips
 
 # searching parameters
 # The thresholds are a bit less than the maximum values, just in case the head motors don't complete the movement. I don't recommend changing these, except maybe velocity.
@@ -97,7 +100,7 @@ def _Follow(data):  # behavior for when Misty has found someone to follow
             if seen is False:  # if just spotted person
                 seen = True  # record success
                 misty.ChangeLED(0, 255, 0)  # LED green
-                misty.PlayAudio("s_Joy4.wav", volume=volume)  # play audio
+                misty.PlayAudio(audio_seen, volume=volume)  # play audio
 
         # if not within tolerance
         else:
@@ -144,7 +147,7 @@ def _FaceRecognition(data):  # searches for target
             seen = True  # stops while loops
             misty.Halt()  # stop moving
             misty.ChangeLED(0, 255, 0)  # LED green
-            misty.PlayAudio("s_Joy2.wav", volume=volume)  # play audio
+            misty.PlayAudio(audio_found, volume=volume)  # play audio
             print(f"Hello, {face}! I'm now following you!")
 
             # unregister searching FR
