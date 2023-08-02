@@ -11,6 +11,7 @@ from mistyPy.Events import Events
 import time
 
 misty = Robot("131.229.41.135")  # robot with your IP
+clip = "meow1.mp3" # clip to play when bumped
 volume = 10  # volume for audio
 lin_vel = 10  # linear velocity
 ang_vel = 0  # angular velocity
@@ -28,7 +29,7 @@ def _BumpSensor(data):
             misty.ChangeLED(0, 0, 255)  # blue
         if name == "brl":  # back left
             misty.ChangeLED(255, 160, 0)  # yellow
-        misty.PlayAudio("meow1.mp3", volume)
+        misty.PlayAudio(clip, volume)
 
         misty.UnregisterAllEvents()  # unregister and reset hazards
         misty.UpdateHazardSettings(revertToDefault=True)

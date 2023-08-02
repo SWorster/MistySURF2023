@@ -12,8 +12,10 @@ from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot object with your IP
-purr = 10  # purr volume
-meow = 5  # meow volume
+touch_clip = "purr1.mp3"  # audio to play when touched
+touch_v = 10  # touch_clip volume
+release_clip = "meow3.mp3"  # audio to play when released
+release_v = 5  # release_clip volume
 speed = 10  # movement speed
 
 # ! Do not change this, it could break things!
@@ -32,10 +34,10 @@ def _BumpSensor(data):
 def _TouchSensor(data):
     if data["message"]["isContacted"]:  # if touched
         misty.ChangeLED(0, 255, 0)  # green
-        misty.PlayAudio("purr1.mp3", volume=purr)
+        misty.PlayAudio(touch_clip, touch_v)
         misty.Drive(speed, 0)  # drive forward slowly
     else:  # if not touched
-        misty.PlayAudio("meow3.mp3", volume=meow)
+        misty.PlayAudio(release_clip, release_v)
         misty.ChangeLED(0, 0, 255)  # blue
         misty.Stop()  # stop driving
 
@@ -44,7 +46,9 @@ def _TouchSensor(data):
 misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
 # register for touch sensor
-misty.RegisterEvent("TouchSensor", Events.TouchSensor, keep_alive=True, callback_function=_TouchSensor)
+misty.RegisterEvent("TouchSensor", Events.TouchSensor,
+                    keep_alive=True, callback_function=_TouchSensor)
 
 # register for bump sensor
-misty.RegisterEvent("BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor)
+misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                    keep_alive=True, callback_function=_BumpSensor)

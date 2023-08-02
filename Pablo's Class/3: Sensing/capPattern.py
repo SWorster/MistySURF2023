@@ -11,12 +11,15 @@ import time
 misty = Robot("131.229.41.135")  # robot object with your IP
 wait = 3  # number of seconds to wait after last touch
 
-# volumes for audio clips
+# audio clips and volumes
+t0 = "LacrimosaShort.m4a"
 vol0 = 10
+t1 = "Mahler5Short.m4a"
 vol1 = 10
+t2 = "CarelessWhisperShort.m4a"
 vol2 = 10
+t3 = "MiiChannel.mp3"
 vol3 = 10
-
 
 # ! Do not change this, it could break things!
 touched = False  # whether Misty is being touched
@@ -35,17 +38,15 @@ def _BumpSensor(data):
 
 
 def _TouchSensor(data):
-    global touched
+    global touched, count, t
 
     if data["message"]["isContacted"] and not touched:  # if touched
         misty.ChangeLED(0, 255, 0)  # green
-        global count
         count += 1  # increment global counter
         touched = True
 
     elif data["message"]["isContacted"] == False and touched:  # if not touched
         misty.ChangeLED(0, 0, 0)  # off
-        global t
         t = time.time()  # record new starting time
         touched = False
 
@@ -80,14 +81,14 @@ if __name__ == "__main__":
 
     # play a different song for each number of touches
     if count == 0:
-        misty.PlayAudio("LacrimosaShort.m4a", volume=vol0)
+        misty.PlayAudio(t0, vol0)
         misty.ChangeLED(50, 0, 200)  # dark blue/purple
     elif count == 1:
-        misty.PlayAudio("Mahler5Short.m4a", volume=vol1)
+        misty.PlayAudio(t1, vol1)
         misty.ChangeLED(200, 150, 0)  # yellow
     elif count == 2:
-        misty.PlayAudio("CarelessWhisperShort.m4a", volume=vol2)
+        misty.PlayAudio(t2, vol2)
         misty.ChangeLED(255, 0, 50)  # purple
     elif count == 3:
-        print(misty.PlayAudio("MiiChannel.mp3", volume=vol3).json())
+        misty.PlayAudio(t3, vol3)
         misty.ChangeLED(50, 200, 255)  # teal

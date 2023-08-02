@@ -10,6 +10,7 @@ from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot with your IP
+clip = "meow1.mp3"  # clip to play on completion
 volume = 10  # volume for audio
 DE_debounce = 100  # drive encoders debounce
 
@@ -67,7 +68,7 @@ def _BumpSensor(data):
         if current != None:  # if multiple bumpers hit, end program
             misty.Stop()  # stop moving
             misty.ChangeLED(0, 0, 0)  # LED off
-            misty.PlayAudio("meow1.mp3", volume)
+            misty.PlayAudio(clip, volume)
             misty.UnregisterAllEvents()  # unregister and reset hazards
             misty.UpdateHazardSettings(revertToDefault=True)
 
@@ -102,9 +103,11 @@ def _BumpSensor(data):
 misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
 # register for bump sensor
-misty.RegisterEvent("BumpSensor", Events.BumpSensor, keep_alive=True, callback_function=_BumpSensor)
+misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                    keep_alive=True, callback_function=_BumpSensor)
 
 # subscribe to DriveEncoders
-misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True, debounce=DE_debounce, callback_function=_DriveEncoders)
+misty.RegisterEvent("DriveEncoders", Events.DriveEncoders, keep_alive=True,
+                    debounce=DE_debounce, callback_function=_DriveEncoders)
 
 misty.Drive(lin_vel, 0)  # drive forward slowly

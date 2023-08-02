@@ -14,7 +14,13 @@ from mistyPy.Robot import Robot
 import time
 
 misty = Robot("131.229.41.135")  # robot object with your IP
+
+start_clip = "s_Joy2.wav"  # audio to play on start
+end_clip = "s_Joy4.wav"  # audio to play on completion
 volume = 5  # audio volume
+
+# neutral position parameters
+neut_arms = 90  # arms fully down
 
 # drive command
 drive_l = 30  # linear velocity
@@ -33,7 +39,8 @@ right = -30  # right arm position
 arm_v = 90  # velocity of arm movement
 
 
-misty.MoveArms(90, 90, 80, 80)  # arms straight down
+# start in neutral position
+misty.MoveArms(neut_arms, neut_arms, arm_v, arm_v)  # arms straight down
 misty.MoveHead(0, 0, 0)  # head to neutral
 
 # ignore TOF sensors
@@ -41,7 +48,7 @@ misty.UpdateHazardSettings(disableTimeOfFlights=True)
 
 # start of instructions
 misty.ChangeLED(0, 0, 255)  # LED turns blue
-misty.PlayAudio("s_Joy2.wav", volume=volume)  # play sound
+misty.PlayAudio(start_clip, volume)  # play sound
 time.sleep(1)
 
 # movement 1: drive forward for 3 seconds at speed 30
@@ -60,7 +67,7 @@ time.sleep(3)
 
 # end of instructions
 misty.ChangeLED(0, 255, 0)  # LED turns green
-misty.PlayAudio("s_Joy4.wav", volume=volume)  # play sound
+misty.PlayAudio(end_clip, volume)  # play sound
 
 # reset hazard settings
 misty.UpdateHazardSettings(revertToDefault=True)
