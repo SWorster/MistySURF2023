@@ -15,10 +15,10 @@ wait = 3  # number of seconds to wait after last touch
 t0 = "LacrimosaShort.m4a"
 vol0 = 10
 t1 = "Mahler5Short.m4a"
-vol1 = 10
+vol1 = 40
 t2 = "CarelessWhisperShort.m4a"
 vol2 = 10
-t3 = "MiiChannel.mp3"
+t3 = "MiiChannelShort.m4a"
 vol3 = 10
 
 # ! Do not change this, it could break things!
@@ -58,6 +58,7 @@ def _AudioPlayComplete(data):  # when audio stops
 
 
 if __name__ == "__main__":
+    misty.StopAudio()
 
     # register for touch sensor
     misty.RegisterEvent("TouchSensor", Events.TouchSensor,
@@ -66,6 +67,8 @@ if __name__ == "__main__":
     # register for bump sensor
     misty.RegisterEvent("BumpSensor", Events.BumpSensor,
                         keep_alive=True, callback_function=_BumpSensor)
+
+    print("tap my head!")
 
     while True:  # infinite loop
         if time.time() > (t+wait):  # if time is x seconds more than last touch

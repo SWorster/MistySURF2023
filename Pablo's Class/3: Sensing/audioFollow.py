@@ -13,7 +13,7 @@ import time
 misty = Robot("131.229.41.135")  # robot object
 STDM_debounce = 100  # SourceTrackDataMessage debounce, in ms
 trigger = 20  # sound volume that causes movement
-filename = "test" # name of file, will be appended with .wav
+filename = "test"  # name of file, will be appended with .wav
 
 # speeds for movement
 v_front = 20
@@ -75,9 +75,11 @@ if __name__ == "__main__":
 
     misty.StartRecordingAudio(f"{filename}.wav")  # start listening
 
+    print("listening!")
+
     time.sleep(1)  # give time for fans to stop
     misty.ChangeLED(255, 0, 0)
-    
+
     # register for SourceTrackDataMessage
     misty.RegisterEvent("SourceTrackDataMessage", Events.SourceTrackDataMessage,
                         debounce=STDM_debounce, keep_alive=True, callback_function=_SourceTrackDataMessage)
