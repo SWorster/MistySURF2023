@@ -26,6 +26,32 @@ SOUTH = 682
 LEFT = 341  # Left and Right are in X
 RIGHT = 682
 
+tof_dist = .25  # distance to trigger avoidance behavior
+
+# tread movement speeds
+lin_v = 20  # linear velocity for forward/backward
+ang_v = 20  # angular velocity for left/right
+lin_turn = 20  # linear velocity while turning
+ang_turn = 20  # angular velocity while turning
+
+# arm movement variables
+arm_up = -29  # max arm height
+arm_down = 90  # min arm height
+arm_v = 50  # arm movement speed
+arm_unit = "degrees"  # unit type
+
+# head movement variables
+pitch_up = -40  # max pitch
+pitch_down = 26  # min pitch
+pitch_v = 100  # pitch movement speed
+yaw_left = 81  # left yaw
+yaw_right = -81  # right yaw
+yaw_v = 85  # yaw movement speed
+roll_left = -40  # roll left
+roll_right = 40  # roll right
+roll_v = 100  # roll movement speed
+head_unit = "degrees"
+
 # create a Misty instance using its IP address
 misty = Robot(MISTY_IP)
 
@@ -38,7 +64,7 @@ def _TOFProcessor(data):  # Processes ToF sensor data, prevents collisions
     sensor = data["message"]["sensorId"]  # which sensor sent data, str
     valid = data["message"]["status"]  # if measurement is valid, bool
 
-    if distance < .25 and valid == 0:  # if object close and measurement valid
+    if distance < tof_dist and valid == 0:  # if object close and measurement valid
         match sensor:  # case for each sensor
             case "toffc":  # if front center, stop moving forward
                 moveForwardToF = False
@@ -48,7 +74,7 @@ def _TOFProcessor(data):  # Processes ToF sensor data, prevents collisions
                 misty.Stop()
 
     # if object far away, allow movement in that direction
-    elif valid == 0 and distance > .25:
+    elif valid == 0 and distance > tof_dist:
         match sensor:
             case "toffc":
                 moveForwardToF = True
@@ -117,35 +143,35 @@ def treads(coords):  # Controls the treads for overall mobility
 
     # move forward (hold up on joystick)
     if y < NORTH and LEFT < x < RIGHT and (not contactFrontBumper) and moveForwardToF:
-        misty.Drive(linearVelocity=20, angularVelocity=0)
+        misty.Drive(linearVelocity=lin_v, angularVelocity=0)
 
     # move backward (hold down on joystick)
     elif y > SOUTH and LEFT < x < RIGHT and (not contactBackBumper) and moveBackwardToF:
-        misty.Drive(linearVelocity=-20, angularVelocity=0)
+        misty.Drive(linearVelocity=-lin_v, angularVelocity=0)
 
     # turn left (hold left on joystick)
     elif x < LEFT and NORTH < y < SOUTH:
-        misty.Drive(linearVelocity=0, angularVelocity=20)
+        misty.Drive(linearVelocity=0, angularVelocity=ang_v)
 
     # turn right (hold right on joystick)
     elif x > RIGHT and NORTH < y < SOUTH:
-        misty.Drive(linearVelocity=0, angularVelocity=-20)
+        misty.Drive(linearVelocity=0, angularVelocity=-ang_v)
 
     # forward + left (hold upper left on joystick)
     elif x < LEFT and y < NORTH and (not contactFrontBumper) and moveForwardToF:
-        misty.Drive(linearVelocity=20, angularVelocity=20)
+        misty.Drive(linearVelocity=lin_turn, angularVelocity=ang_turn)
 
     # forward + right (hold upper right on joystick)
     elif x > RIGHT and y < NORTH and (not contactFrontBumper) and moveForwardToF:
-        misty.Drive(linearVelocity=20, angularVelocity=-20)
+        misty.Drive(linearVelocity=lin_turn, angularVelocity=-ang_turn)
 
     # backward + left (hold lower left on joystick)
     elif x < LEFT and y > SOUTH and (not contactBackBumper) and moveBackwardToF:
-        misty.Drive(linearVelocity=-20, angularVelocity=20)
+        misty.Drive(linearVelocity=-lin_turn, angularVelocity=ang_turn)
 
     # backward + right (hold lower right on joystick)
     elif x > RIGHT and y > SOUTH and (not contactBackBumper) and moveBackwardToF:
-        misty.Drive(linearVelocity=-20, angularVelocity=-20)
+        misty.Drive(linearVelocity=-lin_turn, angularVelocity=-ang_turn)
 
     else:  # stop Misty from moving (default position on joystick)
         misty.Stop()
@@ -157,27 +183,33 @@ def arms(data):  # Controls the arm movement
     y = int(split[1])
 
     if y < NORTH and LEFT < x < RIGHT:  # left arm up (hold up on joystick)
-        misty.MoveArm(arm="left", position=-29, velocity=50, units="degrees")
+        misty.MoveArm(arm="left", position=arm_up,
+                      velocity=arm_v, units=arm_unit)
 
     # left arm down (hold down on joystick)
     elif y > SOUTH and LEFT < x < RIGHT:
-        misty.MoveArm(arm="left", position=90, velocity=50, units="degrees")
+        misty.MoveArm(arm="left", position=arm_down,
+                      velocity=arm_v, units=arm_unit)
 
     # right arm down (hold left on joystick)
     elif x < LEFT and NORTH < y < SOUTH:
-        misty.MoveArm(arm="right", position=90, velocity=50, units="degrees")
+        misty.MoveArm(arm="right", position=arm_down,
+                      velocity=arm_v, units=arm_unit)
 
     # right arm up (hold right on joystick)
     elif x > RIGHT and NORTH < y < SOUTH:
-        misty.MoveArm(arm="right", position=-29, velocity=50, units="degrees")
+        misty.MoveArm(arm="right", position=arm_up,
+                      velocity=arm_v, units=arm_unit)
 
     # both arms up (hold upper left or upper right on joystick)
     elif (x < LEFT and y < NORTH) or (x > RIGHT and y < NORTH):
-        misty.MoveArm(arm="both", position=-29, velocity=50, units="degrees")
+        misty.MoveArm(arm="both", position=arm_up,
+                      velocity=arm_v, units=arm_unit)
 
     # both arms down (hold lower left or lower right on joystick)
     elif (x < LEFT and y > SOUTH) or (x > RIGHT and y > SOUTH):
-        misty.MoveArm(arm="both", position=90, velocity=50, units="degrees")
+        misty.MoveArm(arm="both", position=arm_down,
+                      velocity=arm_v, units=arm_unit)
 
     else:
         misty.Stop()  # stop Misty's motion (default joystick position)
@@ -189,22 +221,22 @@ def head(data):  # Controls the head movement
     y = int(split[1])
 
     if y < NORTH and LEFT < x < RIGHT:  # pitch up (hold up on joystick)
-        misty.MoveHead(pitch=-40, velocity=100, units="degrees")
+        misty.MoveHead(pitch=pitch_up, velocity=pitch_v, units=head_unit)
 
     elif y > SOUTH and LEFT < x < RIGHT:  # pitch down (hold down on joystick)
-        misty.MoveHead(pitch=26, velocity=100, units="degrees")
+        misty.MoveHead(pitch=pitch_down, velocity=pitch_v, units=head_unit)
 
     elif x < LEFT and NORTH < y < SOUTH:  # yaw left (hold left on joystick)
-        misty.MoveHead(yaw=81, velocity=85, units="degrees")
+        misty.MoveHead(yaw=yaw_left, velocity=yaw_v, units=head_unit)
 
     elif x > RIGHT and NORTH < y < SOUTH:  # yaw right (hold right on joystick)
-        misty.MoveHead(yaw=-81, velocity=85, units="degrees")
+        misty.MoveHead(yaw=yaw_right, velocity=yaw_v, units=head_unit)
 
     elif x < LEFT and y < NORTH:  # roll left (hold upper left on joystick)
-        misty.MoveHead(roll=-40, velocity=100, units="degrees")
+        misty.MoveHead(roll=roll_left, velocity=roll_v, units=head_unit)
 
     elif x > RIGHT and y < NORTH:  # roll right (hold upper right on joystick)
-        misty.MoveHead(roll=40, velocity=100, units="degrees")
+        misty.MoveHead(roll=roll_right, velocity=roll_v, units=head_unit)
 
     else:
         misty.Stop()  # stop Misty's movement
