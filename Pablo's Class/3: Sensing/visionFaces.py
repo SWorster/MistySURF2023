@@ -14,12 +14,29 @@ from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot object
 FR_debounce = 1000  # facial recognition debounce, in ms
-volume = 2  # audio volume
+
+bump = "VineBoom.mp3"  # plays when bumped
+volume = 10  # audio volume
+
+name1 = "Skye"  # person 1
+sound1 = "megalovania.m4a"  # audio for p1
+vol1 = 10  # volume for p1
+
+name2 = "JuliaYu"  # person 2
+sound2 = "RickrollShort.mp3"
+vol2 = 10
+
+name3 = "test"  # person 3
+sound3 = "LacrimosaShort.m4a"
+vol3 = 10
+
+sound0 = "sorryDave.mp3"  # unknown person
+vol0 = 10
 
 
 def _BumpSensor(data):
     print("Program Ended: Bump Sensor")  # print to console
-    misty.PlayAudio("VineBoom.mp3", volume=volume)  # play audio clip
+    misty.PlayAudio(bump, volume)  # play audio clip
     end()
 
 
@@ -43,7 +60,6 @@ def _FaceRecognition(data):  # callback for face recognition
             # stop and unregister face recognition
             misty.StopFaceRecognition()
             misty.UnregisterEvent("FaceRecognition")
-
             print(f"A face was recognized. Hello there, {name}!")
 
             # register for audio completion
@@ -51,23 +67,23 @@ def _FaceRecognition(data):  # callback for face recognition
                                 keep_alive=True, callback_function=_AudioPlayComplete)
 
             # play different audio for each person
-            if name == "Skye":
-                misty.PlayAudio("megalovania.m4a", volume)
-            elif name == "JuliaYu":
-                misty.PlayAudio("RickrollShort.mp3", volume)
+            if name == name1:
+                misty.PlayAudio(sound1, vol1)
+            elif name == name2:
+                misty.PlayAudio(sound2, vol2)
             elif name == "test":
-                misty.PlayAudio("LacrimosaShort.m4a", volume)
+                misty.PlayAudio(sound3, vol3)
             else:
-                misty.PlayAudio("sorryDave.mp3", volume)
+                misty.PlayAudio(sound0, vol0)
 
     except Exception as e:
         print("Facial Recognition error:", e)
 
 
 if __name__ == "__main__":
-
-    # unregister from all events to clear existing facial recognition
-    misty.UnregisterAllEvents()
+    print("running")
+    misty.UnregisterAllEvents()  # stop preexisting events
+    misty.StopFaceRecognition()  # stop preexisting facial rec
 
     # register for bump sensor
     misty.RegisterEvent("BumpSensor", Events.BumpSensor,
