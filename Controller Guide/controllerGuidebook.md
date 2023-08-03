@@ -273,12 +273,38 @@ SOUTH = 682
 LEFT = 341
 RIGHT = 682
 
+tof_dist = .25  # distance to trigger avoidance behavior
+
+# tread movement speeds
+lin_v = 20  # linear velocity for forward/backward
+ang_v = 20  # angular velocity for left/right
+lin_turn = 20  # linear velocity while turning
+ang_turn = 20  # angular velocity while turning
+
+# arm movement variables
+arm_up = -29  # max arm height
+arm_down = 90  # min arm height
+arm_v = 50  # arm movement speed
+arm_unit = "degrees"  # unit type
+
+# head movement variables
+pitch_up = -40  # max pitch
+pitch_down = 26  # min pitch
+pitch_v = 100  # pitch movement speed
+yaw_left = 81  # left yaw
+yaw_right = -81  # right yaw
+yaw_v = 85  # yaw movement speed
+roll_left = -40  # roll left
+roll_right = 40  # roll right
+roll_v = 100  # roll movement speed
+head_unit = "degrees"
+
 misty = Robot(MISTY_IP) # create a Misty instance using its IP address (which varies from robot to robot)
 ```
 
 From top to bottom, the first 2 global variables are used to allow Misty to move forwards or backwards, determined by data obtained from the time-of-flight sensors in the front and back. The next 3 globals, like the previous 2, determine whether or not Misty can move depending on whether or not the bumper sensors on the base are pressed.
 
-The 4 constants named for the directions that the joystick can be held are used as thresholds for each movement option that exists. These can be changed if the user finds that the joystick returns different values.
+The 4 constants named for the directions that the joystick can be held are used as thresholds for each movement option that exists. These can be changed if the user finds that the joystick returns different values. Everything before the last line are variables for holding numbers constantly used throughout the program repetitively.
 
 The last thing is a Misty instance which uses the given IP address to establish a connection to the robot.
 
