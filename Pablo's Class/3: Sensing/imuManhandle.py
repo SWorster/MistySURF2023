@@ -10,7 +10,7 @@ from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot object with your IP
-t = 2  # tolerance (degrees)
+t = 3  # tolerance (degrees)
 IMU_debounce = 100  # debounce for IMU (milliseconds)
 
 # colors for each position
@@ -28,7 +28,6 @@ nc = [0, 0, 0]  # neutral center off
 def _TouchSensor(data):  # end program when head touched
     misty.UnregisterAllEvents()  # unregister
     misty.ChangeLED(0, 0, 0)  # LED off
-    misty.StopAudio()  # stop playing audio clips
     print("Program ended (cap touch)")
 
 
@@ -74,13 +73,12 @@ def _IMU(data):
             misty.ChangeLED(nc[0], nc[1], nc[2])  # off
 
 
-if __name__ == "__main__":
-    print("program running")
+print("program running")
 
-    # register for IMU
-    misty.RegisterEvent("IMU", Events.IMU, debounce=IMU_debounce,
-                        keep_alive=True, callback_function=_IMU)
+# register for IMU
+misty.RegisterEvent("IMU", Events.IMU, debounce=IMU_debounce,
+                    keep_alive=True, callback_function=_IMU)
 
-    # register for cap touch sensor
-    misty.RegisterEvent("TouchSensor", Events.TouchSensor,
-                        keep_alive=True, callback_function=_TouchSensor)
+# register for cap touch sensor
+misty.RegisterEvent("TouchSensor", Events.TouchSensor,
+                    keep_alive=True, callback_function=_TouchSensor)
