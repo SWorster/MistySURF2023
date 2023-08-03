@@ -12,14 +12,12 @@ from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 
 misty = Robot("131.229.41.135")  # robot object with your IP
-touch_clip = "purr1.mp3"  # audio to play when touched
-touch_v = 10  # touch_clip volume
-release_clip = "meow3.mp3"  # audio to play when released
-release_v = 5  # release_clip volume
 speed = 10  # movement speed
 
-# ! Do not change this, it could break things!
-touched = False  # whether Misty is being touched
+touch_clip = "purr1.mp3"  # audio to play when touched
+touch_v = 20  # touch_clip volume
+release_clip = "meow3.mp3"  # audio to play when released
+release_v = 10  # release_clip volume
 
 
 def _BumpSensor(data):
