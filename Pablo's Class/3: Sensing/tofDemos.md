@@ -1,7 +1,7 @@
 # Time of Flight Demos
 ##### Skye Weaver Worster '25J
 
-## tofWindow.py
+## `tofWindow.py`
 
 This program has Misty drive forward until she detects an object at a certain distance. This distance is determined by taking the average of the last several measurements, which limits the effect of inaccurate sensor readings.
 
@@ -15,7 +15,7 @@ We append the distance measurement to a list, deleting the oldest measurement if
 
 The `_DriveEncoders()` callback ensures the program ends after Misty's drive command ends. If the sum of the tread velocities is greater than some value, we track that Misty is driving. If Misty has started driving but is below that speed, we know the `DriveTime()` command has elapsed. We end the program by unregistering from all events.
 
-## tofEvasion.py
+## `tofEvasion.py`
 
 This code has Misty drive forward and evade obstacles. If an object is in front of her, she can turn to evade it. If it's too close, she can turn and reverse. She also detects objects behind her so she can decide whether to back up or turn in place.
 

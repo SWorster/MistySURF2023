@@ -1,7 +1,7 @@
 # Bump Sensing Demos
 ##### Skye Weaver Worster '25J
 
-## bumpDrive.py
+## `bumpDrive.py`
 
 In this program, Misty drives forward until something touches one of her bump sensors.
 
@@ -11,7 +11,7 @@ First, we tell Misty to ignore her TOF sensors to prevent overreaction. This mea
 
 The callback stops Misty, checks that one of Misty's bump sensors has been triggered, and changes her LED depending on which sensor was contacted. It then plays a short audio clip, unregisters all events, and reverts the hazard settings.
 
-## bumpWallFollow.py
+## `bumpWallFollow.py`
 
 This program uses Misty's bump sensors to have her follow a wall. After the callbacks, we disable the hazard settings to ignore the TOF sensors, then register for the bump sensors and drive encoders. We then start driving forward slowly.
 

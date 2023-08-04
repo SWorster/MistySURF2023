@@ -1,7 +1,7 @@
 # Capacitive Touch Demos
 ##### Skye Weaver Worster '25J
 
-## capDrive.py
+## `capDrive.py`
 
 This program has Misty move when her head is touched. It disables TOF hazards, so Misty will not detect or avoid ledges. Be careful!
 
@@ -11,7 +11,7 @@ The touch sensor callback determines whether Misty is being touched or released.
 
 A possible extension of this program would be to deal with multiple touch locations. For example, touching two places on her head and releasing one of them currently stops Misty, despite still being touched. How would we prevent this behavior?
 
-## capPattern.py
+## `capPattern.py`
 
 This program has Misty count how many times she's touched, then performs a different behavior for each number.
 

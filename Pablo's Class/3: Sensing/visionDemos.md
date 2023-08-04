@@ -1,7 +1,7 @@
 # Vision Demos
 ##### Skye Weaver Worster '25J
 
-## visionFaces.py
+## `visionFaces.py`
 
 This code has Misty play a different audio clip for each face she sees. She has to already know the face, and the names have to be hard-coded into the program.
 
@@ -9,7 +9,7 @@ In the main function, we unregister from preexisting events and stop any running
 
 In the `_FaceRecognition()` callback, we get the name of the person Misty sees. If she doesn't know the person, she'll respond with `"unknown person"` or `None`, so we ignore those cases and keep looking. If she knows the person, we stop facial recognition and unregister from the event so that she only reacts once. We register for the `AudioPlayComplete` event, which sends us a message when Misty finishes playing an audio file. We then play a specific audio file for whichever person Misty saw. Once that file finishes, the `_AudioPlayComplete()` callback is triggered, which prints a message and ends the program.
 
-## visionObject.py
+## `visionObject.py`
 
 This program has the same behavior as the last one, but with objects instead of faces. The objects have to be in Misty's list of known objects, and the responses for each object have to be hard-coded into the program.
 
