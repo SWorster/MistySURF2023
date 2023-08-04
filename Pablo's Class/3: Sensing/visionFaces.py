@@ -37,15 +37,14 @@ vol0 = 10
 def _BumpSensor(data):
     print("Program Ended: Bump Sensor")  # print to console
     misty.PlayAudio(bump, volume)  # play audio clip
-    end()
+    misty.StopFaceRecognition()  # stop facial recognition
+    misty.UnregisterAllEvents()  # unregister from all events
+    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
+    misty.ChangeLED(0, 0, 0)  # LED off
 
 
 def _AudioPlayComplete(data):  # when audio stops
     print("Program Ended: Face Detected")  # print to console
-    end()
-
-
-def end():
     misty.StopFaceRecognition()  # stop facial recognition
     misty.UnregisterAllEvents()  # unregister from all events
     misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards

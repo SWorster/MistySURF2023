@@ -31,7 +31,7 @@ c3 = [255, 0, 0]  # red
 
 obj4 = "person"
 sound4 = "soothingMusic.mp3"
-vol4 = 10  # warning: loud
+vol4 = 100  # loud equals funny
 c4 = [255, 255, 255]  # white
 
 
@@ -42,6 +42,14 @@ def _BumpSensor(data):
     misty.StopAudio()  # stop audio
     misty.UpdateHazardSettings(revertToDefault=True)  # reset TOFs
     print("end of program")
+
+
+def _AudioPlayComplete(data):  # when audio stops
+    print("Program Ended: Object Detected")  # print to console
+    misty.StopObjectDetector()  # stop facial recognition
+    misty.UnregisterAllEvents()  # unregister from all events
+    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
+    misty.ChangeLED(0, 0, 0)  # LED off
 
 
 def _ObjectDetection(data):
@@ -64,21 +72,6 @@ def _ObjectDetection(data):
         misty.PlayAudio(sound4, vol4)
         misty.ChangeLED(c4[0], c4[1], c4[2])
         misty.UnregisterEvent("ObjectDetection")
-
-
-def _AudioPlayComplete(data):  # when audio stops
-    print("Program Ended: Object Detected")  # print to console
-    misty.StopObjectDetector()  # stop facial recognition
-    misty.UnregisterAllEvents()  # unregister from all events
-    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
-    misty.ChangeLED(0, 0, 0)  # LED off
-
-
-def end():  # stop and unregister
-    misty.StopObjectDetector()
-    misty.UnregisterAllEvents()
-    print("done")
-    misty.ChangeLED(0, 0, 0)
 
 
 if __name__ == "__main__":
