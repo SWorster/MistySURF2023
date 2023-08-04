@@ -10,8 +10,6 @@ Also, I'm not doing "sliding window" tactics due to sanity constraints. If you t
 WARNING: this code disables Misty's TOF sensors, so she won't automatically stop at table edges and other drops. They are only re-enabled if the program is terminated via the bump sensors. Be careful!
 '''
 
-
-# import statements
 from mistyPy.Robot import Robot
 from mistyPy.Events import Events
 from mistyPy.EventFilters import EventFilters
@@ -32,18 +30,18 @@ clip = "VineBoom.mp3"  # audio to play on completion
 volume = 5  # volume of audio clip
 
 # ! DO NOT EDIT THESE
-sensors = [False, False, False]  # center, right, left TOF
+sensors = [False, False, False]  # left, center, right TOF
 back = False  # back TOF
 count = 0  # counts number of readings taken
 
 
 def _BumpSensor(data):  # terminates program
-    misty.PlayAudio(clip, volume)  # play audio clip
-    misty.Stop()  # stop moving
-    print("Stopped: Bump Sensor")  # print to console
     misty.UnregisterAllEvents()  # unregister from all events (ends program)
-    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
+    misty.Stop()  # stop moving
     misty.ChangeLED(0, 0, 0)  # LED off
+    misty.PlayAudio(clip, volume)  # play audio clip
+    print("Stopped: Bump Sensor")  # print to console
+    misty.UpdateHazardSettings(revertToDefault=True)  # reset hazards
 
 
 def _Back(data):  # rear TOF callback
@@ -51,12 +49,9 @@ def _Back(data):  # rear TOF callback
     try:
         distance = data["message"]["distanceInMeters"]  # distance variable
         status = data["message"]["status"]  # 0 if valid reading
-
         if distance < min_d and status == 0:  # if obstacle too close
             back = True  # obstacle close
-
         move()  # call movement function
-
     except Exception as e:
         print("Back TOF Error:", e)
 
@@ -73,8 +68,8 @@ def _TOF(data):  # callback for time of flight
 
         else:  # no emergency
             match ID:
-                case "toffc": x = 0  # center
-                case "toffr": x = 1  # right
+                case "toffr": x = 2  # right
+                case "toffc": x = 1  # center
                 case "toffl": x = 2  # left
 
             if distance < obs_d and status == 0:  # sees obstacle ahead
@@ -97,6 +92,62 @@ def move():
         total = sum(sensors)  # how many sensors detect obstacle
         print(sensors, back, total)
 
+        if total == 0:
+            misty.Drive(vel, 0)  # drive forward
+        elif total == 1:
+            if sensors[0] or sensors[1]:  # left or center
+                misty.Drive(turn_v, -turn_a)  # turn right
+            else:  # right
+                misty.Drive(turn_v, turn_a)  # turn left
+        elif total == 2:
+            if not sensors[0]:  # center and right
+                if back:  # back obstacle
+                    misty.Drive(0, ang)  # turn hard left
+                else:  # back clear
+                    misty.Drive(-turn_v, -turn_a)  # turn back right
+            elif not sensors[1]:  # left and right
+                if back:
+                    misty.Drive(0, ang)  # turn hard left
+                else:
+                    misty.Drive(-turn_v, turn_a)  # turn back left
+            elif not sensors[2]:  # left and center
+                if back:
+                    misty.Drive(0, -ang)  # turn hard right
+                else:
+                    misty.Drive(-turn_v, turn_a)  # turn back left
+        elif total == 3:  # panic mode
+            if back:
+                misty.Drive(0, ang)  # turn hard left
+            else:
+                misty.Drive(-turn_v, -turn_a)  # turn back right
+
+        count = 0  # reset count
+
+
+if __name__ == "__main__":
+    print("Going on an adventure!")  # print message to console
+    misty.ChangeLED(0, 0, 255)  # change Misty's LED to blue (RGB)
+    misty.UnregisterAllEvents()  # unregister from all previous events
+    misty.UpdateHazardSettings(disableTimeOfFlights=True)  # ignore TOF sensors
+
+    # Subscribe to TOF sensors
+    misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[
+                        EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TOF)
+
+    misty.RegisterEvent("RightTimeOfFlight", Events.TimeOfFlight, condition=[
+                        EventFilters.TimeOfFlightPosition.FrontRight], debounce=TOF_debounce, keep_alive=True, callback_function=_TOF)
+
+    misty.RegisterEvent("LeftTimeOfFlight", Events.TimeOfFlight, condition=[
+                        EventFilters.TimeOfFlightPosition.FrontLeft], debounce=TOF_debounce, keep_alive=True, callback_function=_TOF)
+
+    misty.RegisterEvent("BackTimeOfFlight", Events.TimeOfFlight, condition=[
+                        EventFilters.TimeOfFlightPosition.Back], debounce=TOF_debounce, keep_alive=True, callback_function=_Back)
+
+    # register for bump sensor
+    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                        keep_alive=True, callback_function=_BumpSensor)
+
+    ''' old version of movement behavior
         if back:  # if back obstacle
             if total == 0:  # no front obstacle
                 misty.Drive(vel, 0)  # drive forward
@@ -143,29 +194,4 @@ def move():
 
             elif total == 3:
                 misty.Drive(-vel, 0)  # drive straight back
-
-        count = 0  # reset count
-
-
-if __name__ == "__main__":
-    print("Going on an adventure!")  # print message to console
-    misty.ChangeLED(0, 0, 255)  # change Misty's LED to blue (RGB)
-    misty.UnregisterAllEvents()  # unregister from all previous events
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)  # ignore TOF sensors
-
-    # Subscribe to TOF sensors
-    misty.RegisterEvent("CenterTimeOfFlight", Events.TimeOfFlight, condition=[
-                        EventFilters.TimeOfFlightPosition.FrontCenter], debounce=TOF_debounce, keep_alive=True, callback_function=_TOF)
-
-    misty.RegisterEvent("RightTimeOfFlight", Events.TimeOfFlight, condition=[
-                        EventFilters.TimeOfFlightPosition.FrontRight], debounce=TOF_debounce, keep_alive=True, callback_function=_TOF)
-
-    misty.RegisterEvent("LeftTimeOfFlight", Events.TimeOfFlight, condition=[
-                        EventFilters.TimeOfFlightPosition.FrontLeft], debounce=TOF_debounce, keep_alive=True, callback_function=_TOF)
-
-    misty.RegisterEvent("BackTimeOfFlight", Events.TimeOfFlight, condition=[
-                        EventFilters.TimeOfFlightPosition.Back], debounce=TOF_debounce, keep_alive=True, callback_function=_Back)
-
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                        keep_alive=True, callback_function=_BumpSensor)
+                '''

@@ -20,9 +20,9 @@ driving_time = 5  # the time Misty will drive for, in seconds
 driving_speed = 10  # Misty's linear velocity
 driving_angle = 0  # Misty's angular velocity
 
-is_driving = False  # whether Misty is currently moving
 threshold = 0.3  # distance in meters that will make Misty stop
 min_speed = 0.1  # the minimum speed at which Misty is still considered to be "driving"
+invalid_measurement = 1.3  # replace invalid measurements with this value
 
 TOF_debounce = 5  # Time of Flight event debounce, in milliseconds
 DE_debounce = 500  # DriveEncoders event debounce, in milliseconds
@@ -35,39 +35,34 @@ time_v = 5  # time_stop volume
 
 # ! DO NOT EDIT THESE
 window = []  # empty list to store data over time
-full = False  # tracks whether window is full
+is_driving = False  # whether Misty is currently moving
 
 
 def _TimeOfFlight(data):  # callback for time of flight
-    global is_driving, full, window  # global variables
+    global is_driving, window  # global variables
 
     try:  # try-except block catches malformed/irrelevant responses
         distance = data["message"]["distanceInMeters"]  # distance variable
         status = data["message"]["status"]  # 0 if valid reading
 
         if status != 0:  # if some error
-            distance = 1.3  # record long-range distance
+            distance = invalid_measurement  # record long-range distance
 
         window.append(distance)  # append dist to window list
-        if full:  # if list is full
+        if len(window) >= window_size:  # if list is full
             del window[0]  # delete first element
-        elif len(window) == window_size:  # if full not flipped
-            full = True  # flip full if size reached
 
         avg = sum(window)/len(window)  # get and print average
         print(avg)
 
         # if Misty is too close to an obstacle while driving
         if avg < threshold and status == 0 and is_driving:
-
-            # print to console
+            misty.Stop()  # stop moving
             print(f"Misty is {avg} meters from an obstacle")
+            misty.UnregisterAllEvents()  # unregister from all events (ends program)
             misty.ChangeLED(255, 0, 0)  # change LED to red
             misty.PlayAudio(tof_stop, tof_v)  # play audio clip
-            misty.Stop()  # stop moving
-            is_driving = False  # record that Misty has stopped
-            print("Stopped: Obstacle")  # print to console
-            misty.UnregisterAllEvents()  # unregister from all events (ends program)
+            print("Stopped: Obstacle")
             # reset hazard detection
             misty.UpdateHazardSettings(revertToDefault=True)
 
@@ -85,10 +80,10 @@ def _DriveEncoders(data):  # callback for movement
             is_driving = True  # if moving, record that it's driving
 
         if (left_vel+right_vel < min_speed and is_driving):  # if stopped after having moved
+            misty.UnregisterAllEvents()  # unregister from all events (ends program)
             misty.ChangeLED(0, 255, 0)  # change LED to green
             misty.PlayAudio(time_stop, time_v)  # play audio clip
             print("Stopped: time limit reached")  # print to console
-            misty.UnregisterAllEvents()  # unregister from all events (ends program)
             # reset hazard detection
             misty.UpdateHazardSettings(revertToDefault=True)
     except Exception as e:
