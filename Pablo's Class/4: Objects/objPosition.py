@@ -21,29 +21,22 @@ def _BumpSensor(data):
     misty.UnregisterAllEvents()  # unregister all
     misty.ChangeLED(0, 0, 0)  # LED off
     misty.StopAudio()  # stop audio
-    misty.UpdateHazardSettings(revertToDefault=True)  # reset TOFs
     print("end of program")
 
 
 def _ObjectDetection(data):
     object = data["message"]["description"]
-
     left = data["message"]["imageLocationLeft"]
     right = data["message"]["imageLocationRight"]
     print(object, (right+left)/2)  # print what Misty sees
 
 
-if __name__ == "__main__":
+# register for bump sensor
+misty.RegisterEvent("BumpSensor", Events.BumpSensor,
+                    keep_alive=True, callback_function=_BumpSensor)
 
-    # ignore TOF sensors
-    misty.UpdateHazardSettings(disableTimeOfFlights=True)
+misty.StartObjectDetector(min_confidence, 0, 5)  # start detection
 
-    # register for bump sensor
-    misty.RegisterEvent("BumpSensor", Events.BumpSensor,
-                        keep_alive=True, callback_function=_BumpSensor)
-
-    misty.StartObjectDetector(min_confidence, 0, 5)  # start detection
-
-    # register for object detection
-    misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
-                        debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)
+# register for object detection
+misty.RegisterEvent("ObjectDetection", Events.ObjectDetection,
+                    debounce=OD_debounce, keep_alive=True, callback_function=_ObjectDetection)

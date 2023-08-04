@@ -1,22 +1,22 @@
 '''
-Skye Weaver Worster '25J
+Skye Weaver Worster '25J, with invaluable assistance from Julia Yu '24
 
 Graphs user-provided values, without moving the robot. Useful for debugging or testing graph options.
 
-Note: this program applies a manual offset to the yaw values. This is because the yaw is zeroed upon startup and does not correspond to the occupancy grid. This has to be eyeballed, because there is (as of writing this) no way to get yaw relative to occupancy grid.
+Note: this program applies a manual offset to the yaw values. This is because the yaw is zeroed upon startup and does not correspond to the occupancy grid. This has to be eyeballed, because (as of writing this) there is no way to get yaw relative to occupancy grid.
 '''
 
 from mistyPy.Robot import Robot
 import time
 import matplotlib.pyplot as plt
-import pandas as pd
 from PIL import Image as im
 import numpy as np
 import math
 import os
 
 misty = Robot("131.229.41.135")  # robot with your IP
-path = "/Users/skyeworster/Desktop/pic"  # where to save finished graph
+path = "/Users/skyeworster/Desktop/pics"  # where to save finished graph
+save = True  # whether to save the graph
 show = False  # whether to display graph upon completion
 
 map_name = "polish dancing cow"  # name of map to plot on top of
@@ -27,6 +27,12 @@ offset = 190  # manual offset for yaw values
 obj1 = "book"  # object to the left
 obj2 = "laptop"  # object to the right
 d_meter = 1  # thru driving distance, in meters
+
+# color values for space type
+open = 255  # white open space
+occupied = 0  # black occupied space
+obscured = 200  # covered/obscured areas light gray
+unknown = 100  # unknown areas dark gray
 
 # values that get mapped
 yaw1 = 281  # yaw of first object center
@@ -56,13 +62,13 @@ arr = np.array(misty.GetMap().json()["result"]["grid"])  # current map
 for row in range(arr.shape[0]):
     for col in range(arr.shape[1]):
         if arr[row][col] == 1:  # open = 1
-            arr[row][col] = 255  # white
+            arr[row][col] = open  # white
         elif arr[row][col] == 2:  # occupied = 2
-            arr[row][col] = 0  # black
+            arr[row][col] = occupied  # black
         elif arr[row][col] == 3:  # obscured = 3
-            arr[row][col] = 200  # dark grey
+            arr[row][col] = obscured  # dark grey
         else:  # unknown = 0
-            arr[row][col] = 100  # light grey
+            arr[row][col] = unknown  # light grey
 arr = arr.astype(np.uint8)  # convert to unsigned 8bit integer
 data = im.fromarray(arr)  # create image from array
 data = data.rotate(90)  # rotate to match axes
@@ -82,7 +88,7 @@ ax.set_ylabel("y axis")
 ax.set_title("Graphing Test")
 
 mpc = misty.GetMap().json()["result"]["metersPerCell"]
-d_cell = d_meter/mpc # distance driven in cells, from meters
+d_cell = d_meter/mpc  # distance driven in cells, from meters
 
 
 def rad(deg):  # converts to radians, with offset
@@ -128,7 +134,8 @@ props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
 ax.text(0.02, 0.02, text_str, transform=ax.transAxes,
         fontsize=5, verticalalignment='bottom', bbox=props)
 
-plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)  # save image
+if save:
+    plt.savefig(time.strftime('%d%m%y_%H%M%S'), dpi=dpi)  # save image
 
 if show:
     print("displaying plot in window")

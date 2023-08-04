@@ -74,7 +74,7 @@ PHASE 1: LOCALIZATION
 
 
 def _SelfState(data):
-    #get current location in grid (current map)
+    # get current location in grid (current map)
     global current_x, current_y
     if data["message"]["occupancyGridCell"]["x"] == 0:
         print(".", end="", flush=True)  # show we're waiting on this
@@ -101,7 +101,7 @@ def _SlamStatus(data):
 
 
 def localize():
-    #get current location before running behavior
+    # get current location before running behavior
     global start_x, start_y, is_tracking
 
     try:
@@ -184,17 +184,15 @@ PHASE 2: DRIVING
 '''
 
 
-def _BumpSensor(data):
-    # runs when program ends or Misty is bumped
+def _BumpSensor(data):  # runs when program ends or Misty is bumped
     global bumped, yaw1, yaw2
-
     if not bumped:  # prevents running again on un-bump
+        misty.UnregisterAllEvents()  # unregister from everything
         print("Bumped!")
         bumped = True  # stops while loops
         misty.Stop()  # stop moving
         misty.StopObjectDetector()  # stop detecting objects
         misty.StopTracking()  # stop tracking
-        misty.UnregisterAllEvents()  # unregister from everything
         misty.ChangeLED(0, 0, 0)  # LED off
         misty.UpdateHazardSettings(revertToDefault=True)  # reset TOFs
         print("end of program")
@@ -270,8 +268,7 @@ def searching():
 
 
 def driveForward():
-    global calc_middle, middle
-
+    global calc_middle
     try:
         misty.StopObjectDetector()  # stop detection
         misty.UnregisterEvent("ObjectDetection")  # unregister detection
