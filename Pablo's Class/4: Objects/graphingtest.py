@@ -22,6 +22,8 @@ show = False  # whether to display graph upon completion
 map_name = "polish dancing cow"  # name of map to plot on top of
 img_name = "polish_dancing_cow.png"  # name to save image as
 dpi = 800  # dpi to save image with
+loc = "lower right"  # legend location
+fontsize = 5  # legend font size
 
 offset = 190  # manual offset for yaw values
 obj1 = "book"  # object to the left
@@ -118,7 +120,7 @@ plt.plot([start_x, x2], [start_y, y2], 'g.-', label=obj2)
 # plot actual position
 plt.plot([start_x, final_x], [start_y, final_y], 'y.-', label="SLAM end")
 
-plt.legend(loc="lower right", fontsize=5)  # create legend
+plt.legend(loc=loc, fontsize=fontsize)  # create legend
 
 # movement data in string
 text_str = '\n'.join(((f"start SLAM: {start_x} {start_y}, yaw : {int(start_yaw)}"),

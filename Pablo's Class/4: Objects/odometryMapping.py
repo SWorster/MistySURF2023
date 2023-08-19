@@ -1,7 +1,7 @@
 '''
 Skye Weaver Worster '25J, with invaluable assistance from Julia Yu '24
 
-Pablo's Instructions: Have the sequence of motions from the "Obj Interaction" Activity printed out and a graphical representation of the path visualized (forward 30cm; left 45 degrees; forward 55cm; right 15 degrees; etc). basically, run previous activity and record movement/position data, then display on top of provided map
+Misty performs the objInteraction.py program while tracking her location with SLAM. We record her initial and final positions, and compare this to what we expected based on her IMU measurements and the instructions we gave her. The results of both methods are graphed on the occupancy grid.
 
 Note: when Misty drives forward, she goes towards the calculated middle. This might differ slightly from where she actually ends up after the left turn due to processing/communication lag. I decided to use DriveHeading to have Misty return to the calculated heading as she drives forward, instead of going straight forward from the inaccurate middle. We're cutting so many corners anyway that this isn't a huge deal, but I wanted to record it. It's easy to change, if desired.
 
@@ -158,7 +158,7 @@ def localize():
             misty.ChangeLED(255, 200, 0)  # LED yellow
             print("Waiting on non-0 location values")
 
-            while start_x == 0 and not bumped:  # ! decide whether this is start_x or current_x
+            while current_x == 0 and not bumped:  # Misty doesn't know location
                 pass  # wait until we get location data that isn't 0
 
             if bumped:
@@ -201,8 +201,6 @@ def _BumpSensor(data):  # runs when program ends or Misty is bumped
 def _IMU(data):
     global yaw
     yaw = data["message"]["yaw"] % 360  # get yaw, convert to range 0-360
-
-    # * Note on yaw: Yaw is set to 0 upon Misty startup. IMU can send values from -360 to 360. So the orientation she faces at start could be 0, -360, or 360. The sensor is accurate plus or minus about 2 degrees, so an actual heading of 0 could be -2 to 2, -360 to -358, or 358 to 360. To simplify this, I've converted the yaw to the 0 to 360 degree range. This means an actual heading of 0 will only return 0-2 or 358-360.
 
 
 def _ObjectDetection(data):
@@ -323,10 +321,6 @@ def relocalize():
         is_tracking = False
         current_x = None
         current_y = None
-
-        # # register for SLAM status event to get tracking data
-        # misty.RegisterEvent("SlamStatus", Events.SlamStatus,
-        #                     keep_alive=True, callback_function=_SlamStatus)
 
         # register for self state events to get position
         misty.RegisterEvent("SelfState", Events.SelfState,
