@@ -22,12 +22,11 @@ def _FaceTraining(data):  # callback for face training
         print("Facial Recognition error:", e)
 
 
-if __name__ == "__main__":
-    # unregister from all events to clear existing facial recognition
-    misty.UnregisterAllEvents()
+# unregister from all events to clear existing facial recognition
+misty.UnregisterAllEvents()
 
-    # register for face training events
-    misty.RegisterEvent("FaceTraining", Events.FaceTraining,
-                        keep_alive=True, callback_function=_FaceTraining)
+# register for face training events
+misty.RegisterEvent("FaceTraining", Events.FaceTraining,
+                    keep_alive=True, callback_function=_FaceTraining)
 
-    misty.StartFaceTraining(name)  # start face training
+misty.StartFaceTraining(name)  # start face training
