@@ -12,11 +12,7 @@ This program assumes that you've cloned the GitHub repo to your computer. This m
 
 You should have git installed on your computer. It's probably on there already, but [here's some instructions, just in case](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git).
 
-In VSCode, click Accounts on your Activity Bar (if you've personalized your VSCode, the location and appearance of Accounts may be different). There should be an option to sign in to GitHub.
-
-Now click Source Control (which is probably on your Activity Bar). There should be an option to clone a repository. Choose where to store this repository on your computer (we recommend a high level, like Users). Provide the following URL for the repository: [https://github.com/SWorster/MistySURF2023](https://github.com/SWorster/MistySURF2023). 
-
-There are many potential issues with this process depending on your personal setup. A quick Google search should be sufficient to get you fully set up.
+The easiest way to clone the repository is by navigating to the destination directory on your Terminal and running the command `git clone https://github.com/SWorster/MistySURF2023`. You can then open this repo's directory from your preferred IDE (VSCode is highly recommended).
 
 ## The Actual Code
 
