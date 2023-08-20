@@ -1,12 +1,9 @@
 '''
 Skye Weaver Worster '25J
 
-This code forcibly resets and clears everything from Misty. It's very useful to provide a clean slate when debugging. It can also be called from other programs using the following:
+This code forcibly resets and clears everything from Misty.
 
-import os
-os.system('python3 <path-to-file>/reset.py')
-
-This program should only be used to quickly transition out of a program that isn't stopping properly. It shouldn't be used in a finished product to set Misty's preconditions before running a program, or to gracefully end a running program. I would strongly encourage alternate methods of resetting Misty, like unregistering from events and stopping processes in your code, or using the Misty Studio reset option in the Settings tab.
+It is STRONGLY RECOMMENDED to read the accompanying walkthrough before running this. There may be unintended consequences to using this code.
 '''
 
 from mistyPy.Robot import Robot  # import robot class
